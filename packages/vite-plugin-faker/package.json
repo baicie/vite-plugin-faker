@@ -1,0 +1,39 @@
+{
+  "name": "vite-plugin-faker",
+  "version": "0.1.0",
+  "description": "Vite插件，用于拦截API请求并使用faker进行模拟数据",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup"
+  },
+  "keywords": [
+    "vite-plugin",
+    "faker",
+    "mock",
+    "api"
+  ],
+  "dependencies": {
+    "@faker-js/faker": "^8.0.0",
+    "lit": "^3.1.0",
+    "msw": "^2.0.0"
+  },
+  "peerDependencies": {
+    "vite": "^5.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0"
+  }
+}
