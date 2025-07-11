@@ -1,10 +1,12 @@
-import { http, setupWorker } from 'msw'
-import type { MockConfig } from './types'
+import { http } from 'msw'
+import type { setupServer } from 'msw/node'
 import type { MockStorage } from './storage'
+import type { MockConfig } from './types'
 
 // MSW 工作者实例
-let worker: ReturnType<typeof setupWorker> | null = null
+let worker: ReturnType<typeof setupServer> | null = null
 
+// setupServer()
 /**
  * 创建MSW处理程序
  */

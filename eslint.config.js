@@ -35,12 +35,6 @@ export default tseslint.config(
             'verbose helpers and should be avoided.',
         },
         {
-          selector: 'ObjectExpression > SpreadElement',
-          message:
-            'esbuild transpiles object spread into very verbose inline helpers.\n' +
-            'Please use the `extend` helper from @zeus-js/shared instead.',
-        },
-        {
           selector: 'AwaitExpression',
           message:
             'Our output target is ES2016, so async/await syntax should be avoided.',
@@ -96,17 +90,9 @@ export default tseslint.config(
     },
   },
 
-  // shared, may be used in any env
-  {
-    files: ['packages/shared/**', 'eslint.config.js'],
-    rules: {
-      'no-restricted-globals': 'off',
-    },
-  },
-
   // Packages targeting DOM
   {
-    files: ['packages/{core}/**'],
+    files: ['packages/faker-ui/**'],
     rules: {
       'no-restricted-globals': ['error', ...NodeGlobals],
     },
@@ -118,16 +104,6 @@ export default tseslint.config(
     rules: {
       'no-restricted-globals': ['error', ...DOMGlobals],
       'no-restricted-syntax': ['error', banConstEnum],
-    },
-  },
-
-  // Private package, browser only + no syntax restrictions
-  {
-    files: ['packages-private/sfc-playground/**'],
-    rules: {
-      'no-restricted-globals': ['error', ...NodeGlobals],
-      'no-restricted-syntax': ['error', banConstEnum],
-      'no-console': 'off',
     },
   },
 
