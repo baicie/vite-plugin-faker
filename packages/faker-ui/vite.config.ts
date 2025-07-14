@@ -4,6 +4,7 @@ import fse from 'fs-extra'
 import path from 'node:path'
 import { type Plugin, defineConfig } from 'vite'
 import { rootPath } from './../path'
+import tailwindcss from '@tailwindcss/vite'
 
 const { ensureDirSync, copySync } = fse
 const fakerUiPath = path.resolve(__dirname, 'dist')
@@ -28,7 +29,7 @@ const buildEndPlugin: Plugin = {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [svelte(), buildEndPlugin],
+  plugins: [tailwindcss(), svelte(), buildEndPlugin],
   build: {
     lib: {
       entry: 'src/main.ts',
