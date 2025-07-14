@@ -19,19 +19,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const runtimePublicPath = '/@faker-ui'
 const fakeruiRuntimePath = path.resolve(__dirname, 'faker-ui.js')
 
-export const preambleCode = `import { injectIntoGlobalHook } from "__BASE__${runtimePublicPath.slice(
+export const preambleCode = `import { fakerUI } from "__BASE__${runtimePublicPath.slice(
   1,
 )}";
-injectIntoGlobalHook(window);
-window.$RefreshReg$ = () => {};
-window.$RefreshSig$ = () => (type) => type;`
+  fakerUI(document.querySelector(__MOUNT_TARGET__));`
 
-const getPreambleCode = (base: string): string =>
-  preambleCode.replace('__BASE__', base)
+const getPreambleCode = (base: string, mountTarget: string): string =>
+  preambleCode
+    .replace('__BASE__', base)
+    .replace('__MOUNT_TARGET__', `'${mountTarget}'`)
 
 export function viteFaker(options: ViteFakerOptions = {}): Plugin {
   const { mountTarget = '#mock-ui', storageDir = '.mock' } = options
-
   // 创建服务器适配器
   const serverAdapter = new ServerAdapter({ storageDir })
 
@@ -40,7 +39,6 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     storageDir,
     serverAdapter,
   })
-
   return {
     name: 'vite-plugin-faker',
     apply: 'serve',
@@ -67,7 +65,14 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           attrs: {
             type: 'module',
           },
-          children: getPreambleCode(config.server!.config.base),
+          children: getPreambleCode(config.server!.config.base, mountTarget),
+        },
+        {
+          tag: 'div',
+          attrs: {
+            id: mountTarget.slice(1),
+          },
+          injectTo: 'body',
         },
       ]
     },
