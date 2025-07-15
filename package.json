@@ -10,7 +10,7 @@
     "test": "vitest",
     "test-unit": "vitest --project unit",
     "build": "pnpm --filter ./packages/* build",
-    "dev": "pnpm --filter ./packages/* dev",
+    "dev": "node scripts/dev.js",
     "install:deps": "pnpm install"
   },
   "devDependencies": {

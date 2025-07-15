@@ -254,4 +254,25 @@ export default tseslint.config(
       '@typescript-eslint/ban-ts-comment': 'off',
     },
   },
+  {
+    name: 'disables/typechecking',
+    files: [
+      '**/*.js',
+      '**/*.mjs',
+      '**/*.cjs',
+      '**/*.d.ts',
+      '**/*.d.cts',
+      '**/__tests__/**',
+      'docs/**',
+      'playground/**',
+      'scripts/**',
+      'vitest.config.ts',
+      'vitest.config.e2e.ts',
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: false,
+      },
+    },
+  },
 )

@@ -1,7 +1,8 @@
 import path from 'node:path'
-import { vitePluginFakerPath } from './../../packages/path'
+import type { ChildProcess } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import chokidar, { type FSWatcher } from 'chokidar'
-import { spawn, ChildProcess } from 'node:child_process'
+import { vitePluginFakerPath } from './../../packages/path'
 
 const distPath = path.resolve(vitePluginFakerPath, 'dist')
 
@@ -20,7 +21,7 @@ async function startWatcher() {
     ignored: /\.(map|d\.ts)$/,
   })
 
-  watcher.on('change', async (_, filePath) => {
+  watcher.on('change', async _ => {
     viteProcess.kill()
     startViteProcess()
   })

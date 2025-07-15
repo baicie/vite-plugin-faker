@@ -1,19 +1,43 @@
 <script lang="ts">
-  function handleClick() {
-    console.log('click')
+  import { Modal } from '@skeletonlabs/skeleton-svelte'
+
+  let drawerState = $state(false)
+
+  function drawerClose() {
+    drawerState = false
   }
 </script>
 
 <main data-theme="cerberus">
-  <button
-    type="button"
-    onclick={handleClick}
-    class="btn btn-primary fixed bottom-6 right-6 rounded-full shadow-lg w-14 h-14 flex items-center justify-center text-xl"
-    aria-label="Float Button"
+  <Modal
+    open={drawerState}
+    onOpenChange={e => (drawerState = e.open)}
+    triggerBase="btn preset-tonal"
+    contentBase="bg-surface-100-900 p-4 space-y-4 shadow-xl w-[480px] h-screen"
+    positionerJustify="justify-start"
+    positionerAlign=""
+    positionerPadding=""
+    transitionsPositionerIn={{ x: -480, duration: 200 }}
+    transitionsPositionerOut={{ x: -480, duration: 200 }}
   >
-    +
-  </button>
+    {#snippet trigger()}Open Drawer{/snippet}
+    {#snippet content()}
+      <header class="flex justify-between">
+        <h2 class="h2">Drawer Example</h2>
+      </header>
+      <article>
+        <p class="opacity-60">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Nam, ab
+          adipisci. Libero cumque sunt quis error veritatis amet, expedita
+          voluptatem. Quos repudiandae consequuntur voluptatem et dicta quas,
+          reprehenderit velit excepturi?
+        </p>
+      </article>
+      <footer>
+        <button type="button" class="btn preset-filled" onclick={drawerClose}
+          >Close Drawer</button
+        >
+      </footer>
+    {/snippet}
+  </Modal>
 </main>
-
-<style>
-</style>
