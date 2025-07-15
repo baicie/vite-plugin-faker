@@ -18,7 +18,6 @@ export interface ViteFakerOptions extends StorageOptions {
 }
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const runtimePublicPath = '/@faker-ui'
-const runtimeCssPath = '/@faker-ui?css'
 const fakeruiRuntimePath = path.resolve(__dirname, 'faker-ui.js')
 const fakeruiCssPath = path.resolve(__dirname, 'faker-ui.css')
 
@@ -47,7 +46,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     apply: 'serve',
     resolveId: {
       filter: {
-        id: [exactRegex(runtimePublicPath), exactRegex(runtimeCssPath)],
+        id: [exactRegex(runtimePublicPath)],
       },
       handler(id) {
         if (id === runtimePublicPath) {
@@ -57,14 +56,11 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     },
     load: {
       filter: {
-        id: [exactRegex(runtimePublicPath), exactRegex(runtimeCssPath)],
+        id: [exactRegex(runtimePublicPath)],
       },
       handler(id) {
         if (id === runtimePublicPath) {
           return readFileSync(fakeruiRuntimePath, 'utf-8')
-        }
-        if (id === runtimeCssPath) {
-          return readFileSync(fakeruiCssPath, 'utf-8')
         }
       },
     },
@@ -94,12 +90,11 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           injectTo: 'body',
         },
         {
-          tag: 'link',
+          tag: 'style',
           attrs: {
             type: 'text/css',
-            href: runtimeCssPath,
-            rel: 'stylesheet',
           },
+          children: readFileSync(fakeruiCssPath, 'utf-8'),
           injectTo: 'head',
         },
       ]
