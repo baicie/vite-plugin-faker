@@ -24,7 +24,7 @@ const fakeruiCssPath = path.resolve(__dirname, 'faker-ui.css')
 export const preambleCode = `import { fakerUI } from "__BASE__${runtimePublicPath.slice(
   1,
 )}";
-  fakerUI(document.querySelector(__MOUNT_TARGET__));`
+  fakerUI(__MOUNT_TARGET__);`
 
 const getPreambleCode = (base: string, mountTarget: string): string =>
   preambleCode
@@ -85,6 +85,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
               width: 100%;
               height: 100%;
               z-index: 1000;
+              pointer-events: none;
             `,
           },
           injectTo: 'body',

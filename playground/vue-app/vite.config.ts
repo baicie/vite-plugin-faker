@@ -14,8 +14,5 @@ export default defineConfig(() => {
         },
       },
     },
-    optimizeDeps: {
-      exclude: ['vite-plugin-faker'],
-    },
   }
 })

@@ -30,7 +30,9 @@ export default tseslint.config(
       parserOptions: {
         sourceType: 'module',
         ecmaVersion: 2022,
-        project: shouldTypeCheck ? ['./packages/*/tsconfig.json'] : undefined,
+        project: shouldTypeCheck
+          ? ['./packages/*/tsconfig.json', './tsconfig.node.json']
+          : undefined,
       },
       globals: {
         ...globals.es2021,
@@ -82,16 +84,7 @@ export default tseslint.config(
       'n/no-extraneous-import': [
         'error',
         {
-          allowModules: [
-            'vite',
-            'less',
-            'sass',
-            'sass-embedded',
-            'terser',
-            'lightningcss',
-            'vitest',
-            'unbuild',
-          ],
+          allowModules: ['fs-extra', '@pnpm/find-workspace-packages'],
         },
       ],
       'n/no-extraneous-require': [
