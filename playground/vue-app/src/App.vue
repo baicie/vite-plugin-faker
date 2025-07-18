@@ -1,6 +1,6 @@
 <script setup lang="ts"></script>
 
-<template></template>
+<template>vue app</template>
 
 <style scoped>
 .logo {

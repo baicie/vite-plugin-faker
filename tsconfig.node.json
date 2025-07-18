@@ -23,5 +23,10 @@
 
     "types": ["node"]
   },
-  "include": ["stricts", "packages/**/vite.config.ts", "./global.d.ts"]
+  "include": [
+    "stricts",
+    "packages/**/vite.config.ts",
+    "./global.d.ts",
+    "packages/**/rolldown.config.ts"
+  ]
 }

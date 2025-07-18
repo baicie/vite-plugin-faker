@@ -78,15 +78,6 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           tag: 'div',
           attrs: {
             id: mountTarget.slice(1),
-            style: `
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              z-index: 1000;
-              pointer-events: none;
-            `,
           },
           injectTo: 'body',
         },
