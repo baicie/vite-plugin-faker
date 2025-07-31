@@ -6,8 +6,9 @@
     "rootDir": ".",
     "baseUrl": ".",
     "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "downlevelIteration": true
   },
-  "include": ["./index.ts"],
+  "include": ["./*.ts"],
   "exclude": ["node_modules", "dist"]
 }

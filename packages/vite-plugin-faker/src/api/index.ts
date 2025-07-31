@@ -28,7 +28,6 @@ function handleWebSocketMessage(
             params.pageSize,
             params.search,
           )
-        console.log(response)
         server.ws.send(ICustomEvent.response, {
           uuid: event.uuid,
           data: response,

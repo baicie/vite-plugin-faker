@@ -1,3 +1,5 @@
+export * from './utils'
+
 export enum ICustomEvent {
   custom = 'custom',
   request = 'request',

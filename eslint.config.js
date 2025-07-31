@@ -172,7 +172,7 @@ export default tseslint.config(
   },
   {
     name: 'faker-ui/node',
-    files: ['packages/faker-ui/src/node/**/*.?([cm])[jt]s?(x)'],
+    files: ['packages/vite-plugin-faker/**/*.?([cm])[jt]s?(x)'],
     rules: {
       'no-console': ['error'],
       'n/no-restricted-require': [
@@ -185,6 +185,13 @@ export default tseslint.config(
             `lazy load a dependency, use (await import('dependency')).default instead.`,
         })),
       ],
+    },
+  },
+  {
+    name: 'fake-ui/web',
+    files: ['packages/faker-ui/**/*.?([cm])[jt]s?(x)'],
+    rules: {
+      'no-console': ['error'],
     },
   },
   // TODO
