@@ -33,6 +33,8 @@ export function handleRequest(
       return settingsHandler.getSettings(dbManager)
     case IApi.saveSettings:
       return settingsHandler.saveSettings(data, dbManager)
+    case IApi.clearCache:
+      return settingsHandler.clearCache(dbManager)
 
     // 未知API
     default:

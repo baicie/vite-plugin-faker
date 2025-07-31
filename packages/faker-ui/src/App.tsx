@@ -1,6 +1,12 @@
 // src/App.tsx
-import { Fragment, defineComponent, reactive } from 'vue'
-import { NDrawer, NFloatButton, NTabPane, NTabs } from 'naive-ui'
+import { defineComponent, reactive } from 'vue'
+import {
+  NDialogProvider,
+  NDrawer,
+  NFloatButton,
+  NTabPane,
+  NTabs,
+} from 'naive-ui'
 import RequestList from './components/request-list'
 import MockList from './components/mock-list'
 import SettingsPanel from './components/settings-panel'
@@ -17,7 +23,7 @@ const App = defineComponent({
     }
 
     return () => (
-      <Fragment>
+      <NDialogProvider>
         <NFloatButton
           type="primary"
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -45,7 +51,7 @@ const App = defineComponent({
             </NTabs>
           </div>
         </NDrawer>
-      </Fragment>
+      </NDialogProvider>
     )
   },
 })

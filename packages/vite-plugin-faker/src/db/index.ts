@@ -1,6 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import { cacheDir } from '../index'
+import { ensureDirSync } from '@baicie/faker-shared/node'
+import { _baseDir, cacheDir } from '../index'
 import { RequestsDB } from './request'
 import { SettingsDB } from './setting'
 import { MocksDB } from './mock'
@@ -13,6 +14,8 @@ export class DBManager {
   }
 
   static getInstance(): DBManager {
+    ensureDirSync(cacheDir)
+    ensureDirSync(_baseDir)
     if (!DBManager.instance) {
       DBManager.instance = new DBManager()
     }

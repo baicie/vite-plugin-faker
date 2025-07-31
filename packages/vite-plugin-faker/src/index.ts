@@ -14,6 +14,8 @@ export interface ViteFakerOptions {
    * @default '#mock-ui'
    */
   mountTarget?: string
+
+  storeDir?: string
 }
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const runtimePublicPath = '/@faker-ui'
@@ -31,11 +33,12 @@ const getPreambleCode = (base: string, mountTarget: string): string =>
     .replace('__MOUNT_TARGET__', `'${mountTarget}'`)
 
 let server: ViteDevServer | null = null
-export let cacheDir: string | null = null
 let dbManager: DBManager | null = null
+export let cacheDir: string | null = null
+export let _baseDir: string | null = null
 
 export function viteFaker(options: ViteFakerOptions = {}): Plugin {
-  const { mountTarget = '#mock-ui' } = options
+  const { mountTarget = '#mock-ui', storeDir = '.mock' } = options
 
   return {
     name: 'vite-plugin-faker',
@@ -89,6 +92,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     },
     configResolved(config) {
       cacheDir = path.resolve(config.cacheDir, 'vite-plugin-faker')
+      _baseDir = path.resolve(config.root, storeDir)
       dbManager = DBManager.getInstance()
     },
     configureServer(_server) {

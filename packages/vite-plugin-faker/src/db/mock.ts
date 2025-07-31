@@ -1,4 +1,5 @@
 import { generateUUID } from '@baicie/faker-shared'
+import { _baseDir } from '../index'
 import { BaseDB } from './base'
 
 interface MockConfig {
@@ -21,7 +22,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   private static instance: MocksDB
 
   private constructor() {
-    super('mocks', {})
+    super('mocks', {}, _baseDir)
   }
 
   static getInstance(): MocksDB {

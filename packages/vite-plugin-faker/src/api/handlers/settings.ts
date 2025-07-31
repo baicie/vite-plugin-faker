@@ -12,3 +12,8 @@ export function saveSettings(data: unknown, dbManager: DBManager): any {
   dbManager.getSettingsDB().updateSettings(settings)
   return true
 }
+
+export function clearCache(dbManager: DBManager): any {
+  dbManager.getRequestsDB().clear()
+  return true
+}

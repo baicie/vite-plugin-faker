@@ -71,4 +71,9 @@ export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
       sortDesc,
     })
   }
+
+  clear(): void {
+    this.db.data = {}
+    this.save()
+  }
 }

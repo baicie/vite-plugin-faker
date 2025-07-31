@@ -16,7 +16,6 @@ export function holdMiddleware(
   const requestsDB = dbManager.getRequestsDB()
   return (req, res, next) => {
     const pathname = parse_url(req.url).pathname
-    console.log('pathname', pathname)
     res.on('finish', () => {
       if (!requestsDB.getRequest(pathname)) {
         requestsDB.saveRequest(pathname, {

@@ -9,14 +9,18 @@ export abstract class BaseDB<T extends object> {
   protected db: LowSync<T>
   protected tableName: string
 
-  constructor(tableName: string, defaultData: T) {
+  constructor(tableName: string, defaultData: T, dbDir?: string) {
     this.tableName = tableName
 
-    const dbDir = path.resolve(cacheDir, 'db')
+    if (!dbDir) {
+      dbDir = path.resolve(cacheDir, 'db')
+    }
     fs.mkdirSync(dbDir, { recursive: true })
 
     const filePath = path.join(dbDir, `${tableName}.json`)
     this.db = JSONFileSyncPreset<T>(filePath, defaultData)
+    // init write
+    this.db.write()
   }
 
   getData(): T {

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./node": "./node.ts"
   }
 }
