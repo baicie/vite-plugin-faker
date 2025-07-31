@@ -27,6 +27,7 @@
     "stricts",
     "packages/**/vite.config.ts",
     "./global.d.ts",
-    "packages/**/rolldown.config.ts"
+    "packages/**/rolldown.config.ts",
+    "packages/**/rollup.config.ts"
   ]
 }

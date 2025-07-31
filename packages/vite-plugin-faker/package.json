@@ -27,15 +27,17 @@
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
     "@rolldown/pluginutils": "1.0.0-beta.26",
-    "faker-ui": "workspace:*",
-    "lit": "^3.3.1",
-    "msw": "^2.10.3"
+    "lodash": "^4.17.21",
+    "lowdb": "^7.0.1"
   },
   "peerDependencies": {
     "vite": "^7.0.4"
   },
   "devDependencies": {
+    "@baicie/faker-shared": "workspace:*",
+    "@baicie/faker-ui": "workspace:*",
     "@types/fs-extra": "^11.0.4",
+    "@types/lodash": "^4.17.20",
     "fs-extra": "^11.3.0",
     "rolldown": "1.0.0-beta.26",
     "rolldown-plugin-dts": "^0.13.13"

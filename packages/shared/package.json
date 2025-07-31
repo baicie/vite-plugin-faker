@@ -1,0 +1,8 @@
+{
+  "name": "@baicie/faker-shared",
+  "version": "1.0.0",
+  "description": "",
+  "exports": {
+    ".": "./index.ts"
+  }
+}

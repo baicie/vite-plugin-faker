@@ -1,15 +1,14 @@
 import { readFileSync } from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Plugin } from 'vite'
+import type { Plugin, ViteDevServer } from 'vite'
 
 import { exactRegex } from '@rolldown/pluginutils'
-import { MockStorage } from './storage'
-import type { StorageOptions } from './storage'
-import { ServerAdapter } from './server-adapter'
-// 移除静态导入
+import { registerApis } from './api'
+import { DBManager } from './db'
+import { holdMiddleware } from './middleware'
 
-export interface ViteFakerOptions extends StorageOptions {
+export interface ViteFakerOptions {
   /**
    * 挂载UI面板的目标元素选择器
    * @default '#mock-ui'
@@ -31,16 +30,13 @@ const getPreambleCode = (base: string, mountTarget: string): string =>
     .replace('__BASE__', base)
     .replace('__MOUNT_TARGET__', `'${mountTarget}'`)
 
-export function viteFaker(options: ViteFakerOptions = {}): Plugin {
-  const { mountTarget = '#mock-ui', storageDir = '.mock' } = options
-  // 创建服务器适配器
-  const serverAdapter = new ServerAdapter({ storageDir })
+let server: ViteDevServer | null = null
+export let cacheDir: string | null = null
+let dbManager: DBManager | null = null
 
-  // 创建存储实例
-  const _mockStorage = new MockStorage({
-    storageDir,
-    serverAdapter,
-  })
+export function viteFaker(options: ViteFakerOptions = {}): Plugin {
+  const { mountTarget = '#mock-ui' } = options
+
   return {
     name: 'vite-plugin-faker',
     apply: 'serve',
@@ -91,11 +87,19 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         },
       ]
     },
+    configResolved(config) {
+      cacheDir = path.resolve(config.cacheDir, 'vite-plugin-faker')
+      dbManager = DBManager.getInstance()
+    },
+    configureServer(_server) {
+      server = _server
+      const middlewares = server.middlewares
+      middlewares.use(holdMiddleware(server, dbManager))
+      registerApis(server, dbManager)
+    },
   }
 }
 
 export * from './types'
-export * from './storage'
-export * from './server-adapter'
 
 export default viteFaker

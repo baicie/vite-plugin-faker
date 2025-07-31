@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false
+  },
+  "include": ["./index.ts"],
+  "exclude": ["node_modules", "dist"]
+}

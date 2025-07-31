@@ -1,5 +1,6 @@
 import { Fragment, defineComponent, reactive } from 'vue'
-import { NDrawer, NFloatButton } from 'naive-ui'
+import { NDataTable, NDrawer, NFloatButton } from 'naive-ui'
+import { getDashboard } from './api'
 
 const App = defineComponent({
   setup() {
@@ -7,8 +8,14 @@ const App = defineComponent({
       open: false,
     })
 
-    const handleOpen = () => {
+    const handleOpen = async () => {
       state.open = true
+      const result = await getDashboard({
+        page: 1,
+        pageSize: 10,
+        search: '',
+      })
+      console.log(result)
     }
 
     return () => (
@@ -22,13 +29,11 @@ const App = defineComponent({
           bottom={24}
           right={0}
         >
-          Click me1
+          open
         </NFloatButton>
 
-        <NDrawer v-model:show={state.open}>
-          <div>
-            <h1>Hello</h1>
-          </div>
+        <NDrawer v-model:show={state.open} defaultWidth={520} resizable>
+          <NDataTable></NDataTable>
         </NDrawer>
       </Fragment>
     )
