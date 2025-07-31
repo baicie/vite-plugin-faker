@@ -1,6 +1,15 @@
-import { defineComponent, onMounted, reactive, ref } from 'vue'
-import { NButton, NCard, NDataTable, NInput, NPopover, NSpace } from 'naive-ui'
+import { defineComponent, inject, onMounted, reactive, ref } from 'vue'
+import {
+  NButton,
+  NCard,
+  NDataTable,
+  NInput,
+  NPopover,
+  NSpace,
+  useMessage,
+} from 'naive-ui'
 import { getDashboard } from '../api'
+import RequestDetail from './request-detail'
 
 const RequestList = defineComponent({
   name: 'RequestList',
@@ -9,6 +18,12 @@ const RequestList = defineComponent({
     const loading = ref(false)
     const selectedRequest = ref<any>(null)
     const showDetail = ref(false)
+    const message = useMessage()
+
+    const setActiveTab = inject('setActiveTab') as (tab: string) => void
+    const createOrEditMock = inject('createOrEditMock') as (
+      mockData: any,
+    ) => void
 
     const pagination = reactive({
       page: 1,
@@ -102,9 +117,53 @@ const RequestList = defineComponent({
       showDetail.value = true
     }
 
-    function mockRequest(row: any) {
-      // 创建模拟配置
-      // 触发跳转到模拟配置标签页并预填数据
+    async function mockRequest(row: any) {
+      try {
+        const existingMock = await getMockByUrl({
+          url: row.url,
+          method: row.method,
+        })
+
+        if (existingMock) {
+          message.info('发现已有模拟配置，进入编辑模式')
+          createOrEditMock(existingMock)
+        } else {
+          message.success('创建新的模拟配置')
+
+          const contentType =
+            row.response.headers?.['content-type'] || 'application/json'
+
+          let responseData = {}
+          try {
+            if (row.response.body) {
+              responseData =
+                typeof row.response.body === 'string'
+                  ? JSON.parse(row.response.body)
+                  : row.response.body
+            }
+          } catch (e) {
+            responseData = { message: 'Mock response' }
+          }
+
+          const newMockConfig = {
+            url: row.url,
+            method: row.method,
+            statusCode: row.statusCode,
+            enabled: true,
+            description: `从请求记录自动生成的模拟配置 (${new Date().toLocaleString()})`,
+            responseType: 'static',
+            responseData: responseData,
+            delay: 0,
+            headers: {
+              'Content-Type': contentType,
+            },
+          }
+
+          createOrEditMock(newMockConfig)
+        }
+      } catch (error) {
+        message.error('处理模拟配置失败: ' + (error.message || '未知错误'))
+      }
     }
 
     function handleSearch() {

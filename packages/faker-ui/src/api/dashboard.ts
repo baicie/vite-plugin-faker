@@ -71,4 +71,9 @@ export const saveSettings = createApiRequest<SystemSettings, boolean>(
   IApi.saveSettings,
 )
 
+export const getMockByUrl = createApiRequest<
+  { url: string; method: string },
+  MockConfig | null
+>(IApi.getMockByUrl)
+
 export const clearCache = createApiRequest<void, boolean>(IApi.clearCache)

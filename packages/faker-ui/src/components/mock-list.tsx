@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { defineComponent, onMounted, reactive, ref, watch } from 'vue'
 import {
   NButton,
   NDataTable,
@@ -12,11 +12,31 @@ import MockEditor from './mock-editor'
 
 const MockList = defineComponent({
   name: 'MockList',
-  setup() {
+  props: {
+    showEditor: {
+      type: Boolean,
+      default: false,
+    },
+    currentEditingMock: {
+      type: Object,
+      default: null,
+    },
+  },
+  emits: ['updateShowEditor', 'updateCurrentMock'],
+  setup(props, { emit }) {
     const mocks = ref([])
     const loading = ref(false)
-    const showEditor = ref(false)
     const currentMock = ref(null)
+
+    watch(
+      () => props.currentEditingMock,
+      val => {
+        if (val) {
+          currentMock.value = val
+        }
+      },
+      { immediate: true },
+    )
 
     const pagination = reactive({
       page: 1,
@@ -114,12 +134,12 @@ const MockList = defineComponent({
           'Content-Type': 'application/json',
         },
       }
-      showEditor.value = true
+      emit('updateShowEditor', true)
     }
 
     function handleEdit(mock) {
       currentMock.value = { ...mock }
-      showEditor.value = true
+      emit('updateShowEditor', true)
     }
 
     async function handleToggleStatus(id, enabled) {
@@ -146,8 +166,14 @@ const MockList = defineComponent({
     }
 
     function handleSave() {
-      showEditor.value = false
+      emit('updateShowEditor', false)
+      emit('updateCurrentMock', null)
       loadMocks()
+    }
+
+    function handleCancel() {
+      emit('updateShowEditor', false)
+      emit('updateCurrentMock', null)
     }
 
     onMounted(() => {
@@ -182,11 +208,11 @@ const MockList = defineComponent({
           striped
         />
 
-        {/* 编辑器弹窗 */}
         <MockEditor
-          v-model:show={showEditor.value}
+          v-model:show={props.showEditor}
           mock={currentMock.value}
           onSave={handleSave}
+          onCancel={handleCancel}
         />
       </div>
     )

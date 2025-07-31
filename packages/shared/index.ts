@@ -12,6 +12,7 @@ export enum IApi {
   previewMock = '/api/previewMock',
   getSettings = '/api/getSettings',
   saveSettings = '/api/saveSettings',
+  getMockByUrl = '/api/getMockByUrl',
   mocks = '/api/mocks',
   createMock = '/api/createMock',
   updateMock = '/api/updateMock',
