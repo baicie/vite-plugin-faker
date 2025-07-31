@@ -6,11 +6,12 @@ import postcss from 'rollup-plugin-postcss'
 import autoprefixer from 'autoprefixer'
 import prefixer from 'postcss-prefix-selector'
 import { defineConfig } from 'rolldown'
-import replace from '@rollup/plugin-replace'
-import esbuild from 'rollup-plugin-esbuild'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vue from '@vitejs/plugin-vue'
+import { visualizer } from 'rollup-plugin-visualizer'
 import pkg from './package.json' with { type: 'json' }
+
+const needAnalyze = process.env.ANALYZE === 'true'
 
 // 定义根路径
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -38,21 +39,12 @@ export default defineConfig({
   output: {
     dir: 'dist',
     entryFileNames: 'faker-ui.js',
-    format: 'esm', // Rolldown使用'esm'替代'es'
+    format: 'esm',
     sourcemap: true,
   },
   plugins: [
     vue(),
     vueJsx(),
-    esbuild({
-      tsconfig: './tsconfig.json',
-    }),
-    replace({
-      preventAssignment: true,
-      'process.env.NODE_ENV': JSON.stringify(
-        process.env.NODE_ENV || 'production',
-      ),
-    }),
     postcss({
       extract: 'faker-ui.css',
       minimize: true,
@@ -82,6 +74,7 @@ export default defineConfig({
         }),
       ],
     }),
+    needAnalyze && visualizer({ open: true }),
     {
       name: 'copy-to-plugin-dist',
       closeBundle() {
@@ -89,5 +82,7 @@ export default defineConfig({
       },
     },
   ],
-  // external: Object.keys(pkg.dependencies || {}),
+  watch: {
+    include: 'src/**',
+  },
 })

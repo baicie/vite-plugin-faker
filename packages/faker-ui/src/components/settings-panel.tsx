@@ -10,12 +10,15 @@ import {
   NSelect,
   NSpace,
   NSwitch,
+  useDialog,
 } from 'naive-ui'
-import { getSettings, saveSettings } from '../api'
+import { clearCache, getSettings, saveSettings } from '../api'
+import logger from '../logger'
 
 const SettingsPanel = defineComponent({
   name: 'SettingsPanel',
   setup() {
+    const { warning } = useDialog()
     const settings = reactive({
       // 全局设置
       globalDelay: 0,
@@ -46,7 +49,7 @@ const SettingsPanel = defineComponent({
         const savedSettings = await getSettings()
         Object.assign(settings, savedSettings)
       } catch (error) {
-        console.error('加载设置失败', error)
+        logger.error('加载设置失败', error)
       }
     }
 
@@ -55,7 +58,7 @@ const SettingsPanel = defineComponent({
         await saveSettings(settings)
         // 显示成功消息
       } catch (error) {
-        console.error('保存设置失败', error)
+        logger.error('保存设置失败', error)
       }
     }
 
@@ -78,6 +81,18 @@ const SettingsPanel = defineComponent({
           console.error('重置设置失败', error)
         }
       }
+    }
+
+    async function handleClearCache() {
+      warning({
+        title: '清除缓存',
+        content: '确定要清除缓存吗？',
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: async () => {
+          await clearCache()
+        },
+      })
     }
 
     onMounted(() => {
@@ -150,6 +165,7 @@ const SettingsPanel = defineComponent({
           <NDivider />
 
           <NSpace justify="end">
+            <NButton onClick={handleClearCache}>清除缓存</NButton>
             <NButton onClick={resetSettings}>重置设置</NButton>
             <NButton type="primary" onClick={handleSaveSettings}>
               保存设置

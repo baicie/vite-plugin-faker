@@ -1,7 +1,8 @@
 import type { ViteDevServer } from 'vite'
-import type { DashboardQuery, IRequest } from '@baicie/faker-shared'
-import { IApi, ICustomEvent } from '@baicie/faker-shared'
+import { ICustomEvent } from '@baicie/faker-shared'
+import type { IRequest } from '@baicie/faker-shared'
 import type { DBManager } from '../db'
+import { handleRequest } from './router'
 
 export function registerApis(
   server: ViteDevServer,
@@ -18,23 +19,13 @@ function handleWebSocketMessage(
   dbManager: DBManager,
 ) {
   try {
-    switch (event.url) {
-      case IApi.dashboard: {
-        const params = event.data as DashboardQuery
-        const response = dbManager
-          .getRequestsDB()
-          .getRequestsWithPagination(
-            params.page,
-            params.pageSize,
-            params.search,
-          )
-        server.ws.send(ICustomEvent.response, {
-          uuid: event.uuid,
-          data: response,
-        })
-        break
-      }
-    }
+    const response = handleRequest(event.url, event.data, dbManager)
+
+    // 发送成功响应
+    server.ws.send(ICustomEvent.response, {
+      uuid: event.uuid,
+      data: response,
+    })
   } catch (error) {
     server.ws.send(ICustomEvent.response, {
       uuid: event.uuid,

@@ -6,7 +6,7 @@ import type { Plugin, ViteDevServer } from 'vite'
 import { exactRegex } from '@rolldown/pluginutils'
 import { registerApis } from './api'
 import { DBManager } from './db'
-import { holdMiddleware } from './middleware'
+import { holdMiddleware, mockMiddleware } from './middleware'
 
 export interface ViteFakerOptions {
   /**
@@ -94,6 +94,8 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     configureServer(_server) {
       server = _server
       const middlewares = server.middlewares
+
+      middlewares.use(mockMiddleware(server, dbManager))
       middlewares.use(holdMiddleware(server, dbManager))
       registerApis(server, dbManager)
     },

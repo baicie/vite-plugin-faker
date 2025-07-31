@@ -16,6 +16,7 @@ export enum IApi {
   createMock = '/api/createMock',
   updateMock = '/api/updateMock',
   deleteMock = '/api/deleteMock',
+  clearCache = '/api/clearCache',
 }
 
 export interface PageQuery {

@@ -70,3 +70,5 @@ export const getSettings = createApiRequest<void, SystemSettings>(
 export const saveSettings = createApiRequest<SystemSettings, boolean>(
   IApi.saveSettings,
 )
+
+export const clearCache = createApiRequest<void, boolean>(IApi.clearCache)

@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import { cacheDir } from '../index'
 import { RequestsDB } from './request'
 import { SettingsDB } from './setting'
+import { MocksDB } from './mock'
 
 export class DBManager {
   private static instance: DBManager
@@ -22,6 +23,7 @@ export class DBManager {
     const settings = SettingsDB.getInstance()
     settings.migrateIfNeeded()
     RequestsDB.getInstance()
+    MocksDB.getInstance()
   }
 
   getSettingsDB(): SettingsDB {
@@ -30,6 +32,10 @@ export class DBManager {
 
   getRequestsDB(): RequestsDB {
     return RequestsDB.getInstance()
+  }
+
+  getMocksDB(): MocksDB {
+    return MocksDB.getInstance()
   }
 
   backupDatabase(tableName: string): string {

@@ -1,5 +1,8 @@
-import { ICustomEvent, type IResponse } from '@baicie/faker-shared'
-import { generateUUID } from '../utils'
+import {
+  ICustomEvent,
+  type IResponse,
+  generateUUID,
+} from '@baicie/faker-shared'
 
 interface PendingRequest<T> {
   resolve: (value: T) => void
