@@ -1,14 +1,11 @@
-// @ts-check
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fse from 'fs-extra'
 import { findWorkspacePackages } from '@pnpm/find-workspace-packages'
-import { nodeResolve } from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
 import postcss from 'rollup-plugin-postcss'
 import autoprefixer from 'autoprefixer'
 import prefixer from 'postcss-prefix-selector'
-import { defineConfig } from 'rollup'
+import { defineConfig } from 'rolldown'
 import replace from '@rollup/plugin-replace'
 import esbuild from 'rollup-plugin-esbuild'
 import vueJsx from '@vitejs/plugin-vue-jsx'
@@ -41,19 +38,15 @@ export default defineConfig({
   output: {
     dir: 'dist',
     entryFileNames: 'faker-ui.js',
-    format: 'es',
+    format: 'esm', // Rolldown使用'esm'替代'es'
     sourcemap: true,
   },
   plugins: [
-    nodeResolve({
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
-    }),
     vue(),
     vueJsx(),
     esbuild({
       tsconfig: './tsconfig.json',
     }),
-    commonjs(),
     replace({
       preventAssignment: true,
       'process.env.NODE_ENV': JSON.stringify(

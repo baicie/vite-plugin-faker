@@ -8,6 +8,14 @@ export enum ICustomEvent {
 
 export enum IApi {
   dashboard = '/api/dashboard',
+  toggleMockStatus = '/api/toggleMockStatus',
+  previewMock = '/api/previewMock',
+  getSettings = '/api/getSettings',
+  saveSettings = '/api/saveSettings',
+  mocks = '/api/mocks',
+  createMock = '/api/createMock',
+  updateMock = '/api/updateMock',
+  deleteMock = '/api/deleteMock',
 }
 
 export interface PageQuery {
@@ -27,6 +35,7 @@ export interface Page<T> {
 export interface IResponse<T> {
   uuid: string
   data: T
+  error?: string
 }
 
 export interface IRequest<T> {

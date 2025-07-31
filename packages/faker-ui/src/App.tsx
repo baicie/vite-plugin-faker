@@ -1,21 +1,19 @@
+// src/App.tsx
 import { Fragment, defineComponent, reactive } from 'vue'
-import { NDataTable, NDrawer, NFloatButton } from 'naive-ui'
-import { getDashboard } from './api'
+import { NDrawer, NFloatButton, NTabPane, NTabs } from 'naive-ui'
+import RequestList from './components/request-list'
+import MockList from './components/mock-list'
+import SettingsPanel from './components/settings-panel'
 
 const App = defineComponent({
   setup() {
     const state = reactive({
       open: false,
+      activeTab: 'requests',
     })
 
-    const handleOpen = async () => {
+    const handleOpen = () => {
       state.open = true
-      const result = await getDashboard({
-        page: 1,
-        pageSize: 10,
-        search: '',
-      })
-      console.log(result)
     }
 
     return () => (
@@ -32,8 +30,20 @@ const App = defineComponent({
           open
         </NFloatButton>
 
-        <NDrawer v-model:show={state.open} defaultWidth={520} resizable>
-          <NDataTable></NDataTable>
+        <NDrawer v-model:show={state.open} defaultWidth={720} resizable>
+          <div class="drawer-content">
+            <NTabs v-model:value={state.activeTab} type="line" animated>
+              <NTabPane name="requests" tab="请求记录">
+                <RequestList />
+              </NTabPane>
+              <NTabPane name="mocks" tab="接口模拟">
+                <MockList />
+              </NTabPane>
+              <NTabPane name="settings" tab="设置">
+                <SettingsPanel />
+              </NTabPane>
+            </NTabs>
+          </div>
         </NDrawer>
       </Fragment>
     )
