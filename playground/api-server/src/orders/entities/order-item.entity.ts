@@ -6,16 +6,16 @@ export class OrderItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('int')
+  @Column({ type: 'int' })
   productId: number;
 
-  @Column({ length: 200 })
+  @Column({ type: 'varchar', length: 200 })
   name: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column('int')
+  @Column({ type: 'int' })
   quantity: number;
 
   @ManyToOne(() => Order, (order) => order.items)

@@ -1,79 +1,100 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import type { RegisterDto } from './dto/auth.dto';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
+import { User, UserRole } from '../users/entities/user.entity';
+import { InvalidCredentialsException } from '../common/exceptions/business.exception';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
+import type { JwtPayload } from './jwt.strategy';
 
 @Injectable()
 export class AuthService {
-  // 模拟用户数据
-  private users = [
-    {
-      id: 1,
-      username: 'admin',
-      password: '123456',
-      email: 'admin@example.com',
-      role: 'admin',
-    },
-    {
-      id: 2,
-      username: 'user',
-      password: '123456',
-      email: 'user@example.com',
-      role: 'user',
-    },
-  ];
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    private jwtService: JwtService,
+  ) {}
 
-  async login(username: string, password: string) {
-    // 在实际应用中，密码应该进行哈希比较
-    const user = this.users.find(
-      (u) => u.username === username && u.password === password,
-    );
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.usersRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'name', 'role', 'password'], // 明确包含password字段
+    });
 
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  async validateUserById(userId: number): Promise<User | null> {
+    return await this.usersRepository.findOne({ where: { id: userId } });
+  }
+
+  async login(loginDto: LoginDto) {
+    const user = await this.validateUser(loginDto.email, loginDto.password);
     if (!user) {
-      return null;
+      throw new InvalidCredentialsException();
     }
 
-    // 生成模拟的token
-    const token = Buffer.from(`${username}-${Date.now()}`).toString('base64');
+    const payload: JwtPayload = {
+      email: user.email,
+      sub: user.id,
+      role: user.role,
+    };
 
     return {
-      token,
+      access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
-        username: user.username,
         email: user.email,
+        name: user.name,
         role: user.role,
       },
     };
   }
 
   async register(registerDto: RegisterDto) {
-    // 检查用户名和邮箱是否已存在
-    const existingUser = this.users.find(
-      (u) =>
-        u.username === registerDto.username || u.email === registerDto.email,
-    );
+    // 检查用户是否已存在
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: registerDto.email },
+    });
 
     if (existingUser) {
-      throw new ConflictException('用户名或邮箱已存在');
+      throw new ConflictException('邮箱已被注册');
     }
 
+    // 哈希密码
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
+
     // 创建新用户
-    const newUser = {
-      id: this.users.length + 1,
-      username: registerDto.username,
-      password: registerDto.password, // 实际应用中应该哈希处理
+    const user = this.usersRepository.create({
+      name: registerDto.name,
       email: registerDto.email,
-      role: 'user',
+      age: registerDto.age,
+      password: hashedPassword,
+      role: registerDto.role || UserRole.USER,
+    });
+
+    const savedUser = await this.usersRepository.save(user);
+
+    // 生成JWT
+    const payload: JwtPayload = {
+      email: savedUser.email,
+      sub: savedUser.id,
+      role: savedUser.role,
     };
 
-    this.users.push(newUser);
-
     return {
-      message: '注册成功',
+      access_token: this.jwtService.sign(payload),
       user: {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
+        id: savedUser.id,
+        email: savedUser.email,
+        name: savedUser.name,
+        role: savedUser.role,
       },
     };
   }

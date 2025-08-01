@@ -1,0 +1,504 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+  REGISTRY: ghcr.io
+
+jobs:
+  # 检测变更的项目
+  detect-changes:
+    name: 🔍 Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      vite-plugin-faker: ${{ steps.changes.outputs.vite-plugin-faker }}
+      faker-ui: ${{ steps.changes.outputs.faker-ui }}
+      shared: ${{ steps.changes.outputs.shared }}
+      api-server: ${{ steps.changes.outputs.api-server }}
+      vue-app: ${{ steps.changes.outputs.vue-app }}
+      root: ${{ steps.changes.outputs.root }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Detect changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            vite-plugin-faker:
+              - 'packages/vite-plugin-faker/**'
+              - 'packages/shared/**'
+            faker-ui:
+              - 'packages/faker-ui/**'
+              - 'packages/shared/**'
+            shared:
+              - 'packages/shared/**'
+            api-server:
+              - 'playground/api-server/**'
+            vue-app:
+              - 'playground/vue-app/**'
+              - 'packages/vite-plugin-faker/**'
+              - 'packages/shared/**'
+            root:
+              - 'package.json'
+              - 'pnpm-*.yaml'
+              - 'tsconfig*.json'
+              - 'eslint.config.js'
+              - '.github/**'
+
+  # 安装依赖和基础检查
+  setup:
+    name: 📦 Setup & Lint
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.vite-plugin-faker == 'true' || 
+      needs.detect-changes.outputs.faker-ui == 'true' || 
+      needs.detect-changes.outputs.shared == 'true' || 
+      needs.detect-changes.outputs.api-server == 'true' || 
+      needs.detect-changes.outputs.vue-app == 'true' || 
+      needs.detect-changes.outputs.root == 'true'
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔍 Run ESLint
+        run: pnpm lint
+
+      - name: 🔍 Type check
+        run: pnpm check
+
+      - name: 🎨 Format check
+        run: pnpm format-check
+
+      - name: 📦 Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+            playground/*/node_modules
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+  # 构建共享包
+  build-shared:
+    name: 🏗️ Build Shared
+    runs-on: ubuntu-latest
+    needs: [detect-changes, setup]
+    if: needs.detect-changes.outputs.shared == 'true' || needs.detect-changes.outputs.root == 'true'
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build shared
+        run: pnpm --filter @baicie/faker-shared build
+
+      - name: 📦 Upload shared artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+
+  # 构建和测试核心插件
+  build-test-plugin:
+    name: 🏗️ Build & Test Plugin
+    runs-on: ubuntu-latest
+    needs: [detect-changes, setup, build-shared]
+    if: |
+      always() && 
+      needs.setup.result == 'success' && 
+      (needs.detect-changes.outputs.vite-plugin-faker == 'true' || needs.detect-changes.outputs.root == 'true') &&
+      (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📦 Download shared artifacts
+        if: needs.build-shared.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+
+      - name: 🏗️ Build plugin
+        run: pnpm --filter vite-plugin-faker build
+
+      - name: 🧪 Test plugin
+        run: pnpm --filter vite-plugin-faker test
+
+      - name: 📦 Upload plugin artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-dist
+          path: packages/vite-plugin-faker/dist
+
+  # 构建UI
+  build-ui:
+    name: 🏗️ Build UI
+    runs-on: ubuntu-latest
+    needs: [detect-changes, setup, build-shared]
+    if: |
+      always() && 
+      needs.setup.result == 'success' && 
+      (needs.detect-changes.outputs.faker-ui == 'true' || needs.detect-changes.outputs.root == 'true') &&
+      (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📦 Download shared artifacts
+        if: needs.build-shared.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+
+      - name: 🏗️ Build UI
+        run: pnpm --filter @baicie/faker-ui build
+
+      - name: 📦 Upload UI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-dist
+          path: packages/faker-ui/dist
+
+  # 测试和构建API服务器
+  build-test-api:
+    name: 🧪 Test & Build API
+    runs-on: ubuntu-latest
+    needs: [detect-changes, setup]
+    if: |
+      needs.setup.result == 'success' && 
+      (needs.detect-changes.outputs.api-server == 'true' || needs.detect-changes.outputs.root == 'true')
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🧪 Run unit tests
+        run: pnpm --filter api-server test:unit
+        working-directory: playground/api-server
+
+      - name: 🧪 Run tests with coverage
+        run: pnpm --filter api-server test:cov
+        working-directory: playground/api-server
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./playground/api-server/coverage/lcov.info
+          flags: api-server
+          name: api-server-coverage
+
+      - name: 🧪 Run E2E tests
+        run: pnpm --filter api-server test:e2e
+        working-directory: playground/api-server
+
+      - name: 🏗️ Build API
+        run: pnpm --filter api-server build
+        working-directory: playground/api-server
+
+      - name: 📦 Upload API artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-dist
+          path: playground/api-server/dist
+
+  # 构建Vue应用
+  build-vue-app:
+    name: 🏗️ Build Vue App
+    runs-on: ubuntu-latest
+    needs: [detect-changes, setup, build-test-plugin]
+    if: |
+      always() && 
+      needs.setup.result == 'success' && 
+      (needs.detect-changes.outputs.vue-app == 'true' || needs.detect-changes.outputs.root == 'true') &&
+      (needs.build-test-plugin.result == 'success' || needs.build-test-plugin.result == 'skipped')
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📦 Download plugin artifacts
+        if: needs.build-test-plugin.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-dist
+          path: packages/vite-plugin-faker/dist
+
+      - name: 🏗️ Build Vue app
+        run: pnpm --filter vue-app build
+        working-directory: playground/vue-app
+
+      - name: 📦 Upload Vue app artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: vue-app-dist
+          path: playground/vue-app/dist
+
+  # 安全扫描
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: [detect-changes, setup]
+    if: |
+      needs.setup.result == 'success' && 
+      (needs.detect-changes.outputs.api-server == 'true' || needs.detect-changes.outputs.root == 'true')
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📊 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # 构建Docker镜像
+  build-docker:
+    name: 🐳 Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-test-api, security-scan]
+    if: |
+      always() && 
+      github.event_name == 'push' && 
+      needs.build-test-api.result == 'success' && 
+      (needs.security-scan.result == 'success' || needs.security-scan.result == 'skipped')
+    outputs:
+      api-image: ${{ steps.api-meta.outputs.tags }}
+      api-digest: ${{ steps.api-build.outputs.digest }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Download API artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: api-dist
+          path: playground/api-server/dist
+
+      - name: 📝 Extract API metadata
+        id: api-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/api-server
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🐳 Build and push API Docker image
+        id: api-build
+        uses: docker/build-push-action@v5
+        with:
+          context: playground/api-server
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.api-meta.outputs.tags }}
+          labels: ${{ steps.api-meta.outputs.labels }}
+          cache-from: type=gha,scope=api-server
+          cache-to: type=gha,mode=max,scope=api-server
+
+  # 发布到npm
+  publish-npm:
+    name: 📦 Publish to NPM
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-test-plugin]
+    if: |
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' && 
+      needs.build-test-plugin.result == 'success'
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 📥 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 📦 Download plugin artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: plugin-dist
+          path: packages/vite-plugin-faker/dist
+
+      - name: 📦 Publish vite-plugin-faker
+        run: |
+          cd packages/vite-plugin-faker
+          pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # 部署到staging
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-docker]
+    if: |
+      github.ref == 'refs/heads/develop' && 
+      needs.build-docker.result == 'success'
+    environment: staging
+    steps:
+      - name: 🚀 Deploy API to staging
+        run: |
+          echo "Deploying ${{ needs.build-docker.outputs.api-image }} to staging"
+          # 这里添加具体的staging部署脚本
+
+  # 部署到production
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-docker]
+    if: |
+      github.ref == 'refs/heads/main' && 
+      needs.build-docker.result == 'success'
+    environment: production
+    steps:
+      - name: 🚀 Deploy API to production
+        run: |
+          echo "Deploying ${{ needs.build-docker.outputs.api-image }} to production"
+          # 这里添加具体的production部署脚本
+
+  # 通知
+  notify:
+    name: 📢 Notify
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production, publish-npm]
+    if: always()
+    steps:
+      - name: 📧 Send notification
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚀 部署状态: ${{ job.status }}
+            📍 分支: ${{ github.ref }}
+            📝 提交: ${{ github.sha }}
+            👤 作者: ${{ github.actor }}
+
+            📦 NPM发布: ${{ needs.publish-npm.result }}
+            🏗️ Staging部署: ${{ needs.deploy-staging.result }}
+            🌟 Production部署: ${{ needs.deploy-production.result }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

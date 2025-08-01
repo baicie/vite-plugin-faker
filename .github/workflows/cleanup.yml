@@ -1,0 +1,40 @@
+name: 🧹 Cleanup
+
+on:
+  schedule:
+    # 每天凌晨2点清理
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  cleanup-artifacts:
+    name: 🗑️ Cleanup Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🗑️ Delete old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          age: '7 days'
+          skip-recent: 5
+
+  cleanup-docker-images:
+    name: 🐳 Cleanup Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔑 Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🗑️ Delete old untagged images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: '${{ github.repository }}/api-server'
+          package-type: 'container'
+          min-versions-to-keep: 10
+          delete-only-untagged-versions: true

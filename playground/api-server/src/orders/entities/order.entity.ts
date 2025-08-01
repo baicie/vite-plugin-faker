@@ -22,10 +22,10 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('int')
+  @Column({ type: 'int' })
   userId: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalAmount: number;
 
   @Column({
@@ -38,7 +38,7 @@ export class Order {
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order, { cascade: true })
   items: OrderItem[];
 
-  @Column('text')
+  @Column({ type: 'text' })
   address: string;
 
   @CreateDateColumn()

@@ -1,0 +1,21 @@
+# Global owners
+* @owner
+
+# Packages
+/packages/vite-plugin-faker/ @plugin-team
+/packages/faker-ui/ @ui-team
+/packages/shared/ @core-team
+
+# Playground
+/playground/api-server/ @backend-team
+/playground/vue-app/ @frontend-team
+
+# CI/CD and infrastructure
+/.github/ @devops-team
+/scripts/ @devops-team
+docker-compose.yml @devops-team
+Dockerfile @devops-team
+
+# Documentation
+README.md @docs-team
+*.md @docs-team 

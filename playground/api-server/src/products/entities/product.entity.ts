@@ -10,19 +10,19 @@ export class Product {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 200 })
+  @Column({ type: 'varchar', length: 200 })
   name: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   category: string;
 
-  @Column('text', { nullable: true })
+  @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column('int', { default: 0 })
+  @Column({ type: 'int', default: 0 })
   stock: number;
 
   @CreateDateColumn()

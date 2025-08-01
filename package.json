@@ -9,9 +9,18 @@
     "format-check": "prettier --check --cache .",
     "test": "vitest",
     "test-unit": "vitest --project unit",
+    "test:all": "pnpm -r test",
     "build": "pnpm --filter ./packages/* build",
+    "build:all": "pnpm -r build",
     "dev": "node scripts/dev.js",
-    "install:deps": "pnpm install"
+    "install:deps": "pnpm install",
+    "ci:check-changes": "node scripts/ci-helper.js check-changes",
+    "ci:build-changed": "node scripts/ci-helper.js build-changed",
+    "ci:test-changed": "node scripts/ci-helper.js test-changed",
+    "ci:check-publish": "node scripts/ci-helper.js check-publish",
+    "clean": "pnpm -r clean && rm -rf dist node_modules/.cache",
+    "version:patch": "pnpm changeset version && pnpm install --frozen-lockfile",
+    "release": "pnpm build && pnpm changeset publish"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
