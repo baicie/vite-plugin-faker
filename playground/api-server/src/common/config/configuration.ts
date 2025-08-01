@@ -17,6 +17,11 @@ export default () => ({
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
   },
 
+  // Authentication
+  auth: {
+    enabled: process.env.AUTH_ENABLED === 'false' ? false : true, // 默认开启，只有显式设置为false才关闭
+  },
+
   // Logging
   logging: {
     level: process.env.LOG_LEVEL || 'info',

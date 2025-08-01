@@ -463,6 +463,9 @@ DB_LOGGING=false
 JWT_SECRET=your-super-secret-jwt-key-must-be-at-least-32-characters-long
 JWT_EXPIRES_IN=24h
 
+# 认证控制 (开发调试用)
+AUTH_ENABLED=true  # 设置为false可禁用JWT认证，方便开发调试
+
 # 日志配置
 LOG_LEVEL=debug
 
@@ -752,6 +755,31 @@ chore: 构建工具相关
 - **HTTPS** - 生产环境使用SSL
 - **限流防护** - API调用频率限制
 
+### 5. 认证控制功能
+
+项目支持通过环境变量动态控制是否启用JWT认证：
+
+```bash
+# 启用认证（默认，生产环境推荐）
+AUTH_ENABLED=true
+
+# 禁用认证（开发调试用）
+AUTH_ENABLED=false
+```
+
+**使用场景：**
+
+- 开发阶段快速测试API接口
+- 前端开发联调时避免token过期问题
+- API文档演示和测试
+- 自动化测试脚本
+
+**注意事项：**
+
+- 生产环境必须启用认证
+- 禁用认证时会在控制台显示警告信息
+- 禁用认证不影响角色权限检查（如果有用户上下文）
+
 ## 🐛 故障排除
 
 ### 常见问题
@@ -788,6 +816,10 @@ echo $JWT_SECRET
 
 # 确保密钥长度至少32字符
 # 重新生成token
+
+# 开发调试：临时禁用认证
+export AUTH_ENABLED=false
+# 或修改.env文件：AUTH_ENABLED=false
 ```
 
 **4. 文件上传失败**

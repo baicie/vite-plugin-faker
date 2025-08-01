@@ -61,6 +61,9 @@ vim .env
 # JWT密钥 (必需，至少32字符)
 JWT_SECRET=your-super-secret-jwt-key-must-be-at-least-32-characters-long
 
+# 认证控制 (开发调试用)
+AUTH_ENABLED=true  # 设置为false可禁用JWT认证
+
 # 数据库配置
 DB_TYPE=sqljs
 DB_LOCATION=database.sqljs

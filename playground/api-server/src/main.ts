@@ -250,18 +250,27 @@ async function bootstrap() {
   const port = configService.get<number>('port');
   await app.listen(port);
 
+  const authEnabled = configService.get<boolean>('auth.enabled');
+
   console.log(`🚀 服务器启动在 http://localhost:${port}/api`);
   console.log(`📚 API文档地址: http://localhost:${port}/docs`);
   console.log(`💚 健康检查: http://localhost:${port}/api/health`);
   console.log(`🔗 API前缀: /api (所有接口都以/api开头)`);
   console.log(`🌍 环境: ${configService.get<string>('nodeEnv')}`);
   console.log('✅ 统一错误处理已启用');
-  console.log('✅ JWT认证系统已启用');
+  console.log(
+    `${authEnabled ? '🔐' : '🔓'} JWT认证系统: ${authEnabled ? '已启用' : '已禁用'}`,
+  );
   console.log('✅ Winston日志系统已启用');
   console.log('🛡️ 安全防护已启用 (Helmet + 限流 + 压缩)');
   console.log('⚙️ 配置管理已启用');
   console.log('🌍 国际化(i18n)已启用 (中文/英文)');
   console.log('📝 日志文件位置: logs/');
   console.log('💡 语言切换: 请求头 X-Lang: zh/en');
+
+  if (!authEnabled) {
+    console.log('⚠️  警告: 认证已禁用，所有API接口无需JWT token即可访问！');
+    console.log('⚠️  仅在开发/测试环境使用，生产环境请启用认证');
+  }
 }
 bootstrap();
