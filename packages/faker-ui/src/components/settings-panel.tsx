@@ -12,8 +12,8 @@ import {
   NSwitch,
   useDialog,
 } from 'naive-ui'
+import { logger } from '@baicie/faker-shared'
 import { clearCache, getSettings, saveSettings } from '../api'
-import logger from '../logger'
 
 const SettingsPanel = defineComponent({
   name: 'SettingsPanel',
@@ -78,7 +78,7 @@ const SettingsPanel = defineComponent({
           })
           await loadSettings()
         } catch (error) {
-          console.error('重置设置失败', error)
+          logger.error('重置设置失败', error)
         }
       }
     }

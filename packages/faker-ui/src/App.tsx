@@ -71,7 +71,7 @@ const App = defineComponent({
                 <NTabPane name="mocks" tab="接口模拟">
                   <MockList
                     showEditor={showMockEditor.value}
-                    currentEditingMock={currentMock.value}
+                    currentEditingMock={currentMock.value || {}}
                     onUpdateShowEditor={val => {
                       showMockEditor.value = val
                     }}

@@ -1,4 +1,5 @@
 export * from './utils'
+export * from './logger'
 
 export enum ICustomEvent {
   custom = 'custom',
@@ -7,17 +8,19 @@ export enum ICustomEvent {
 }
 
 export enum IApi {
-  dashboard = '/api/dashboard',
-  toggleMockStatus = '/api/toggleMockStatus',
-  previewMock = '/api/previewMock',
-  getSettings = '/api/getSettings',
-  saveSettings = '/api/saveSettings',
-  getMockByUrl = '/api/getMockByUrl',
-  mocks = '/api/mocks',
-  createMock = '/api/createMock',
-  updateMock = '/api/updateMock',
-  deleteMock = '/api/deleteMock',
-  clearCache = '/api/clearCache',
+  dashboard = 'faker:dashboard',
+  toggleMockStatus = 'faker:toggleMockStatus',
+  previewMock = 'faker:previewMock',
+  getSettings = 'faker:getSettings',
+  saveSettings = 'faker:saveSettings',
+  getMockByUrl = 'faker:getMockByUrl',
+  mocks = 'faker:mocks',
+  createMock = 'faker:createMock',
+  updateMock = 'faker:updateMock',
+  deleteMock = 'faker:deleteMock',
+  clearCache = 'faker:clearCache',
+  getMockConfig = 'faker:get-mock-config',
+  mockRequest = 'faker:mock-request',
 }
 
 export interface PageQuery {

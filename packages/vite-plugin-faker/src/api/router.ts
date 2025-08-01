@@ -3,6 +3,7 @@ import type { DBManager } from '../db'
 import * as dashboardHandler from './handlers/dashboard'
 import * as mockHandler from './handlers/mock'
 import * as settingsHandler from './handlers/settings'
+import * as interceptorHandler from './handlers/interceptor'
 
 export function handleRequest(
   url: string,
@@ -35,6 +36,12 @@ export function handleRequest(
       return settingsHandler.saveSettings(data, dbManager)
     case IApi.clearCache:
       return settingsHandler.clearCache(dbManager)
+
+    // 拦截器相关API
+    case IApi.getMockConfig:
+      return interceptorHandler.getMockConfig(data, dbManager)
+    case IApi.mockRequest:
+      return interceptorHandler.handleMockRequest(data, dbManager)
 
     // 未知API
     default:
