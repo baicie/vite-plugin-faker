@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -23,6 +21,7 @@ import {
 import { UsersService } from './users.service';
 import type { UserFilterDto } from './dto/user.dto';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { User } from './entities/user.entity';
 
 @ApiTags('用户管理')
 @Controller('users')
@@ -35,8 +34,11 @@ export class UsersController {
   @ApiQuery({ name: 'limit', required: false, description: '每页数量' })
   @ApiQuery({ name: 'name', required: false, description: '用户名过滤' })
   @ApiResponse({ status: 200, description: '返回用户列表' })
-  getUsers(@Query() filter: UserFilterDto) {
-    return this.usersService.findAll(filter);
+  async getUsers(@Query() filter: UserFilterDto): Promise<{
+    data: User[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
+    return await this.usersService.findAll(filter);
   }
 
   @Get(':id')
@@ -44,12 +46,8 @@ export class UsersController {
   @ApiParam({ name: 'id', description: '用户ID' })
   @ApiResponse({ status: 200, description: '返回用户信息' })
   @ApiResponse({ status: 404, description: '用户不存在' })
-  getUserById(@Param('id', ParseIntPipe) id: number) {
-    const user = this.usersService.findById(id);
-    if (!user) {
-      throw new HttpException('用户不存在', HttpStatus.NOT_FOUND);
-    }
-    return user;
+  async getUserById(@Param('id', ParseIntPipe) id: number): Promise<User> {
+    return await this.usersService.findById(id);
   }
 
   @Post()
@@ -57,8 +55,10 @@ export class UsersController {
   @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: '用户创建成功' })
   @ApiResponse({ status: 400, description: '参数错误' })
-  createUser(@Body(ValidationPipe) createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async createUser(
+    @Body(ValidationPipe) createUserDto: CreateUserDto,
+  ): Promise<User> {
+    return await this.usersService.create(createUserDto);
   }
 
   @Put(':id')
@@ -67,11 +67,11 @@ export class UsersController {
   @ApiBody({ type: UpdateUserDto })
   @ApiResponse({ status: 200, description: '用户更新成功' })
   @ApiResponse({ status: 404, description: '用户不存在' })
-  updateUser(
+  async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
-  ) {
-    return this.usersService.update(id, updateUserDto);
+  ): Promise<User> {
+    return await this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -79,7 +79,9 @@ export class UsersController {
   @ApiParam({ name: 'id', description: '用户ID' })
   @ApiResponse({ status: 200, description: '用户删除成功' })
   @ApiResponse({ status: 404, description: '用户不存在' })
-  deleteUser(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  async deleteUser(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ success: boolean }> {
+    return await this.usersService.remove(id);
   }
 }

@@ -21,6 +21,7 @@ import {
 import { OrdersService } from './orders.service';
 import type { OrderFilterDto } from './dto/order.dto';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto/order.dto';
+import { Order } from './entities/order.entity';
 
 @ApiTags('订单管理')
 @Controller('orders')
@@ -34,8 +35,11 @@ export class OrdersController {
   @ApiQuery({ name: 'userId', required: false, description: '用户ID' })
   @ApiQuery({ name: 'status', required: false, description: '订单状态' })
   @ApiResponse({ status: 200, description: '返回订单列表' })
-  getOrders(@Query() filter: OrderFilterDto) {
-    return this.ordersService.findAll(filter);
+  async getOrders(@Query() filter: OrderFilterDto): Promise<{
+    data: Order[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
+    return await this.ordersService.findAll(filter);
   }
 
   @Get(':id')
@@ -43,16 +47,18 @@ export class OrdersController {
   @ApiParam({ name: 'id', description: '订单ID' })
   @ApiResponse({ status: 200, description: '返回订单信息' })
   @ApiResponse({ status: 404, description: '订单不存在' })
-  getOrderById(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.findById(id);
+  async getOrderById(@Param('id', ParseIntPipe) id: number): Promise<Order> {
+    return await this.ordersService.findById(id);
   }
 
   @Get('user/:userId')
   @ApiOperation({ summary: '获取用户的订单列表' })
   @ApiParam({ name: 'userId', description: '用户ID' })
   @ApiResponse({ status: 200, description: '返回用户订单列表' })
-  getUserOrders(@Param('userId', ParseIntPipe) userId: number) {
-    return this.ordersService.findByUserId(userId);
+  async getUserOrders(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<Order[]> {
+    return await this.ordersService.findByUserId(userId);
   }
 
   @Post()
@@ -60,8 +66,10 @@ export class OrdersController {
   @ApiBody({ type: CreateOrderDto })
   @ApiResponse({ status: 201, description: '订单创建成功' })
   @ApiResponse({ status: 400, description: '参数错误' })
-  createOrder(@Body(ValidationPipe) createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
+  async createOrder(
+    @Body(ValidationPipe) createOrderDto: CreateOrderDto,
+  ): Promise<Order> {
+    return await this.ordersService.create(createOrderDto);
   }
 
   @Put(':id/status')
@@ -70,11 +78,14 @@ export class OrdersController {
   @ApiBody({ type: UpdateOrderStatusDto })
   @ApiResponse({ status: 200, description: '订单状态更新成功' })
   @ApiResponse({ status: 404, description: '订单不存在' })
-  updateOrderStatus(
+  async updateOrderStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateOrderStatusDto: UpdateOrderStatusDto,
-  ) {
-    return this.ordersService.updateStatus(id, updateOrderStatusDto.status);
+  ): Promise<Order> {
+    return await this.ordersService.updateStatus(
+      id,
+      updateOrderStatusDto.status,
+    );
   }
 
   @Delete(':id')
@@ -82,7 +93,7 @@ export class OrdersController {
   @ApiParam({ name: 'id', description: '订单ID' })
   @ApiResponse({ status: 200, description: '订单取消成功' })
   @ApiResponse({ status: 404, description: '订单不存在' })
-  cancelOrder(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.cancel(id);
+  async cancelOrder(@Param('id', ParseIntPipe) id: number): Promise<Order> {
+    return await this.ordersService.cancel(id);
   }
 }

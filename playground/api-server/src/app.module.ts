@@ -1,5 +1,6 @@
 import { extname } from 'node:path';
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { UsersModule } from './users/users.module';
@@ -10,6 +11,16 @@ import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
+    // TypeORM sql.js 配置
+    TypeOrmModule.forRoot({
+      type: 'sqljs',
+      database: new Uint8Array(), // 内存数据库
+      location: 'database.sqljs', // 可选：持久化到文件
+      autoSave: true, // 自动保存到文件
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true, // 开发环境自动同步数据库结构
+      logging: process.env.NODE_ENV === 'development',
+    }),
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',

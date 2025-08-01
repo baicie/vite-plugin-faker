@@ -28,6 +28,7 @@ import {
 import { ProductsService } from './products.service';
 import type { ProductFilterDto } from './dto/product.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
+import { Product } from './entities/product.entity';
 
 @ApiTags('商品管理')
 @Controller('products')
@@ -42,8 +43,11 @@ export class ProductsController {
   @ApiQuery({ name: 'minPrice', required: false, description: '最低价格' })
   @ApiQuery({ name: 'maxPrice', required: false, description: '最高价格' })
   @ApiResponse({ status: 200, description: '返回商品列表' })
-  getProducts(@Query() filter: ProductFilterDto) {
-    return this.productsService.findAll(filter);
+  async getProducts(@Query() filter: ProductFilterDto): Promise<{
+    data: Product[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
+    return await this.productsService.findAll(filter);
   }
 
   @Get(':id')
@@ -51,8 +55,10 @@ export class ProductsController {
   @ApiParam({ name: 'id', description: '商品ID' })
   @ApiResponse({ status: 200, description: '返回商品信息' })
   @ApiResponse({ status: 404, description: '商品不存在' })
-  getProductById(@Param('id', ParseIntPipe) id: number) {
-    return this.productsService.findById(id);
+  async getProductById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Product> {
+    return await this.productsService.findById(id);
   }
 
   @Post()
@@ -60,8 +66,10 @@ export class ProductsController {
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({ status: 201, description: '商品创建成功' })
   @ApiResponse({ status: 400, description: '参数错误' })
-  createProduct(@Body(ValidationPipe) createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  async createProduct(
+    @Body(ValidationPipe) createProductDto: CreateProductDto,
+  ): Promise<Product> {
+    return await this.productsService.create(createProductDto);
   }
 
   @Post('upload')
@@ -79,7 +87,7 @@ export class ProductsController {
       }),
     )
     file: Express.Multer.File,
-  ) {
+  ): { filename: string; originalname: string; size: number; url: string } {
     return {
       filename: file.filename,
       originalname: file.originalname,
@@ -94,11 +102,11 @@ export class ProductsController {
   @ApiBody({ type: UpdateProductDto })
   @ApiResponse({ status: 200, description: '商品更新成功' })
   @ApiResponse({ status: 404, description: '商品不存在' })
-  updateProduct(
+  async updateProduct(
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateProductDto: UpdateProductDto,
-  ) {
-    return this.productsService.update(id, updateProductDto);
+  ): Promise<Product> {
+    return await this.productsService.update(id, updateProductDto);
   }
 
   @Delete(':id')
@@ -106,7 +114,9 @@ export class ProductsController {
   @ApiParam({ name: 'id', description: '商品ID' })
   @ApiResponse({ status: 200, description: '商品删除成功' })
   @ApiResponse({ status: 404, description: '商品不存在' })
-  deleteProduct(@Param('id', ParseIntPipe) id: number) {
-    return this.productsService.remove(id);
+  async deleteProduct(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ success: boolean }> {
+    return await this.productsService.remove(id);
   }
 }
