@@ -501,9 +501,9 @@ pnpm start:debug
 
 **访问地址:**
 
-- API服务: http://localhost:3000
-- API文档: http://localhost:3000/api
-- 健康检查: http://localhost:3000/health
+- API服务: http://localhost:3000/api
+- API文档: http://localhost:3000/api/docs
+- 健康检查: http://localhost:3000/api/health
 
 ### 4. 数据库操作
 
@@ -673,7 +673,7 @@ tail -f logs/error-$(date +%Y-%m-%d).log
 
 ```bash
 # 检查服务状态
-curl http://localhost:3000/health
+curl http://localhost:3000/api/health
 
 # 返回示例:
 {

@@ -85,9 +85,9 @@ pnpm start:debug
 
 ### 4. 访问服务
 
-- 🌐 **API服务**: http://localhost:3000
-- 📖 **API文档**: http://localhost:3000/api
-- 💚 **健康检查**: http://localhost:3000/health
+- 🌐 **API服务**: http://localhost:3000/api
+- 📖 **API文档**: http://localhost:3000/api/docs
+- 💚 **健康检查**: http://localhost:3000/api/health
 
 ## 📋 API 接口概览
 

@@ -167,6 +167,9 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const i18nService = app.get(I18nService);
 
+  // 设置全局API前缀
+  app.setGlobalPrefix('api');
+
   // 确保上传目录存在
   ensureUploadDirectory(configService.get<string>('upload.dest'));
 
@@ -235,7 +238,7 @@ async function bootstrap() {
     .addTag('健康检查')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   // 初始化种子数据
   try {
@@ -247,8 +250,10 @@ async function bootstrap() {
   const port = configService.get<number>('port');
   await app.listen(port);
 
-  console.log(`🚀 服务器启动在 http://localhost:${port}`);
-  console.log(`📚 API文档地址: http://localhost:${port}/api`);
+  console.log(`🚀 服务器启动在 http://localhost:${port}/api`);
+  console.log(`📚 API文档地址: http://localhost:${port}/docs`);
+  console.log(`💚 健康检查: http://localhost:${port}/api/health`);
+  console.log(`🔗 API前缀: /api (所有接口都以/api开头)`);
   console.log(`🌍 环境: ${configService.get<string>('nodeEnv')}`);
   console.log('✅ 统一错误处理已启用');
   console.log('✅ JWT认证系统已启用');
