@@ -7,7 +7,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { AuthService } from './auth.service';
+import { AuthService } from './auth.service';
 import type { LoginDto, RegisterDto } from './dto/auth.dto';
 
 @ApiTags('用户认证')

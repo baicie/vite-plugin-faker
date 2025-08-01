@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -20,7 +18,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { OrdersService } from './orders.service';
+import { OrdersService } from './orders.service';
 import type { OrderFilterDto } from './dto/order.dto';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto/order.dto';
 

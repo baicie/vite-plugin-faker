@@ -2,8 +2,6 @@ import { extname } from 'node:path';
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
@@ -15,7 +13,7 @@ import { UploadsModule } from './uploads/uploads.module';
     MulterModule.register({
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, callback) => {
+        filename: (_, file, callback) => {
           const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
           const ext = extname(file.originalname);
           const filename = `${file.fieldname}-${uniqueSuffix}${ext}`;
@@ -29,7 +27,5 @@ import { UploadsModule } from './uploads/uploads.module';
     AuthModule,
     UploadsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

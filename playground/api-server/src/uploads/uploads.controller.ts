@@ -22,7 +22,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { UploadsService } from './uploads.service';
+import { UploadsService } from './uploads.service';
 
 @ApiTags('文件上传')
 @Controller('uploads')

@@ -194,6 +194,17 @@ export default tseslint.config(
       'no-console': ['error'],
     },
   },
+  {
+    name: 'playground/api-server',
+    files: ['playground/api-server/**/*.?([cm])[jt]s?(x)'],
+    rules: {
+      '@typescript-eslint/interface-name-prefix': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/consistent-type-imports': 'off',
+    },
+  },
   // TODO
   {
     name: 'playground/enforce-esm',

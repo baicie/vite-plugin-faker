@@ -20,7 +20,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { UsersService } from './users.service';
+import { UsersService } from './users.service';
 import type { UserFilterDto } from './dto/user.dto';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 
