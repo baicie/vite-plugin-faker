@@ -2,8 +2,11 @@ import { BaseDB } from './base'
 
 interface RequestItem {
   req: Record<string, any>
-  res: Record<string, any>
+  res: Record<string, any> | null
   timestamp?: number
+  duration?: number
+  isProxy?: boolean
+  error?: any
 }
 
 export class RequestsDB extends BaseDB<Record<string, RequestItem>> {

@@ -2,8 +2,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import axios from 'axios'
 
-// API基础配置
-const API_BASE = 'http://localhost:3000/api'
+// API基础配置 - 测试绝对路径和相对路径
+const API_BASE = '/api'  // 相对路径：走 Vite 代理
+// const API_BASE = 'http://localhost:3000/api'  // 绝对路径：不走代理，但会被全局监听器捕获
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 10000,
