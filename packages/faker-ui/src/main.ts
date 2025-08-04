@@ -1,13 +1,11 @@
 import { createApp } from 'vue'
 import App from './App'
-import { initInterceptor } from './interceptor'
+import { startMocking } from './mocks'
 
-export function fakerUI(target: string): void {
+export async function fakerUI(target: string): Promise<void> {
+  await startMocking()
   const app = createApp(App)
   app.mount(target)
-
-  // 初始化请求拦截器
-  initInterceptor()
 }
 
 export default fakerUI

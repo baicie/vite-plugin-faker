@@ -12,7 +12,7 @@
   "dependencies": {
     "vite-plugin-faker": "workspace:*",
     "vue": "^3.5.18",
-    "axios": "^1.7.9"
+    "axios": "^1.11.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",
@@ -21,6 +21,6 @@
     "chokidar": "^4.0.3",
     "typescript": "~5.9.2",
     "vite": "^7.0.6",
-    "vue-tsc": "^3.0.4"
+    "vue-tsc": "^3.0.5"
   }
 }

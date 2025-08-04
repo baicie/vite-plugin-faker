@@ -13,6 +13,7 @@
   "dependencies": {
     "@vicons/ionicons5": "^0.13.0",
     "monaco-editor": "^0.52.2",
+    "msw": "^2.10.4",
     "naive-ui": "^2.42.0",
     "vue": "^3.5.18"
   },
@@ -32,6 +33,11 @@
     "typescript": "~5.9.2",
     "vite": "^7.0.6",
     "vite-plugin-monaco-editor": "^1.1.0",
-    "vue-tsc": "^3.0.4"
+    "vue-tsc": "^3.0.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

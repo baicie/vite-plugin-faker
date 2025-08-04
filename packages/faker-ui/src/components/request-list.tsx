@@ -20,7 +20,6 @@ const RequestList = defineComponent({
     const showDetail = ref(false)
     const message = useMessage()
 
-    const setActiveTab = inject('setActiveTab') as (tab: string) => void
     const createOrEditMock = inject('createOrEditMock') as (
       mockData: any,
     ) => void

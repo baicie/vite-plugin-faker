@@ -40,6 +40,6 @@
     "@types/lodash": "^4.17.20",
     "fs-extra": "^11.3.0",
     "rolldown": "1.0.0-beta.30",
-    "rolldown-plugin-dts": "^0.14.3"
+    "rolldown-plugin-dts": "^0.15.1"
   }
 }

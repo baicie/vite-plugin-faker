@@ -17,6 +17,10 @@ const needAnalyze = process.env.ANALYZE === 'true'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '../..')
 const fakerUiPath = path.resolve(__dirname, 'dist')
+const mockServiceWorkerPath = path.resolve(
+  __dirname,
+  'public/mockServiceWorker.js',
+)
 
 // 构建结束后执行的函数
 const copyDistFiles = async () => {
@@ -30,6 +34,10 @@ const copyDistFiles = async () => {
   const targetPath = path.resolve(vitePluginFaker.dir, 'dist')
   // copy faker-ui.js to vite-plugin-faker/dist/faker-ui.js
   fse.ensureDirSync(targetPath)
+  fse.copyFileSync(
+    mockServiceWorkerPath,
+    path.resolve(targetPath, 'mockServiceWorker.js'),
+  )
   fse.copySync(fakerUiPath, targetPath, { overwrite: true })
 }
 
@@ -41,6 +49,8 @@ export default defineConfig({
     entryFileNames: 'faker-ui.js',
     format: 'esm',
     sourcemap: true,
+    inlineDynamicImports: true,
+    manualChunks: undefined,
   },
   plugins: [
     vue(),

@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Plugin, ViteDevServer } from 'vite'
-
 import { exactRegex } from '@rolldown/pluginutils'
+import { mswPath } from '@baicie/faker-shared'
 import { registerApis } from './api'
 import { DBManager } from './db'
 import { holdMiddleware, mockMiddleware } from './middleware'
@@ -20,12 +20,16 @@ export interface ViteFakerOptions {
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const runtimePublicPath = '/@faker-ui'
 const fakeruiRuntimePath = path.resolve(__dirname, 'faker-ui.js')
+const fakeruiMockServiceWorkerPath = path.resolve(
+  __dirname,
+  'mockServiceWorker.js',
+)
 const fakeruiCssPath = path.resolve(__dirname, 'faker-ui.css')
 
 export const preambleCode = `import { fakerUI } from "__BASE__${runtimePublicPath.slice(
   1,
 )}";
-  fakerUI(__MOUNT_TARGET__);`
+  await fakerUI(__MOUNT_TARGET__);`
 
 const getPreambleCode = (base: string, mountTarget: string): string =>
   preambleCode
@@ -43,23 +47,30 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
   return {
     name: 'vite-plugin-faker',
     apply: 'serve',
+    enforce: 'pre',
     resolveId: {
       filter: {
-        id: [exactRegex(runtimePublicPath)],
+        id: [exactRegex(runtimePublicPath), exactRegex(mswPath)],
       },
       handler(id) {
         if (id === runtimePublicPath) {
+          return id
+        }
+        if (id === mswPath) {
           return id
         }
       },
     },
     load: {
       filter: {
-        id: [exactRegex(runtimePublicPath)],
+        id: [exactRegex(runtimePublicPath), exactRegex(mswPath)],
       },
       handler(id) {
         if (id === runtimePublicPath) {
           return readFileSync(fakeruiRuntimePath, 'utf-8')
+        }
+        if (id === mswPath) {
+          return readFileSync(fakeruiMockServiceWorkerPath, 'utf-8')
         }
       },
     },
@@ -71,7 +82,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
             type: 'module',
           },
           children: getPreambleCode(config.server!.config.base, mountTarget),
-          injectTo: 'body',
+          injectTo: 'head',
         },
         {
           tag: 'div',

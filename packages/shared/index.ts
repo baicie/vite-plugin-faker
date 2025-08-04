@@ -48,3 +48,5 @@ export interface IRequest<T> {
   url?: string
   data: T
 }
+
+export const mswPath = '/@msw'

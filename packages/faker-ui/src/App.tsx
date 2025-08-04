@@ -1,5 +1,5 @@
 // App.tsx
-import { defineComponent, provide, reactive, ref } from 'vue'
+import { defineComponent, onMounted, provide, reactive, ref } from 'vue'
 import {
   NDialogProvider,
   NDrawer,
@@ -8,6 +8,7 @@ import {
   NTabPane,
   NTabs,
 } from 'naive-ui'
+import { logger } from '@baicie/faker-shared'
 import RequestList from './components/request-list'
 import MockList from './components/mock-list'
 import SettingsPanel from './components/settings-panel'
@@ -46,6 +47,10 @@ const App = defineComponent({
     provide('createOrEditMock', createOrEditMock)
     provide('showMockEditor', showMockEditor)
     provide('currentMock', currentMock)
+
+    onMounted(() => {
+      logger.info('faker-ui mounted')
+    })
 
     return () => (
       <NDialogProvider>

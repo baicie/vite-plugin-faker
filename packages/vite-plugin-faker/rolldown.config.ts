@@ -1,13 +1,15 @@
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'rolldown'
 import { dts } from 'rolldown-plugin-dts'
-import fsExtra, { ensureFileSync } from 'fs-extra'
+import fsExtra from 'fs-extra'
 import pkg from './package.json' with { type: 'json' }
 
-const { copyFileSync, ensureDirSync } = fsExtra
-const __dirname = path.resolve(import.meta.url, '..')
+const { copyFileSync, ensureDirSync, ensureFileSync } = fsExtra
+const __filepath = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filepath)
 
-const fakerUiPath = path.resolve(__dirname, 'node_modules/faker-ui/dist')
+const fakerUiPath = path.resolve(__dirname, '../faker-ui/dist')
 const fakerUiJsPath = path.resolve(fakerUiPath, 'faker-ui.js')
 const fakerUiCssPath = path.resolve(fakerUiPath, 'faker-ui.css')
 ensureFileSync(fakerUiJsPath)
