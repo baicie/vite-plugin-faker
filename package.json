@@ -26,9 +26,7 @@
     "build-shared": "pnpm --filter ./packages/shared build",
     "build-faker-interceptor": "pnpm --filter ./packages/faker-interceptor build",
     "build-faker-ui": "pnpm --filter ./packages/faker-ui build",
-    "build-vite-plugin-faker": "pnpm --filter ./packages/vite-plugin-faker build",
-    "build-vue-app": "pnpm --filter ./playground/vue-app build",
-    "build-backend": "pnpm --filter ./playground/api-server build"
+    "build-vite-plugin-faker": "pnpm --filter ./packages/vite-plugin-faker build"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
