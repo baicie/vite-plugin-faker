@@ -1,12 +1,12 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Plugin, ViteDevServer } from 'vite'
 import { exactRegex } from '@rolldown/pluginutils'
-import { logger, mswPath } from '@baicie/faker-shared'
-import { registerApis } from './api'
+import { logger } from '@baicie/logger'
 import { DBManager } from './db'
-import { holdMiddleware, mockMiddleware } from './middleware'
+import { WSServer } from './ws-server'
+import { loadVirtualModule } from './virtual-modules'
 
 export interface ViteFakerOptions {
   /**
@@ -18,23 +18,51 @@ export interface ViteFakerOptions {
   storeDir?: string
 }
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// 拦截脚本路径
+const interceptorPath = path.resolve(
+  __dirname,
+  '../faker-interceptor/dist/interceptor.js',
+)
+
+// UI 相关路径
 const runtimePublicPath = '/@faker-ui'
 const fakeruiRuntimePath = path.resolve(__dirname, 'faker-ui.js')
-const fakeruiMockServiceWorkerPath = path.resolve(
-  __dirname,
-  'mockServiceWorker.js',
-)
 const fakeruiCssPath = path.resolve(__dirname, 'faker-ui.css')
 
-export const preambleCode = `import { fakerUI } from "__BASE__${runtimePublicPath.slice(
+// UI 初始化代码
+export const uiPreambleCode = `import { fakerUI } from "__BASE__${runtimePublicPath.slice(
   1,
 )}";
   await fakerUI(__MOUNT_TARGET__);`
 
-const getPreambleCode = (base: string, mountTarget: string): string =>
-  preambleCode
+const getUIPreambleCode = (base: string, mountTarget: string): string =>
+  uiPreambleCode
     .replace('__BASE__', base)
     .replace('__MOUNT_TARGET__', `'${mountTarget}'`)
+
+// 拦截脚本注入代码
+const getInterceptorCode = (wsUrl: string): string => {
+  // 如果拦截脚本已构建，读取它
+  if (existsSync(interceptorPath)) {
+    const interceptorCode = readFileSync(interceptorPath, 'utf-8')
+    return `
+      // 设置 WebSocket URL
+      window.__FAKER_WS_URL__ = '${wsUrl}';
+      
+      // 注入拦截脚本
+      ${interceptorCode}
+      
+      // 初始化拦截器（IIFE 会自动执行）
+    `
+  }
+
+  // 如果未构建，使用内联代码（开发时）
+  return `
+    console.warn('[Faker] 拦截脚本未构建，请先运行 pnpm build');
+    window.__FAKER_WS_URL__ = '${wsUrl}';
+  `
+}
 
 let server: ViteDevServer | null = null
 let dbManager: DBManager | null = null
@@ -53,13 +81,11 @@ function setupProxyListeners(proxyServer: any, context: string) {
     const startTimeSymbol = Symbol('startTime')
     ;(req as any)[startTimeSymbol] = startTime
 
-    logger.info(
-      '📤 [代理请求]',
-      req.method,
-      req.url,
-      '→',
-      proxyReq.getHeader('host'),
-    )
+    logger.info('📤 [代理请求]', {
+      method: req.method,
+      url: req.url,
+      host: proxyReq.getHeader('host'),
+    })
 
     // 如果 dbManager 可用，记录请求
     if (dbManager) {
@@ -94,7 +120,11 @@ function setupProxyListeners(proxyServer: any, context: string) {
     const startTime = (req as any)[startTimeSymbol] || endTime
     const duration = endTime - startTime
 
-    logger.info('📥 [代理响应]', proxyRes.statusCode, req.url, `${duration}ms`)
+    logger.info('📥 [代理响应]', {
+      statusCode: proxyRes.statusCode,
+      url: req.url,
+      duration,
+    })
 
     const bodyChunks: Buffer[] = []
 
@@ -126,7 +156,10 @@ function setupProxyListeners(proxyServer: any, context: string) {
 
             requestsDB.updateRequest(requestKey, existingRequest)
 
-            logger.info('✅ 代理请求记录已更新:', req.method, req.url)
+            logger.info('✅ 代理请求记录已更新', {
+              method: req.method,
+              url: req.url,
+            })
           }
         } catch (error) {
           logger.error('更新代理响应失败:', error)
@@ -135,14 +168,20 @@ function setupProxyListeners(proxyServer: any, context: string) {
 
       // 记录响应体（如果不太大）
       if (responseBody.length < 500) {
-        logger.info('📋 [代理响应体]', req.url, responseBody.substring(0, 100))
+        logger.info('📋 [代理响应体]', {
+          url: req.url,
+          bodyPreview: responseBody.substring(0, 100),
+        })
       }
     })
   })
 
   // 错误处理
   proxyServer.on('error', (error: Error, req: any, _res: any) => {
-    logger.error('❌ [代理错误]', req.url, error.message)
+    logger.error('❌ [代理错误]', {
+      url: req.url,
+      message: error.message,
+    })
 
     if (dbManager) {
       try {
@@ -188,17 +227,15 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
       const proxyConfig = config.server.proxy
       const proxyKeys = Object.keys(proxyConfig)
 
-      logger.info(
-        `🔧 [Faker Plugin] 发现 ${proxyKeys.length} 个代理配置:`,
+      logger.info(`🔧 [Faker Plugin] 发现 ${proxyKeys.length} 个代理配置:`, {
         proxyKeys,
-      )
+      })
 
       for (const [context, options] of Object.entries(proxyConfig)) {
-        logger.info(
-          `🔧 [Faker Plugin] 处理代理配置: ${context}`,
-          typeof options,
+        logger.info(`🔧 [Faker Plugin] 处理代理配置: ${context}`, {
+          optionType: typeof options,
           options,
-        )
+        })
 
         if (typeof options === 'object' && options != null) {
           const opt = options as any
@@ -227,56 +264,97 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     enforce: 'pre',
     resolveId: {
       filter: {
-        id: [exactRegex(runtimePublicPath), exactRegex(mswPath)],
+        id: [
+          exactRegex(runtimePublicPath),
+          exactRegex('/@faker-config'),
+          exactRegex('/@faker-ws'),
+        ],
       },
       handler(id) {
-        if (id === runtimePublicPath) {
-          return id
-        }
-        if (id === mswPath) {
+        if (
+          id === runtimePublicPath ||
+          id === '/@faker-config' ||
+          id === '/@faker-ws'
+        ) {
           return id
         }
       },
     },
     load: {
       filter: {
-        id: [exactRegex(runtimePublicPath), exactRegex(mswPath)],
+        id: [
+          exactRegex(runtimePublicPath),
+          exactRegex('/@faker-config'),
+          exactRegex('/@faker-ws'),
+        ],
       },
       handler(id) {
         if (id === runtimePublicPath) {
-          return readFileSync(fakeruiRuntimePath, 'utf-8')
+          if (existsSync(fakeruiRuntimePath)) {
+            return readFileSync(fakeruiRuntimePath, 'utf-8')
+          }
+          return '// UI not built'
         }
-        if (id === mswPath) {
-          return readFileSync(fakeruiMockServiceWorkerPath, 'utf-8')
+
+        if (id === '/@faker-config' && dbManager) {
+          return loadVirtualModule(id, dbManager)
+        }
+
+        if (id === '/@faker-ws') {
+          // WebSocket 端点信息
+          return `export const wsUrl = 'ws://localhost:${server?.config.server?.port || 5173}/@faker-ws'`
         }
       },
     },
-    transformIndexHtml(_, config) {
-      return [
-        {
+    transformIndexHtml(html, ctx) {
+      const base = ctx.server?.config.base || '/'
+      const port = ctx.server?.config.server?.port || 5173
+      const wsUrl = `ws://localhost:${port}${base}@faker-ws`
+
+      const tags: any[] = []
+
+      // 1. 注入拦截脚本（最优先，在 head 最前面）
+      tags.push({
+        tag: 'script',
+        attrs: {
+          type: 'text/javascript',
+        },
+        children: getInterceptorCode(wsUrl),
+        injectTo: 'head-prepend', // 确保最早执行
+      })
+
+      // 2. 注入 UI（如果需要）
+      if (existsSync(fakeruiRuntimePath)) {
+        tags.push({
           tag: 'script',
           attrs: {
             type: 'module',
           },
-          children: getPreambleCode(config.server!.config.base, mountTarget),
+          children: getUIPreambleCode(base, mountTarget),
           injectTo: 'head',
-        },
-        {
+        })
+
+        tags.push({
           tag: 'div',
           attrs: {
             id: mountTarget.slice(1),
           },
           injectTo: 'body',
-        },
-        {
-          tag: 'style',
-          attrs: {
-            type: 'text/css',
-          },
-          children: readFileSync(fakeruiCssPath, 'utf-8'),
-          injectTo: 'head',
-        },
-      ]
+        })
+
+        if (existsSync(fakeruiCssPath)) {
+          tags.push({
+            tag: 'style',
+            attrs: {
+              type: 'text/css',
+            },
+            children: readFileSync(fakeruiCssPath, 'utf-8'),
+            injectTo: 'head',
+          })
+        }
+      }
+
+      return tags
     },
     configResolved(config) {
       cacheDir = path.resolve(config.cacheDir, 'vite-plugin-faker')
@@ -285,10 +363,19 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     },
     configureServer(_server) {
       server = _server
-      const middlewares = server.middlewares
-      middlewares.use(mockMiddleware(server, dbManager))
-      middlewares.use(holdMiddleware(server, dbManager))
-      registerApis(server, dbManager)
+
+      // 设置 WebSocket 服务器
+      if (dbManager) {
+        try {
+          new WSServer(server, dbManager)
+          logger.info('[Faker] WebSocket 服务器已启动')
+        } catch (error) {
+          logger.error('[Faker] WebSocket 服务器启动失败:', error)
+        }
+      }
+
+      // 不再需要中间件拦截（已在浏览器端完成）
+      // 但保留用于向后兼容或调试
     },
   }
 }

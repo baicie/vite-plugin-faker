@@ -11,14 +11,18 @@ import {
   NSpace,
   NSwitch,
   useDialog,
+  useMessage,
 } from 'naive-ui'
-import { logger } from '@baicie/faker-shared'
-import { clearCache, getSettings, saveSettings } from '../api'
+import { useSettings } from '../composables/useSettings'
 
 const SettingsPanel = defineComponent({
   name: 'SettingsPanel',
   setup() {
     const { warning } = useDialog()
+    const message = useMessage()
+    const { settings: savedSettings, loadSettings, updateSettings, clearCache } =
+      useSettings()
+    
     const settings = reactive({
       // 全局设置
       globalDelay: 0,
@@ -44,59 +48,78 @@ const SettingsPanel = defineComponent({
       { label: '跟随系统', value: 'auto' },
     ]
 
-    async function loadSettings() {
+    async function loadSettingsData() {
       try {
-        const savedSettings = await getSettings()
-        Object.assign(settings, savedSettings)
+        await loadSettings()
+        if (savedSettings.value) {
+          Object.assign(settings, savedSettings.value)
+        }
       } catch (error) {
-        logger.error('加载设置失败', error)
+        message.error('加载设置失败')
+        console.error('加载设置失败', error)
       }
     }
 
     async function handleSaveSettings() {
       try {
-        await saveSettings(settings)
-        // 显示成功消息
+        await updateSettings(settings)
+        message.success('设置已保存')
       } catch (error) {
-        logger.error('保存设置失败', error)
+        message.error('保存设置失败')
+        console.error('保存设置失败', error)
       }
     }
 
     async function resetSettings() {
-      if (confirm('确定要重置所有设置吗？')) {
-        try {
-          await saveSettings({
-            globalDelay: 0,
-            enableAllMocks: true,
-            logRequests: true,
-            corsEnabled: true,
-            corsAllowOrigin: '*',
-            corsAllowMethods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-            persistData: true,
-            maxStorageSize: 50,
-            theme: 'light',
-          })
-          await loadSettings()
-        } catch (error) {
-          logger.error('重置设置失败', error)
-        }
-      }
+      warning({
+        title: '重置设置',
+        content: '确定要重置所有设置吗？',
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: async () => {
+          try {
+            const defaultSettings = {
+              globalDelay: 0,
+              enableAllMocks: true,
+              logRequests: true,
+              corsEnabled: true,
+              corsAllowOrigin: '*',
+              corsAllowMethods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+              persistData: true,
+              maxStorageSize: 50,
+              theme: 'light',
+            }
+            await updateSettings(defaultSettings)
+            Object.assign(settings, defaultSettings)
+            message.success('设置已重置')
+          } catch (error) {
+            message.error('重置设置失败')
+            console.error('重置设置失败', error)
+          }
+        },
+      })
     }
 
     async function handleClearCache() {
       warning({
         title: '清除缓存',
-        content: '确定要清除缓存吗？',
+        content: '确定要清除所有请求记录吗？此操作不可恢复。',
         positiveText: '确定',
         negativeText: '取消',
         onPositiveClick: async () => {
-          await clearCache()
+          try {
+            await clearCache()
+            message.success('缓存已清除')
+          } catch (error) {
+            message.error('清除缓存失败')
+            console.error('清除缓存失败', error)
+          }
         },
       })
     }
 
     onMounted(() => {
-      loadSettings()
+      loadSettingsData()
     })
 
     return () => (

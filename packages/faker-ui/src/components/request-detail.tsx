@@ -9,7 +9,8 @@ const RequestDetail = defineComponent({
       required: true,
     },
   },
-  setup(props) {
+  emits: ['close'],
+  setup(props, {}) {
     const activeTab = ref('request')
 
     function formatJson(obj: any) {

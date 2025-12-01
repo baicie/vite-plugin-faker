@@ -1,5 +1,4 @@
 export * from './utils'
-export * from './logger'
 
 export enum ICustomEvent {
   custom = 'custom',
@@ -34,7 +33,13 @@ export interface DashboardQuery extends PageQuery {
 
 export interface Page<T> {
   data: T[]
-  query: PageQuery
+  pagination: Pagination
+}
+
+export interface Pagination {
+  total: number
+  page: number
+  pageSize: number
 }
 
 export interface IResponse<T> {

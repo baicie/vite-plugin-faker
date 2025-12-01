@@ -1,282 +1,140 @@
-// @ts-check
-import { createRequire } from 'node:module'
-import eslint from '@eslint/js'
-import pluginN from 'eslint-plugin-n'
-import pluginImportX from 'eslint-plugin-import-x'
-import pluginRegExp from 'eslint-plugin-regexp'
+import { builtinModules } from 'node:module'
+import importX from 'eslint-plugin-import-x'
 import tseslint from 'typescript-eslint'
-import globals from 'globals'
+import vitest from '@vitest/eslint-plugin'
+import { defineConfig } from 'eslint/config'
 
-const require = createRequire(import.meta.url)
-const pkgVite = require('./packages/vite-plugin-faker/package.json')
+const DOMGlobals = ['window', 'document']
+const NodeGlobals = ['module', 'require']
 
-// Some rules work better with typechecking enabled, but as enabling it is slow,
-// we only do so when linting in IDEs for now. If you want to lint with typechecking
-// explicitly, set this to `true` manually.
-const shouldTypeCheck = typeof process.env.VSCODE_PID === 'string'
+const banConstEnum = {
+  selector: 'TSEnumDeclaration[const=true]',
+  message:
+    'Please use non-const enums. This project automatically inlines enums.',
+}
 
-export default tseslint.config(
+export default defineConfig(
   {
-    ignores: ['**/dist/**', '**/.vitepress/cache/**', '**/*.snap'],
-  },
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  ...tseslint.configs.stylistic,
-  pluginRegExp.configs['flat/recommended'],
-  {
-    name: 'main',
-    languageOptions: {
-      parser: tseslint.parser,
-      parserOptions: {
-        sourceType: 'module',
-        ecmaVersion: 2022,
-        project: shouldTypeCheck
-          ? ['./packages/*/tsconfig.json', './tsconfig.node.json']
-          : undefined,
-      },
-      globals: {
-        ...globals.es2021,
-        ...globals.node,
-      },
-    },
-    settings: {
-      node: {
-        version: '^20.19.0 || >=22.12.0',
-      },
-    },
+    files: ['**/*.js', '**/*.ts', '**/*.tsx'],
+    extends: [tseslint.configs.base],
     plugins: {
-      n: pluginN,
-      'import-x': pluginImportX,
+      'import-x': importX,
     },
     rules: {
-      'n/no-exports-assign': 'error',
-      'n/no-unpublished-bin': 'error',
-      'n/no-unsupported-features/es-builtins': 'error',
-      'n/process-exit-as-throw': 'error',
-      'n/hashbang': 'error',
+      'no-debugger': 'error',
+      'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
+      // most of the codebase are expected to be env agnostic
+      'no-restricted-globals': ['error', ...DOMGlobals, ...NodeGlobals],
 
-      eqeqeq: ['warn', 'always', { null: 'never' }],
-      'no-debugger': ['error'],
-      'no-empty': ['warn', { allowEmptyCatch: true }],
-      'no-process-exit': 'off',
-      'prefer-const': [
-        'warn',
-        {
-          destructuring: 'all',
-        },
-      ],
+      'no-restricted-syntax': ['error', banConstEnum],
+      'sort-imports': ['error', { ignoreDeclarationSort: true }],
 
-      'n/no-missing-require': [
+      'import-x/no-nodejs-modules': [
         'error',
-        {
-          // for try-catching yarn pnp
-          allowModules: ['pnpapi', 'vite'],
-          tryExtensions: ['.ts', '.js', '.jsx', '.tsx', '.d.ts'],
-        },
+        { allow: builtinModules.map(mod => `node:${mod}`) },
       ],
-      'n/no-extraneous-import': [
-        'error',
-        {
-          allowModules: ['fs-extra', '@pnpm/find-workspace-packages'],
-        },
-      ],
-      'n/no-extraneous-require': [
-        'error',
-        {
-          allowModules: ['vite'],
-        },
-      ],
-      'n/prefer-node-protocol': 'error',
-
-      '@typescript-eslint/ban-ts-comment': 'error',
-      '@typescript-eslint/no-unsafe-function-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': [
-        'error',
-        { allowArgumentsExplicitlyTypedAsAny: true },
-      ],
-      '@typescript-eslint/no-empty-function': [
-        'error',
-        { allow: ['arrowFunctions'] },
-      ],
-      '@typescript-eslint/no-empty-object-type': [
-        'error',
-        { allowInterfaces: 'with-single-extends' },
-      ],
-      '@typescript-eslint/no-empty-interface': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      'no-extra-semi': 'off',
-      '@typescript-eslint/no-extra-semi': 'off', // conflicts with prettier
-      '@typescript-eslint/no-inferrable-types': 'off',
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        {
-          args: 'all',
-          argsIgnorePattern: '^_',
-          caughtErrors: 'all',
-          caughtErrorsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-          varsIgnorePattern: '^_',
-          ignoreRestSiblings: true,
-        },
-      ],
-      '@typescript-eslint/no-require-imports': 'off',
+      // This rule enforces the preference for using '@ts-expect-error' comments in TypeScript
+      // code to indicate intentional type errors, improving code clarity and maintainability.
+      '@typescript-eslint/prefer-ts-expect-error': 'error',
+      // Enforce the use of 'import type' for importing types
       '@typescript-eslint/consistent-type-imports': [
         'error',
-        { prefer: 'type-imports', disallowTypeAnnotations: false },
+        {
+          fixStyle: 'inline-type-imports',
+          disallowTypeAnnotations: false,
+        },
       ],
-      // disable rules set in @typescript-eslint/stylistic which conflict with current code
-      // we should discuss if we want to enable these as they encourage consistent code
-      '@typescript-eslint/array-type': 'off',
-      '@typescript-eslint/consistent-type-definitions': 'off',
-      '@typescript-eslint/prefer-for-of': 'off',
-      '@typescript-eslint/prefer-function-type': 'off',
+      // Enforce the use of top-level import type qualifier when an import only has specifiers with inline type qualifiers
+      '@typescript-eslint/no-import-type-side-effects': 'error',
+    },
+  },
 
-      'import-x/no-duplicates': 'error',
-      'import-x/order': [
-        'error',
-        {
-          groups: [
-            'builtin',
-            'external',
-            'internal',
-            'parent',
-            'sibling',
-            'index',
-          ],
-        },
-      ],
-      'sort-imports': [
-        'error',
-        {
-          ignoreCase: false,
-          ignoreDeclarationSort: true,
-          ignoreMemberSort: false,
-          memberSyntaxSortOrder: ['none', 'all', 'multiple', 'single'],
-          allowSeparatedGroups: false,
-        },
-      ],
+  // faker interceptor package
+  {
+    name: 'faker-interceptor',
+    files: ['packages/faker-interceptor/**'],
+    rules: {
+      'no-restricted-globals': ['error', ...NodeGlobals],
+    },
+  },
 
-      'regexp/prefer-regexp-exec': 'error',
-      'regexp/prefer-regexp-test': 'error',
-      // in some cases using explicit letter-casing is more performant than the `i` flag
-      'regexp/use-ignore-case': 'off',
+  // faker ui package
+  {
+    name: 'faker-ui',
+    files: ['packages/faker-ui/**'],
+    rules: {
+      'no-restricted-globals': ['error', ...NodeGlobals],
     },
   },
+
+  // playground packages
   {
-    name: 'faker-ui/globals',
-    files: ['packages/**/*.?([cm])[jt]s?(x)'],
-    ignores: ['**/__tests__/**'],
+    name: 'playground',
+    files: ['playground/**'],
     rules: {
-      'no-restricted-globals': ['error', 'require', '__dirname', '__filename'],
-    },
-  },
-  {
-    name: 'faker-ui/node',
-    files: ['packages/vite-plugin-faker/**/*.?([cm])[jt]s?(x)'],
-    rules: {
-      'no-console': ['error'],
-      'n/no-restricted-require': [
-        'error',
-        Object.keys(pkgVite.devDependencies).map(d => ({
-          name: d,
-          message:
-            `devDependencies can only be imported using ESM syntax so ` +
-            `that they are included in the rolldown bundle. If you are trying to ` +
-            `lazy load a dependency, use (await import('dependency')).default instead.`,
-        })),
-      ],
-    },
-  },
-  {
-    name: 'fake-ui/web',
-    files: ['packages/faker-ui/**/*.?([cm])[jt]s?(x)'],
-    rules: {
-      'no-console': ['error'],
-    },
-  },
-  {
-    name: 'playground/api-server',
-    files: ['playground/api-server/**/*.?([cm])[jt]s?(x)'],
-    rules: {
-      '@typescript-eslint/interface-name-prefix': 'off',
-      '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/consistent-type-imports': 'off',
-    },
-  },
-  // TODO
-  {
-    name: 'playground/enforce-esm',
-    files: ['playground/**/*.?([cm])[jt]s?(x)'],
-    ignores: [
-      'playground/ssr-resolve/**',
-      'playground/**/*{commonjs,cjs}*/**',
-      'playground/**/*{commonjs,cjs}*',
-      'playground/**/*dep*/**',
-      'playground/resolve/browser-module-field2/index.web.js',
-      'playground/resolve/browser-field/**',
-    ],
-    rules: {
-      'import-x/no-commonjs': 'error',
-    },
-  },
-  {
-    name: 'tests',
-    files: ['**/__tests__/**/*.?([cm])[jt]s?(x)'],
-    rules: {
-      'n/no-unsupported-features/node-builtins': [
-        'error',
-        {
-          // ideally we would like to allow all experimental features
-          // https://github.com/eslint-community/eslint-plugin-n/issues/199
-          ignores: ['fetch', 'import.meta.dirname'],
-        },
-      ],
-    },
-  },
-  {
-    name: 'disables/js',
-    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
-    rules: {
-      '@typescript-eslint/explicit-module-boundary-types': 'off',
-    },
-  },
-  {
-    name: 'disables/dts',
-    files: ['**/*.d.ts'],
-    rules: {
-      '@typescript-eslint/consistent-indexed-object-style': 'off',
-      '@typescript-eslint/triple-slash-reference': 'off',
-    },
-  },
-  {
-    name: 'disables/test',
-    files: ['**/__tests__/**/*.?([cm])[jt]s?(x)'],
-    rules: {
+      'no-restricted-globals': 'off',
       'no-console': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off',
     },
   },
+
+  // tests, no restrictions (runs in Node / Vitest with jsdom)
   {
-    name: 'disables/typechecking',
-    files: [
-      '**/*.js',
-      '**/*.mjs',
-      '**/*.cjs',
-      '**/*.d.ts',
-      '**/*.d.cts',
-      '**/__tests__/**',
-      'docs/**',
-      'playground/**',
-      'scripts/**',
-      'vitest.config.ts',
-      'vitest.config.e2e.ts',
-    ],
+    files: ['**/__tests__/**', '**/*.{test,spec}.{js,ts,tsx}'],
+    plugins: { vitest },
     languageOptions: {
-      parserOptions: {
-        project: false,
+      globals: {
+        ...vitest.environments.env.globals,
       },
     },
+    rules: {
+      'no-console': 'off',
+      'no-restricted-globals': 'off',
+      'no-restricted-syntax': 'off',
+      'vitest/no-disabled-tests': 'error',
+      'vitest/no-focused-tests': 'error',
+    },
+  },
+
+  // JavaScript files
+  {
+    files: ['*.js'],
+    rules: {
+      // We only do `no-unused-vars` checks for js files, TS files are checked by TypeScript itself.
+      'no-unused-vars': ['error', { vars: 'all', args: 'none' }],
+    },
+  },
+
+  // Node scripts and config files
+  {
+    files: [
+      'eslint.config.js',
+      '*.config.{js,ts}',
+      'rolldown*.config.{js,ts}',
+      'tsdown*.config.{js,ts}',
+      'vitest.config.{js,ts}',
+      'scripts/**',
+      'packages/*/*.config.{js,ts}',
+      'packages/napi/benchmark/*.{js,ts}',
+    ],
+    rules: {
+      'no-restricted-globals': 'off',
+      'no-restricted-syntax': ['error', banConstEnum],
+      'no-console': 'off',
+    },
+  },
+
+  {
+    ignores: [
+      '**/dist/',
+      '**/temp/',
+      '**/coverage/',
+      '**/node_modules/',
+      '.idea/',
+      'packages/*/templates/**',
+      '**/templates/**',
+      'docs/.vitepress/cache/**',
+      'packages/napi/baicie-napi.{wasi,wasi-browser}.*',
+      'packages/napi/index.d.ts',
+    ],
   },
 )

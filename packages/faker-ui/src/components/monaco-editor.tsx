@@ -1,6 +1,8 @@
 import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+import * as monaco from 'monaco-editor'
+// @ts-expect-error
 import 'monaco-editor/esm/vs/language/typescript/ts.worker'
+// @ts-expect-error
 import 'monaco-editor/esm/vs/language/json/json.worker'
 
 const MonacoEditor = defineComponent({

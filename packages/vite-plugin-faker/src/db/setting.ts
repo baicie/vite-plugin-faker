@@ -23,6 +23,10 @@ export class SettingsDB extends BaseDB<Settings> {
     return this.db.data.version
   }
 
+  getSettings(): Settings {
+    return { ...this.db.data }
+  }
+
   updateSettings(settings: Partial<Settings>): void {
     this.db.data = { ...this.db.data, ...settings }
     this.save()

@@ -23,14 +23,13 @@ export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
     return RequestsDB.instance
   }
 
-  // 获取特定URL的请求
   getRequest(url: string): RequestItem | undefined {
     return this.db.data[url]
   }
 
   // 保存请求记录
-  saveRequest(url: string, item: RequestItem): void {
-    this.db.data[url] = item
+  saveRequest(id: string, item: RequestItem): void {
+    this.db.data[id] = item
     this.save()
   }
 

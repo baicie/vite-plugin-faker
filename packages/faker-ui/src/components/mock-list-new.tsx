@@ -10,7 +10,7 @@ import {
   useMessage,
 } from 'naive-ui'
 import { useMock } from '../composables/useMock'
-import MockEditor from './mock-editor'
+import MockEditor from './mock-editor-new'
 
 const MockList = defineComponent({
   name: 'MockList',
@@ -28,20 +28,12 @@ const MockList = defineComponent({
       pageSizes: [10, 20, 50],
       onChange: (page: number) => {
         pagination.page = page
-        loadMocks({ page, pageSize: pagination.pageSize }).then(() => {
-          if (mocks.value.length > 0 && (mocks.value[0] as any).pagination) {
-            pagination.itemCount = (mocks.value[0] as any).pagination.total
-          }
-        })
+        loadMocks({ page, pageSize: pagination.pageSize })
       },
       onUpdatePageSize: (pageSize: number) => {
         pagination.pageSize = pageSize
         pagination.page = 1
-        loadMocks({ page: 1, pageSize }).then(() => {
-          if (mocks.value.length > 0 && (mocks.value[0] as any).pagination) {
-            pagination.itemCount = (mocks.value[0] as any).pagination.total
-          }
-        })
+        loadMocks({ page: 1, pageSize })
       },
     })
 
@@ -147,13 +139,7 @@ const MockList = defineComponent({
     }
 
     onMounted(() => {
-      loadMocks({ page: 1, pageSize: pagination.pageSize }).then(() => {
-        // 更新分页信息
-        if (mocks.value.length > 0) {
-          // 从 API 响应中获取分页信息
-          // 这里需要根据实际 API 响应格式调整
-        }
-      })
+      loadMocks({ page: 1, pageSize: pagination.pageSize })
     })
 
     return () => (

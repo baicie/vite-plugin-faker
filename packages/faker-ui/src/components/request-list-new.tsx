@@ -1,12 +1,11 @@
-import { defineComponent, onMounted, ref } from 'vue'
-import { NButton, NDataTable, NInput, NTag, useMessage } from 'naive-ui'
+import { defineComponent, ref } from 'vue'
+import { NButton, NDataTable, NInput, NTag } from 'naive-ui'
 import { useRequest } from '../composables/useRequest'
 import RequestDetail from './request-detail'
 
 const RequestList = defineComponent({
   name: 'RequestList',
   setup() {
-    const message = useMessage()
     const { requests, loading, pagination, loadRequests } = useRequest()
     const selectedRequest = ref<any>(null)
     const showDetail = ref(false)
@@ -80,15 +79,8 @@ const RequestList = defineComponent({
     ]
 
     function handleRefresh() {
-      loadRequests().then(() => {
-        message.success('已刷新')
-      })
-    }
-
-    // 初始化加载
-    onMounted(() => {
       loadRequests()
-    })
+    }
 
     return () => (
       <div>
