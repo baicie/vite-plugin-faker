@@ -1,9 +1,18 @@
 import { defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import * as monaco from 'monaco-editor'
-// @ts-expect-error
-import 'monaco-editor/esm/vs/language/typescript/ts.worker'
-// @ts-expect-error
-import 'monaco-editor/esm/vs/language/json/json.worker'
+import loader from '@monaco-editor/loader'
+import type * as Monaco from 'monaco-editor'
+
+type MonacoType = typeof Monaco
+
+let monacoPromise: Promise<MonacoType> | null = null
+
+const loadMonaco = (): Promise<MonacoType> => {
+  if (!monacoPromise) {
+    // 使用 loader 懒加载 Monaco，避免在主 bundle 中直接打入全部编辑器代码
+    monacoPromise = loader.init() as Promise<MonacoType>
+  }
+  return monacoPromise
+}
 
 const MonacoEditor = defineComponent({
   name: 'MonacoEditor',
@@ -32,9 +41,11 @@ const MonacoEditor = defineComponent({
   emits: ['change'],
   setup(props, { emit }) {
     const containerRef = ref<HTMLElement | null>(null)
-    let editor: monaco.editor.IStandaloneCodeEditor | null = null
+    let editor: Monaco.editor.IStandaloneCodeEditor | null = null
 
-    onMounted(() => {
+    onMounted(async () => {
+      if (!containerRef.value) return
+      const monaco = await loadMonaco()
       if (!containerRef.value) return
 
       // 创建编辑器实例
@@ -75,7 +86,12 @@ const MonacoEditor = defineComponent({
       () => props.language,
       newLanguage => {
         if (editor) {
-          monaco.editor.setModelLanguage(editor.getModel()!, newLanguage)
+          loadMonaco().then(monaco => {
+            const model = editor && editor.getModel()
+            if (model) {
+              monaco.editor.setModelLanguage(model, newLanguage)
+            }
+          })
         }
       },
     )

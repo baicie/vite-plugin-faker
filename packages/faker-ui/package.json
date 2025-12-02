@@ -15,12 +15,13 @@
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
     "analyze": "cross-env ANALYZE=true rolldown --config rolldown.config.ts",
-    "vite:dev": "vite",
+    "vite": "vite",
     "build": "vue-tsc -b && rolldown --config rolldown.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
     "@baicie/logger": "^0.1.0",
+    "@monaco-editor/loader": "^1.7.0",
     "@vicons/ionicons5": "^0.13.0",
     "monaco-editor": "^0.55.1",
     "naive-ui": "^2.43.2",
