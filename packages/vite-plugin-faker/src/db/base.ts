@@ -2,7 +2,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import type { LowSync } from 'lowdb'
 import { JSONFileSyncPreset } from 'lowdb/node'
-import _ from 'lodash'
+import { clamp, filter, get, map, orderBy, slice } from 'lodash-es'
 import { cacheDir } from '../index'
 
 export abstract class BaseDB<T extends object> {
@@ -56,7 +56,7 @@ export abstract class BaseDB<T extends object> {
     }
   } {
     // 将对象转换为数组
-    let items = _.map(data, (value, key) => ({
+    let items = map(data, (value, key) => ({
       key,
       value,
     }))
@@ -66,7 +66,7 @@ export abstract class BaseDB<T extends object> {
       const searchVal = searchOptions.searchVal.toLowerCase()
       const searchFields = searchOptions.searchFields || []
 
-      items = _.filter(items, item => {
+      items = filter(items, item => {
         // 默认搜索key
         if (String(item.key).toLowerCase().includes(searchVal)) {
           return true
@@ -75,7 +75,7 @@ export abstract class BaseDB<T extends object> {
         // 搜索指定字段
         if (searchFields.length > 0) {
           return searchFields.some(field => {
-            const fieldValue = _.get(item.value, field)
+            const fieldValue = get(item.value, field)
             return (
               fieldValue && String(fieldValue).toLowerCase().includes(searchVal)
             )
@@ -91,7 +91,7 @@ export abstract class BaseDB<T extends object> {
     if (searchOptions?.sortBy) {
       const sortPath =
         searchOptions.sortBy === 'key' ? 'key' : `value.${searchOptions.sortBy}`
-      items = _.orderBy(
+      items = orderBy(
         items,
         [sortPath],
         [searchOptions.sortDesc ? 'desc' : 'asc'],
@@ -101,10 +101,10 @@ export abstract class BaseDB<T extends object> {
     // 计算分页信息
     const total = items.length
     const totalPages = Math.max(1, Math.ceil(total / pageSize))
-    const validPage = _.clamp(page, 1, totalPages)
+    const validPage = clamp(page, 1, totalPages)
 
     // 分页
-    const paginatedItems = _.slice(
+    const paginatedItems = slice(
       items,
       (validPage - 1) * pageSize,
       validPage * pageSize,

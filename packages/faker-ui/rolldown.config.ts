@@ -4,18 +4,17 @@ import fse from 'fs-extra'
 import { findWorkspacePackages } from '@pnpm/find-workspace-packages'
 import postcss from 'rollup-plugin-postcss'
 import autoprefixer from 'autoprefixer'
-import prefixer from 'postcss-prefix-selector'
 import { defineConfig } from 'rolldown'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vue from '@vitejs/plugin-vue'
 import { visualizer } from 'rollup-plugin-visualizer'
-import pkg from './package.json' with { type: 'json' }
 
 const needAnalyze = process.env.ANALYZE === 'true'
 
 // 定义根路径
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '../..')
+const dtsPath = path.resolve(__dirname, 'index.d.ts')
 const fakerUiPath = path.resolve(__dirname, 'dist')
 const mockServiceWorkerPath = path.resolve(
   __dirname,
@@ -42,11 +41,11 @@ const copyDistFiles = async () => {
 }
 
 export default defineConfig({
-  input: 'src/main.ts',
+  input: 'src/index.ts',
   treeshake: true,
   output: {
     dir: 'dist',
-    entryFileNames: 'faker-ui.js',
+    entryFileNames: 'index.js',
     format: 'esm',
     sourcemap: true,
     inlineDynamicImports: true,
@@ -56,33 +55,8 @@ export default defineConfig({
     vue(),
     vueJsx(),
     postcss({
-      extract: 'faker-ui.css',
+      extract: 'index.css',
       minimize: true,
-      plugins: [
-        autoprefixer(),
-        prefixer({
-          prefix: `.${pkg.name}`,
-          transform(prefix, selector, prefixedSelector, filePath, rule) {
-            if (/^(?:html|body)/.test(selector)) {
-              return selector.replace(/^(\S*)/, `$1 ${prefix}`)
-            }
-
-            if (/node_modules/.test(filePath)) {
-              return selector // Do not prefix styles imported from node_modules
-            }
-
-            const annotation = rule.prev()
-            if (
-              annotation?.type === 'comment' &&
-              annotation.text.trim() === 'no-prefix'
-            ) {
-              return selector // Do not prefix style rules that are preceded by: /* no-prefix */
-            }
-
-            return prefixedSelector
-          },
-        }),
-      ],
     }),
     needAnalyze && visualizer({ open: true }),
     {

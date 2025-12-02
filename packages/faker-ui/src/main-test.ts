@@ -1,3 +1,3 @@
-import { fakerUI } from './main'
+import { fakerUI } from './index'
 
 fakerUI('#app')

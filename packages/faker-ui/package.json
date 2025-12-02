@@ -3,6 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist/index.js",
+  "css": "dist/index.css",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "css": "./dist/index.css"
+    }
+  },
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
     "analyze": "cross-env ANALYZE=true rolldown --config rolldown.config.ts",
