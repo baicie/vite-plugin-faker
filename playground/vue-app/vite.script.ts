@@ -30,6 +30,7 @@ async function startWatcher() {
 function startViteProcess() {
   viteProcess = spawn('vite', ['--config', 'vite.config.ts'], {
     stdio: 'inherit',
+    shell: true,
   })
 
   viteProcess.on('exit', code => {
