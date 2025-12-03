@@ -43,7 +43,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "sql.js": "^1.13.0",
-    "typeorm": "^0.3.27",
+    "typeorm": "^0.3.28",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^5.0.0"
   },

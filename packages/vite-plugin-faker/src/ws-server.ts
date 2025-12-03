@@ -60,12 +60,12 @@ export class WSServer {
     // 这里我们监听所有连接，然后通过消息类型判断
 
     // 监听连接事件
-    this.server.ws.on('connection', () => {
-      // 连接时广播配置
-      setTimeout(() => {
-        this.broadcastMockConfigs()
-      }, 100)
-    })
+    // this.server.ws.on('connection', () => {
+    //   // 连接时广播配置
+    //   setTimeout(() => {
+    //     this.broadcastMockConfigs()
+    //   }, 100)
+    // })
 
     // 监听自定义事件（如果 Vite 支持）
     // 注意：这需要客户端使用 import.meta.hot.send() 发送消息
@@ -82,20 +82,6 @@ export class WSServer {
       // 如果不支持自定义事件，使用备用方案
       logger.warn('[Faker] 无法监听自定义事件，使用备用方案')
     }
-
-    // 监听 Mock 配置变化
-    this.setupMockConfigWatcher()
-  }
-
-  /**
-   * 设置 Mock 配置监听器
-   */
-  private setupMockConfigWatcher(): void {
-    // 定期检查配置变化（简单实现）
-    // 可以优化为文件系统监听
-    setInterval(() => {
-      this.broadcastMockConfigs()
-    }, 1000)
   }
 
   /**
@@ -403,23 +389,6 @@ export class WSServer {
         data: { message: '更新设置失败' },
         id,
       })
-    }
-  }
-
-  /**
-   * 发送 Mock 配置（广播给所有客户端）
-   */
-  private sendMockConfigs(_client?: any): void {
-    try {
-      const mocksDB = this.dbManager.getMocksDB()
-      const mocks = mocksDB.getAllMocks()
-
-      this.broadcast({
-        type: 'mock-config-updated',
-        data: mocks,
-      })
-    } catch (error) {
-      logger.error('[Faker] 发送 Mock 配置失败:', error)
     }
   }
 
