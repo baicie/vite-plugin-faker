@@ -15,7 +15,6 @@ export class MockDataGenerator {
   generateFromTemplate(template: string): any {
     try {
       const processed = template.replace(
-        // eslint-disable-next-line regexp/no-super-linear-backtracking, regexp/optimal-quantifier-concatenation
         /\{\{\s*([^{}]+)\s*\}\}/g,
         (_, path) => {
           try {
