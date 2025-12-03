@@ -9,6 +9,8 @@ import { FetchInterceptor } from './fetch-interceptor'
 import { XHRInterceptor } from './xhr-interceptor'
 import { initLogger, logger } from '@baicie/logger'
 
+declare const __FAKER_WS_URL__: string
+
 /**
  * 初始化拦截器
  */

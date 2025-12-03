@@ -20,7 +20,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@baicie/logger": "^0.1.0",
+    "@baicie/logger": "^0.1.1",
     "@monaco-editor/loader": "^1.7.0",
     "@vicons/ionicons5": "^0.13.0",
     "monaco-editor": "^0.55.1",
@@ -37,7 +37,7 @@
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.6",
     "postcss-prefix-selector": "^2.1.1",
-    "rolldown": "1.0.0-beta.52",
+    "rolldown": "1.0.0-beta.53",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "~5.9.3",

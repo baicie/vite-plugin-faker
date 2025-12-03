@@ -1,10 +1,10 @@
 import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import {
   type HtmlTagDescriptor,
   type Plugin,
   type ViteDevServer,
   mergeAlias,
+  normalizePath,
 } from 'vite'
 import { type LoggerConfig, initLogger, logger } from '@baicie/logger'
 import { DBManager } from './db'
@@ -15,7 +15,10 @@ import {
   CLIENT_INTERCEPTOR_PATH,
   CLIENT_UI_CSS,
   CLIENT_UI_PATH,
+  INTERCEPTOR_PATH,
+  UI_ENTRY,
 } from './constants'
+import { cleanUrl, escapeReplacement } from '@baicie/faker-shared'
 
 export interface ViteFakerOptions {
   /**
@@ -29,19 +32,26 @@ export interface ViteFakerOptions {
    * @description 日志配置
    */
   loggerOptions?: Partial<LoggerConfig>
+  /**
+   * @description ws服务器端口 默认复用vite ws server
+   */
+  port?: number
 }
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 let server: ViteDevServer | null = null
 let dbManager: DBManager | null = null
 export let cacheDir: string | undefined
 export let _baseDir: string | undefined
 
+const normalizedUIEntry = normalizePath(UI_ENTRY)
+const normalizedInterceptorEntry = normalizePath(INTERCEPTOR_PATH)
+
 export function viteFaker(options: ViteFakerOptions = {}): Plugin {
   const {
     mountTarget = '#mock-ui',
     storeDir = '.mock',
     loggerOptions,
+    port,
   } = options
 
   initLogger(
@@ -102,7 +112,29 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
       })
       return {
         html,
-        tags,
+        tags: [
+          ...tags,
+          {
+            tag: 'div',
+            attrs: {
+              id: 'mock-ui',
+            },
+            injectTo: 'body',
+          },
+        ],
+      }
+    },
+    transform(code, id) {
+      const cleanId = cleanUrl(id)
+      if (
+        cleanId === normalizedUIEntry ||
+        cleanId === normalizedInterceptorEntry
+      ) {
+        logger.debug('cleanId', cleanId)
+        logger.debug('mountTarget', mountTarget)
+        return code
+          .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
+          .replace(`__FAKER_WS_URL__`, JSON.stringify(port))
       }
     },
   }

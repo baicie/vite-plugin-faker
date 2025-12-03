@@ -12,3 +12,13 @@ export function generateUUID(): string {
     .join('')
     .replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5')
 }
+
+export function escapeReplacement(value: string | number | boolean | null) {
+  const jsonValue = JSON.stringify(value)
+  return () => jsonValue
+}
+
+const postfixRE = /[?#].*$/
+export function cleanUrl(url: string): string {
+  return url.replace(postfixRE, '')
+}
