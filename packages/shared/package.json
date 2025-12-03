@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown --minify",
     "dev": "tsdown --watch",
     "typecheck": "tsc --incremental --noEmit",
     "prepublishOnly": "pnpm run build"

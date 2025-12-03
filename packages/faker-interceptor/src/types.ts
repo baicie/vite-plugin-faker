@@ -5,7 +5,6 @@ import type { XHRInterceptor } from './xhr-interceptor'
 declare global {
   interface Window {
     __fakerInterceptorInitialized: boolean
-    __FAKER_WS_URL__: string
     __fakerInterceptor: {
       wsClient: WSClient
       fetchInterceptor: FetchInterceptor

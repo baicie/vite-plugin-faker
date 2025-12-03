@@ -16,7 +16,7 @@
     "dev": "rolldown --config rolldown.config.ts --watch",
     "analyze": "cross-env ANALYZE=true rolldown --config rolldown.config.ts",
     "vite": "vite",
-    "build": "vue-tsc -b && rolldown --config rolldown.config.ts",
+    "build": "vue-tsc -b && rolldown --config rolldown.config.ts --minify",
     "preview": "vite preview"
   },
   "dependencies": {

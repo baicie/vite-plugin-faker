@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -90,7 +89,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
       }
     },
     transformIndexHtml(html) {
-      const injectArr = [CLIENT_UI_PATH, CLIENT_UI_CSS, CLIENT_INTERCEPTOR_PATH]
+      const injectArr = [CLIENT_INTERCEPTOR_PATH, CLIENT_UI_CSS, CLIENT_UI_PATH]
       const tags: HtmlTagDescriptor[] = injectArr.map(item => {
         return {
           tag: 'script',
@@ -98,7 +97,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
             type: 'module',
             src: path.posix.join(server.config.base, item),
           },
-          injectTo: 'head-prepend',
+          injectTo: 'head',
         }
       })
       return {

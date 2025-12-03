@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
-    "build": "rolldown --config rolldown.config.ts"
+    "build": "rolldown --config rolldown.config.ts --minify"
   },
   "dependencies": {
     "@baicie/logger": "^0.1.0",

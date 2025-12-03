@@ -9,8 +9,6 @@ import { FetchInterceptor } from './fetch-interceptor'
 import { XHRInterceptor } from './xhr-interceptor'
 import { initLogger, logger } from '@baicie/logger'
 
-declare const __FAKER_WS_URL__: string
-
 /**
  * 初始化拦截器
  */
@@ -55,8 +53,7 @@ export function initInterceptor(wsUrl: string): void {
 }
 
 if (typeof window !== 'undefined') {
-  const wsUrl = __FAKER_WS_URL__ || `ws://${window.location.host}/@faker-ws`
-
+  const wsUrl = `ws://${window.location.host}/@faker-ws`
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initInterceptor(wsUrl)

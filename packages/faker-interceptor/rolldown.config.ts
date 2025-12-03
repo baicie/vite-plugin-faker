@@ -15,15 +15,9 @@ const esmConfig = defineConfig({
     dir: 'dist',
     entryFileNames: 'interceptor.js',
     sourcemap: true,
-    name: 'FakerInterceptor',
     extend: true,
   },
   treeshake: true,
-  transform: {
-    define: {
-      'import.meta': '{}',
-    },
-  },
   platform: 'browser',
 })
 

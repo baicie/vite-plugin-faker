@@ -4,3 +4,6 @@ packages:
 
 ignoredBuiltDependencies:
   - sqlite3
+
+catalog:
+  'vite': ^7.2.5
