@@ -108,6 +108,9 @@ importers:
 
   packages/faker-ui:
     dependencies:
+      '@baicie/faker-shared':
+        specifier: workspace:*
+        version: link:../shared
       '@baicie/logger':
         specifier: ^0.1.1
         version: 0.1.1
@@ -127,9 +130,6 @@ importers:
         specifier: ^3.5.25
         version: 3.5.25(typescript@5.9.3)
     devDependencies:
-      '@baicie/faker-shared':
-        specifier: workspace:*
-        version: link:../shared
       '@rollup/plugin-alias':
         specifier: ^6.0.0
         version: 6.0.0(rollup@4.46.2)
