@@ -13,9 +13,12 @@ export function generateUUID(): string {
     .replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5')
 }
 
-export function escapeReplacement(value: string | number | boolean | null) {
-  const jsonValue = JSON.stringify(value)
-  return () => jsonValue
+/**
+ * 转义替换值，用于字符串替换
+ * 返回 JSON 序列化后的字符串，可以直接用于 String.replace()
+ */
+export function escapeReplacement(value: string | number | boolean | null): string {
+  return JSON.stringify(value)
 }
 
 const postfixRE = /[?#].*$/

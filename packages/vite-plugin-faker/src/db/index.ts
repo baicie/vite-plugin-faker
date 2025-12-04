@@ -5,6 +5,7 @@ import { RequestsDB } from './request'
 import { SettingsDB } from './setting'
 import { MocksDB } from './mock'
 import type { DBConfig } from './base'
+import { cacheDir } from '../index'
 
 /**
  * 数据库管理器
