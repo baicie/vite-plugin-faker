@@ -1,4 +1,5 @@
 export * from './utils'
+export * from './ws-types'
 
 export enum ICustomEvent {
   custom = 'custom',
