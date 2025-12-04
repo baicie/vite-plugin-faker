@@ -1,4 +1,4 @@
-import type { EventBusType, EventBusEvent } from '@baicie/faker-shared'
+import type { EventBusEvent, EventBusType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 
 /**
@@ -60,4 +60,3 @@ export class EventBus {
     this.handlers.clear()
   }
 }
-

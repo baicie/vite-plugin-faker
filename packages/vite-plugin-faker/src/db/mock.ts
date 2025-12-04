@@ -1,35 +1,21 @@
 import { generateUUID } from '@baicie/faker-shared'
-import { _baseDir } from '../index'
+import type { MockConfig } from '@baicie/faker-shared'
 import { BaseDB } from './base'
+import type { DBConfig } from './base'
 
-interface MockConfig {
-  id: string
-  url: string
-  method: string
-  enabled: boolean
-  description?: string
-  responseType: 'static' | 'faker' | 'function'
-  responseData: any
-  responseTemplate?: string
-  responseCode?: string
-  statusCode: number
-  delay?: number
-  headers?: Record<string, string>
-  tags?: string[]
-}
-
+/**
+ * Mock 配置数据库
+ * 存储 Mock 配置数据
+ */
 export class MocksDB extends BaseDB<Record<string, MockConfig>> {
-  private static instance: MocksDB
+  private static readonly INSTANCE_KEY = 'MocksDB'
 
-  private constructor() {
-    super('mocks', {}, _baseDir)
+  private constructor(config: DBConfig) {
+    super('mocks', {}, config)
   }
 
-  static getInstance(): MocksDB {
-    if (!MocksDB.instance) {
-      MocksDB.instance = new MocksDB()
-    }
-    return MocksDB.instance
+  static getInstance(config: DBConfig): MocksDB {
+    return BaseDB.getInstance(MocksDB.INSTANCE_KEY, MocksDB, config)
   }
 
   // 添加Mock配置

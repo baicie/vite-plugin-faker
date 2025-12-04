@@ -1,5 +1,5 @@
 import type { ViteHotContext } from 'vite/types/hot.d.ts'
-import type { RequestRecord, WSMessage } from './types'
+import type { RequestRecord, WSMessage } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 
 /**

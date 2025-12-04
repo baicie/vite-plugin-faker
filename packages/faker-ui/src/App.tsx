@@ -1,9 +1,9 @@
 // App.tsx
 import { defineComponent, reactive } from 'vue'
 import {
+  NButton,
   NDialogProvider,
   NDrawer,
-  NFloatButton,
   NMessageProvider,
   NTabPane,
   NTabs,
@@ -11,11 +11,11 @@ import {
 import { useWebSocket } from './composables/useWebSocket'
 import RequestList from './components/request-list'
 import MockList from './components/mock-list'
-import SettingsPanel from './components/settings-panel-new'
+import SettingsPanel from './components/settings-panel'
 
 const App = defineComponent({
   setup() {
-    const {} = useWebSocket()
+    useWebSocket() // 初始化 WebSocket 连接
     const state = reactive({
       open: false,
       activeTab: 'requests',
@@ -28,16 +28,18 @@ const App = defineComponent({
     return () => (
       <NDialogProvider>
         <NMessageProvider>
-          <NFloatButton
+          <NButton
             type="primary"
-            // @ts-expect-error
             onClick={handleOpen}
-            position="fixed"
-            bottom={24}
-            right={0}
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              zIndex: 1000,
+            }}
           >
             open
-          </NFloatButton>
+          </NButton>
 
           <NDrawer v-model:show={state.open} defaultWidth={720} resizable>
             <div class="drawer-content">

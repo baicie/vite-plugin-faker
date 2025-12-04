@@ -43,7 +43,7 @@ export function useRequest() {
           ...result.pagination,
         }
       } else {
-        requests.value = result || []
+        requests.value = result.items || []
       }
     } catch (err) {
       error.value = err instanceof Error ? err : new Error('加载失败')

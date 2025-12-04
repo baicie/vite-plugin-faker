@@ -1,22 +1,20 @@
 import { BaseDB } from './base'
+import type { Settings } from './types'
+import type { DBConfig } from './base'
 
-interface Settings {
-  version: number
-  theme?: 'light' | 'dark'
-}
-
+/**
+ * 设置数据库
+ * 存储系统设置
+ */
 export class SettingsDB extends BaseDB<Settings> {
-  private static instance: SettingsDB
+  private static readonly INSTANCE_KEY = 'SettingsDB'
 
-  private constructor() {
-    super('settings', { version: 1, theme: 'light' })
+  private constructor(config: DBConfig) {
+    super('settings', { version: 1, theme: 'light' }, config)
   }
 
-  static getInstance(): SettingsDB {
-    if (!SettingsDB.instance) {
-      SettingsDB.instance = new SettingsDB()
-    }
-    return SettingsDB.instance
+  static getInstance(config: DBConfig): SettingsDB {
+    return BaseDB.getInstance(SettingsDB.INSTANCE_KEY, SettingsDB, config)
   }
 
   getVersion(): number {

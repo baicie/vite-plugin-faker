@@ -1,9 +1,9 @@
-import type { ViteDevServer } from 'vite'
-import type { DBManager } from './db'
-import { logger } from '@baicie/logger'
 import type { WSMessage } from '@baicie/faker-shared'
 import { EventBusType, WSMessageType } from '@baicie/faker-shared'
-import { WSMessageHandler } from './api/handlers/ws-handler'
+import { logger } from '@baicie/logger'
+import type { ViteDevServer } from 'vite'
+import { WSMessageHandler } from './api'
+import type { DBManager } from './db'
 import { EventBus } from './event-bus'
 
 /**

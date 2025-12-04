@@ -1,26 +1,20 @@
 import { BaseDB } from './base'
+import type { RequestItem } from './types'
+import type { DBConfig } from './base'
 
-interface RequestItem {
-  req: Record<string, any>
-  res: Record<string, any> | null
-  timestamp?: number
-  duration?: number
-  isProxy?: boolean
-  error?: any
-}
-
+/**
+ * 请求记录数据库
+ * 存储请求历史记录
+ */
 export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
-  private static instance: RequestsDB
+  private static readonly INSTANCE_KEY = 'RequestsDB'
 
-  private constructor() {
-    super('requests', {})
+  private constructor(config: DBConfig) {
+    super('requests', {}, config)
   }
 
-  static getInstance(): RequestsDB {
-    if (!RequestsDB.instance) {
-      RequestsDB.instance = new RequestsDB()
-    }
-    return RequestsDB.instance
+  static getInstance(config: DBConfig): RequestsDB {
+    return BaseDB.getInstance(RequestsDB.INSTANCE_KEY, RequestsDB, config)
   }
 
   getRequest(url: string): RequestItem | undefined {

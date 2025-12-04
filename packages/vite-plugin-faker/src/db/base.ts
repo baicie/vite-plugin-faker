@@ -3,24 +3,51 @@ import fs from 'node:fs'
 import type { LowSync } from 'lowdb'
 import { JSONFileSyncPreset } from 'lowdb/node'
 import { clamp, filter, get, map, orderBy, slice } from 'lodash-es'
-import { cacheDir } from '../index'
 
+/**
+ * 数据库配置选项
+ */
+export interface DBConfig {
+  dbDir?: string
+  cacheDir: string
+}
+
+/**
+ * 数据库基类
+ */
 export abstract class BaseDB<T extends object> {
+  protected static instances: Map<string, BaseDB<any>> = new Map()
   protected db: LowSync<T>
   protected tableName: string
 
-  constructor(tableName: string, defaultData: T, dbDir?: string) {
+  protected constructor(
+    tableName: string,
+    defaultData: T,
+    config: DBConfig,
+  ) {
     this.tableName = tableName
 
-    if (!dbDir) {
-      dbDir = path.resolve(cacheDir, 'db')
-    }
+    const dbDir = config.dbDir || path.resolve(config.cacheDir, 'db')
     fs.mkdirSync(dbDir, { recursive: true })
 
     const filePath = path.join(dbDir, `${tableName}.json`)
     this.db = JSONFileSyncPreset<T>(filePath, defaultData)
     // init write
     this.db.write()
+  }
+
+  /**
+   * 获取单例实例
+   */
+  protected static getInstance<DB extends BaseDB<any>>(
+    this: new (config: DBConfig) => DB,
+    key: string,
+    config: DBConfig,
+  ): DB {
+    if (!BaseDB.instances.has(key)) {
+      BaseDB.instances.set(key, new this(config))
+    }
+    return BaseDB.instances.get(key) as DB
   }
 
   getData(): T {

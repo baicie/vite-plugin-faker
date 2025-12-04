@@ -1,4 +1,4 @@
-import type { MockConfig } from './types'
+import type { MockConfig } from '@baicie/faker-shared'
 
 /**
  * URL 匹配器

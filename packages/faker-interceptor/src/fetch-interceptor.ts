@@ -1,6 +1,6 @@
-import type { MockConfig, RequestRecord } from './types'
+import type { MockConfig, RequestRecord } from '@baicie/faker-shared'
 import { MockMatcher } from './mock-matcher'
-import { BrowserFakerGenerator } from './faker-generator'
+import { MockResponseGenerator } from './mock-response-generator'
 import type { WSClient } from './ws-client'
 import { logger } from '@baicie/logger'
 
@@ -9,12 +9,12 @@ import { logger } from '@baicie/logger'
  */
 export class FetchInterceptor {
   private mocks: MockConfig[] = []
-  private generator: BrowserFakerGenerator
+  private responseGenerator: MockResponseGenerator
   private wsClient: WSClient
   private originalFetch: typeof fetch
 
   constructor(wsClient: WSClient) {
-    this.generator = new BrowserFakerGenerator()
+    this.responseGenerator = new MockResponseGenerator()
     this.wsClient = wsClient
     this.originalFetch = window.fetch
     this.setup()
@@ -88,33 +88,18 @@ export class FetchInterceptor {
       await new Promise(resolve => setTimeout(resolve, mock.delay))
     }
 
-    let responseData: any
+    // 获取请求信息
+    const requestInfo = await this.getRequestInfo(request)
 
-    switch (mock.responseType) {
-      case 'static':
-        responseData = this.generator.generateStatic(mock.responseData)
-        break
+    // 生成响应数据
+    const responseData = this.responseGenerator.generateResponseData(
+      mock,
+      requestInfo,
+    )
 
-      case 'faker':
-        responseData = this.generator.generateFromTemplate(
-          mock.responseTemplate || '{}',
-          this.getRequestInfo(request),
-        )
-        break
-
-      case 'function':
-        responseData = this.generator.executeFunction(
-          mock.responseCode || '',
-          this.getRequestInfo(request),
-        )
-        break
-    }
-
-    // 构建响应
-    const headers = new Headers(mock.headers || {})
-    if (!headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json')
-    }
+    // 获取响应头
+    const responseHeaders = this.responseGenerator.getResponseHeaders(mock)
+    const headers = new Headers(responseHeaders)
 
     return new Response(JSON.stringify(responseData), {
       status: mock.statusCode || 200,

@@ -84,7 +84,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     configResolved(config) {
       cacheDir = path.resolve(config.cacheDir, 'vite-plugin-faker')
       _baseDir = path.resolve(config.root, storeDir)
-      dbManager = DBManager.getInstance()
+      dbManager = DBManager.getInstance(cacheDir, _baseDir)
     },
     configureServer(_server) {
       server = _server

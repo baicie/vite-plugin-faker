@@ -3,7 +3,7 @@
  * 在浏览器端运行，拦截 fetch 和 XHR 请求
  */
 
-import type { MockConfig } from './types'
+import type { MockConfig } from '@baicie/faker-shared'
 import { WSClient } from './ws-client'
 import { FetchInterceptor } from './fetch-interceptor'
 import { XHRInterceptor } from './xhr-interceptor'

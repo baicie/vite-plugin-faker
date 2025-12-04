@@ -1,6 +1,6 @@
-import type { MockConfig, RequestRecord } from './types'
+import type { MockConfig, RequestRecord } from '@baicie/faker-shared'
 import { MockMatcher } from './mock-matcher'
-import { BrowserFakerGenerator } from './faker-generator'
+import { MockResponseGenerator } from './mock-response-generator'
 import type { WSClient } from './ws-client'
 import { logger } from '@baicie/logger'
 
@@ -9,12 +9,12 @@ import { logger } from '@baicie/logger'
  */
 export class XHRInterceptor {
   private mocks: MockConfig[] = []
-  private generator: BrowserFakerGenerator
+  private responseGenerator: MockResponseGenerator
   private wsClient: WSClient
   private OriginalXHR: typeof XMLHttpRequest
 
   constructor(wsClient: WSClient) {
-    this.generator = new BrowserFakerGenerator()
+    this.responseGenerator = new MockResponseGenerator()
     this.wsClient = wsClient
     this.OriginalXHR = window.XMLHttpRequest
     this.setup()
@@ -92,27 +92,10 @@ export class XHRInterceptor {
         }
 
         // 生成响应数据
-        let responseData: any
-
-        switch (mock.responseType) {
-          case 'static':
-            responseData = self.generator.generateStatic(mock.responseData)
-            break
-
-          case 'faker':
-            responseData = self.generator.generateFromTemplate(
-              mock.responseTemplate || '{}',
-              requestInfo,
-            )
-            break
-
-          case 'function':
-            responseData = self.generator.executeFunction(
-              mock.responseCode || '',
-              requestInfo,
-            )
-            break
-        }
+        const responseData = self.responseGenerator.generateResponseData(
+          mock,
+          requestInfo,
+        )
 
         const responseText = JSON.stringify(responseData)
         const duration = Date.now() - this._startTime
@@ -149,8 +132,8 @@ export class XHRInterceptor {
         })
 
         // 设置响应头
-        const headers = new Headers(mock.headers || {})
-        headers.set('Content-Type', 'application/json')
+        const responseHeaders = self.responseGenerator.getResponseHeaders(mock)
+        const headers = new Headers(responseHeaders)
 
         Object.defineProperty(this, 'getResponseHeader', {
           value: (name: string) => headers.get(name),
