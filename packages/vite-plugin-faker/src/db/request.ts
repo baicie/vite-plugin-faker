@@ -7,6 +7,7 @@ import type { DBConfig } from './base'
  * 存储请求历史记录
  */
 export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
+  private static instance: RequestsDB
   private static readonly INSTANCE_KEY = 'RequestsDB'
 
   private constructor(config: DBConfig) {
@@ -14,7 +15,10 @@ export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
   }
 
   static getInstance(config: DBConfig): RequestsDB {
-    return BaseDB.getInstance(RequestsDB.INSTANCE_KEY, RequestsDB, config)
+    if (!RequestsDB.instance) {
+      RequestsDB.instance = new RequestsDB(config)
+    }
+    return RequestsDB.instance
   }
 
   getRequest(url: string): RequestItem | undefined {

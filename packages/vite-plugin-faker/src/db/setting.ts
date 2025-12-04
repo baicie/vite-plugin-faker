@@ -7,6 +7,7 @@ import type { DBConfig } from './base'
  * 存储系统设置
  */
 export class SettingsDB extends BaseDB<Settings> {
+  private static instance: SettingsDB
   private static readonly INSTANCE_KEY = 'SettingsDB'
 
   private constructor(config: DBConfig) {
@@ -14,7 +15,10 @@ export class SettingsDB extends BaseDB<Settings> {
   }
 
   static getInstance(config: DBConfig): SettingsDB {
-    return BaseDB.getInstance(SettingsDB.INSTANCE_KEY, SettingsDB, config)
+    if (!SettingsDB.instance) {
+      SettingsDB.instance = new SettingsDB(config)
+    }
+    return SettingsDB.instance
   }
 
   getVersion(): number {

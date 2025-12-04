@@ -8,6 +8,7 @@ import type { DBConfig } from './base'
  * 存储 Mock 配置数据
  */
 export class MocksDB extends BaseDB<Record<string, MockConfig>> {
+  private static instance: MocksDB
   private static readonly INSTANCE_KEY = 'MocksDB'
 
   private constructor(config: DBConfig) {
@@ -15,13 +16,16 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   }
 
   static getInstance(config: DBConfig): MocksDB {
-    return BaseDB.getInstance(MocksDB.INSTANCE_KEY, MocksDB, config)
+    if (!MocksDB.instance) {
+      MocksDB.instance = new MocksDB(config)
+    }
+    return MocksDB.instance
   }
 
   // 添加Mock配置
   addMock(config: Omit<MockConfig, 'id'>): MockConfig {
     const id = generateUUID()
-    const newConfig = { ...config, id }
+    const newConfig = { ...config, id } as MockConfig
     this.db.data[id] = newConfig
     this.save()
     return newConfig

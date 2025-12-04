@@ -20,11 +20,7 @@ export abstract class BaseDB<T extends object> {
   protected db: LowSync<T>
   protected tableName: string
 
-  protected constructor(
-    tableName: string,
-    defaultData: T,
-    config: DBConfig,
-  ) {
+  protected constructor(tableName: string, defaultData: T, config: DBConfig) {
     this.tableName = tableName
 
     const dbDir = config.dbDir || path.resolve(config.cacheDir, 'db')
@@ -34,20 +30,6 @@ export abstract class BaseDB<T extends object> {
     this.db = JSONFileSyncPreset<T>(filePath, defaultData)
     // init write
     this.db.write()
-  }
-
-  /**
-   * 获取单例实例
-   */
-  protected static getInstance<DB extends BaseDB<any>>(
-    this: new (config: DBConfig) => DB,
-    key: string,
-    config: DBConfig,
-  ): DB {
-    if (!BaseDB.instances.has(key)) {
-      BaseDB.instances.set(key, new this(config))
-    }
-    return BaseDB.instances.get(key) as DB
   }
 
   getData(): T {
