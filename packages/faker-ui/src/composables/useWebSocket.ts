@@ -289,7 +289,7 @@ export function useWebSocket(wsUrl?: string) {
 
   // 清理
   onUnmounted(() => {
-    close()
+    // close()
     pendingRequests.clear()
     messageHandlers.clear()
   })
