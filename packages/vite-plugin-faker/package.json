@@ -43,7 +43,7 @@
     "@types/node": "^24.10.1",
     "fs-extra": "^11.3.2",
     "rolldown": "1.0.0-beta.53",
-    "rolldown-plugin-dts": "^0.18.2",
+    "rolldown-plugin-dts": "^0.18.3",
     "vite": "catalog:"
   }
 }
