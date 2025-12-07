@@ -26,7 +26,10 @@ export interface ViteFakerOptions {
    * @default '#mock-ui'
    */
   mountTarget?: string
-
+  /**
+   * 存储目录
+   * @default '.mock'
+   */
   storeDir?: string
   /**
    * @description 日志配置
@@ -134,7 +137,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         logger.debug('mountTarget', mountTarget)
         return code
           .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
-          .replace(`__FAKER_WS_URL__`, JSON.stringify(port))
+          .replace(`__FAKER_WS_PORT__`, JSON.stringify(port))
       }
     },
   }

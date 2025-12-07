@@ -427,6 +427,9 @@ importers:
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
+      tree-kill:
+        specifier: ^1.2.2
+        version: 1.2.2
       typescript:
         specifier: ~5.9.3
         version: 5.9.3

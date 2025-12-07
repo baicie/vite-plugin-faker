@@ -1,11 +1,11 @@
-import path from 'node:path'
-import fs from 'node:fs'
 import { ensureDirSync } from '@baicie/faker-shared/node'
+import fs from 'node:fs'
+import path from 'node:path'
+import { cacheDir } from '../index'
+import type { DBConfig } from './base'
+import { MocksDB } from './mock'
 import { RequestsDB } from './request'
 import { SettingsDB } from './setting'
-import { MocksDB } from './mock'
-import type { DBConfig } from './base'
-import { cacheDir } from '../index'
 
 /**
  * 数据库管理器
@@ -33,18 +33,14 @@ export class DBManager {
     this.requestsDB = RequestsDB.getInstance(this.config)
     this.mocksDB = MocksDB.getInstance({
       ...this.config,
-      dbDir: baseDir, // Mocks 存储在 baseDir
+      dbDir: baseDir,
     })
-
-    // 执行迁移
-    this.settingsDB.migrateIfNeeded()
   }
 
   /**
    * 获取单例实例
    */
   static getInstance(cacheDir: string, baseDir: string): DBManager {
-    const key = `${cacheDir}:${baseDir}`
     if (!DBManager.instance) {
       DBManager.instance = new DBManager(cacheDir, baseDir)
     }
@@ -73,10 +69,8 @@ export class DBManager {
       `${tableName}_${timestamp}.json`,
     )
 
-    // 确保备份目录存在
     fs.mkdirSync(path.join(dbDir, 'backups'), { recursive: true })
 
-    // 复制文件
     fs.copyFileSync(sourcePath, backupPath)
     return backupPath
   }

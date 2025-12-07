@@ -3,6 +3,7 @@ import type { ChildProcess } from 'node:child_process'
 import { spawn } from 'node:child_process'
 import chokidar, { type FSWatcher } from 'chokidar'
 import { vitePluginFakerPath } from './../../packages/path'
+import kill from 'tree-kill'
 
 const distPath = path.resolve(vitePluginFakerPath, 'dist')
 
@@ -21,8 +22,10 @@ async function startWatcher() {
     ignored: /\.(map|d\.ts)$/,
   })
 
-  watcher.on('change', async _ => {
-    viteProcess.kill()
+  watcher.on('change', async () => {
+    if (viteProcess) {
+      kill(viteProcess.pid!, 'SIGKILL')
+    }
     startViteProcess()
   })
 }

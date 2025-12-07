@@ -33,13 +33,4 @@ export class SettingsDB extends BaseDB<Settings> {
     this.db.data = { ...this.db.data, ...settings }
     this.save()
   }
-
-  migrateIfNeeded(): void {
-    const currentVersion = this.getVersion()
-
-    if (currentVersion < 2) {
-      this.db.data.version = 2
-      this.save()
-    }
-  }
 }
