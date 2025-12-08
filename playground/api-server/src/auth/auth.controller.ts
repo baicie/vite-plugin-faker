@@ -14,8 +14,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { I18nLang, I18nService } from 'nestjs-i18n';
-import { AuthService } from './auth.service';
+import { I18nLang, type I18nService } from 'nestjs-i18n';
+import type { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 

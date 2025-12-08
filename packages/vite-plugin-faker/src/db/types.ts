@@ -22,4 +22,3 @@ export interface Settings {
   theme?: 'light' | 'dark'
   [key: string]: any
 }
-

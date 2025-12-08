@@ -17,7 +17,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { I18nLang, I18nService } from 'nestjs-i18n';
+import { I18nLang, type I18nService } from 'nestjs-i18n';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -30,9 +30,9 @@ import {
   ApiExperimental,
   ApiVersion,
 } from '../common/decorators/api-version.decorator';
-import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import type { UsersService } from './users.service';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './entities/user.entity';
 
 @ApiTags('用户管理')

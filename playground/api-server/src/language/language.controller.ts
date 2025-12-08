@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { I18nLang, I18nService } from 'nestjs-i18n';
+import { I18nLang, type I18nService } from 'nestjs-i18n';
 
 class SwitchLanguageDto {
   language: 'zh' | 'en';

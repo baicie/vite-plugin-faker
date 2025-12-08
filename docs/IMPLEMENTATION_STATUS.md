@@ -3,6 +3,7 @@
 ## ✅ 已完成的功能
 
 ### Phase 1: 核心拦截功能 ✅
+
 - [x] 创建 `faker-interceptor` 包
 - [x] 实现 fetch 拦截器
 - [x] 实现 XHR 拦截器
@@ -11,12 +12,14 @@
 - [x] 实现 WebSocket 客户端
 
 ### Phase 2: Node 端服务 ✅
+
 - [x] 实现 WebSocket 服务器（基于 Vite HMR WebSocket）
 - [x] JSON DB 管理器（使用 LowDB）
 - [x] 配置同步机制
 - [x] 请求记录存储
 
 ### Phase 3: UI 基础功能 ✅
+
 - [x] 实现 WebSocket 客户端 Composable
 - [x] 实现 Mock 管理 Composable
 - [x] 实现请求记录 Composable
@@ -26,6 +29,7 @@
 - [x] 重构设置面板组件
 
 ### Phase 4: 编辑器 ✅
+
 - [x] 实现代码编辑器（Monaco Editor）
 - [x] 实现 JSON 编辑器
 - [x] 实现可视化编辑器（基础版）
@@ -78,26 +82,31 @@ packages/
 ## 🔧 技术实现要点
 
 ### 1. 拦截脚本注入
+
 - 使用 `injectTo: 'head-prepend'` 确保最早执行
 - 在页面加载前完成拦截设置
 - 支持 fetch 和 XHR 两种方式
 
 ### 2. Faker.js 浏览器端使用
+
 - 通过 rolldown 打包 Faker.js 到拦截脚本
 - 使用 IIFE 格式，可直接在浏览器执行
 - 支持三种生成模式：static、faker 模板、自定义函数
 
 ### 3. WebSocket 通信
+
 - 优先使用 Vite HMR WebSocket（如果可用）
 - 降级到独立 WebSocket 连接
 - 通过自定义事件类型通信：`faker:message`、`faker:response`、`faker:broadcast`
 
 ### 4. JSON DB 设计
+
 - 使用 LowDB 管理 JSON 文件
 - 文件结构友好，可直接编辑
 - 支持 Mock 配置、请求记录、设置三种数据
 
 ### 5. 编辑器支持
+
 - **代码编辑器**：Monaco Editor，支持 JS 语法高亮和 Faker API 补全
 - **JSON 编辑器**：简单文本编辑器，支持 JSON 格式化
 - **可视化编辑器**：字段列表形式，选择类型和 Faker 方法
@@ -180,4 +189,3 @@ export default defineConfig({
 1. WebSocket 服务器需要进一步测试 Vite HMR WebSocket API 的正确用法
 2. 可视化编辑器功能较基础，需要增强
 3. 错误处理需要完善
-

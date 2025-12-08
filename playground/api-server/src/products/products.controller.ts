@@ -25,10 +25,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { ProductsService } from './products.service';
+import type { ProductsService } from './products.service';
 import type { ProductFilterDto } from './dto/product.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
-import { Product } from './entities/product.entity';
+import type { Product } from './entities/product.entity';
 
 @ApiTags('商品管理')
 @Controller('products')

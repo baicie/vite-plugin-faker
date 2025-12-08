@@ -1,6 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Test, type TestingModule } from '@nestjs/testing';
+import type { INestApplication } from '@nestjs/common';
+import type { Repository } from 'typeorm';
 import { vi } from 'vitest';
 
 /**

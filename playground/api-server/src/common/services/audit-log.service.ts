@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Request } from 'express';
+import type { Repository } from 'typeorm';
+import type { Request } from 'express';
 import {
   AuditAction,
   AuditEntityType,
   AuditLog,
 } from '../entities/audit-log.entity';
-import { PaginatedResponseDto, PaginationDto } from '../dto/pagination.dto';
-import { PaginationService } from './pagination.service';
+import type { PaginatedResponseDto, PaginationDto } from '../dto/pagination.dto';
+import type { PaginationService } from './pagination.service';
 
 export interface AuditLogOptions {
   action: AuditAction;

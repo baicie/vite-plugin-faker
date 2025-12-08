@@ -1,17 +1,15 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "outDir": "./dist",
     "rootDir": "./src",
+    "outDir": "./dist",
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "*": ["./src/*"]
-    },
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false,
-    "types": ["node"]
+      "@zeus-js/shared": ["../shared/src"],
+      "@zeus-js/shared/*": ["../shared/src/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "__tests__"]
 }

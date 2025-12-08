@@ -18,10 +18,10 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { OrdersService } from './orders.service';
+import type { OrdersService } from './orders.service';
 import type { OrderFilterDto } from './dto/order.dto';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto/order.dto';
-import { Order } from './entities/order.entity';
+import type { Order } from './entities/order.entity';
 
 @ApiTags('订单管理')
 @Controller('orders')

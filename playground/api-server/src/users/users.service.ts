@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import {
-  PaginatedResponseDto,
+  type PaginatedResponseDto,
   PaginationDto,
 } from '../common/dto/pagination.dto';
-import { PaginationService } from '../common/services/pagination.service';
+import type { PaginationService } from '../common/services/pagination.service';
 import { UserNotFoundException } from '../common/exceptions/business.exception';
 import { User, UserRole } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import type { CreateUserDto } from './dto/create-user.dto';
+import type { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {

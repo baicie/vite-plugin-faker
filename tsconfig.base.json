@@ -1,0 +1,54 @@
+{
+  "compilerOptions": {
+    /* 基础配置 */
+    "target": "ES5",
+    "lib": ["ES5", "ES2015", "ES2015.Iterable", "ES2017"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /* 类型检查 */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    /* 模块解析 */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    /* 声明文件 */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "isolatedDeclarations": true,
+
+    /* 项目引用 */
+    "composite": true,
+    "incremental": true,
+
+    /* 装饰器支持 */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+
+    /* 其他 */
+    "skipLibCheck": true,
+    "downlevelIteration": true
+  },
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+}

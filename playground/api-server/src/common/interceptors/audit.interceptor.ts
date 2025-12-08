@@ -1,15 +1,15 @@
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   Injectable,
-  NestInterceptor,
+  type NestInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
+import type { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Request } from 'express';
-import { AuditLogService } from '../services/audit-log.service';
-import { AuditAction, AuditEntityType } from '../entities/audit-log.entity';
+import type { Request } from 'express';
+import type { AuditLogService } from '../services/audit-log.service';
+import type { AuditAction, AuditEntityType } from '../entities/audit-log.entity';
 
 export const AUDIT_LOG_KEY = 'audit_log';
 

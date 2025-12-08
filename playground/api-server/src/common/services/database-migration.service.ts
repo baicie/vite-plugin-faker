@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import type { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 export interface MigrationInfo {

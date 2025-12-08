@@ -15,10 +15,7 @@ export class MockResponseGenerator {
   /**
    * 生成响应数据
    */
-  generateResponseData(
-    mock: MockConfig,
-    requestInfo?: any,
-  ): any {
+  generateResponseData(mock: MockConfig, requestInfo?: any): any {
     switch (mock.responseType) {
       case 'static':
         return this.generator.generateStatic(mock.responseData)
@@ -51,4 +48,3 @@ export class MockResponseGenerator {
     return headers
   }
 }
-

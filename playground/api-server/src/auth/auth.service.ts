@@ -1,11 +1,11 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import type { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { User, UserRole } from '../users/entities/user.entity';
 import { InvalidCredentialsException } from '../common/exceptions/business.exception';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import type { LoginDto, RegisterDto } from './dto/auth.dto';
 import type { JwtPayload } from './jwt.strategy';
 
 @Injectable()

@@ -3,7 +3,7 @@ import { ref, reactive, onMounted } from 'vue'
 import axios from 'axios'
 
 // API基础配置 - 测试绝对路径和相对路径
-const API_BASE = '/api'  // 相对路径：走 Vite 代理
+const API_BASE = '/api' // 相对路径：走 Vite 代理
 // const API_BASE = 'http://localhost:3000/api'  // 绝对路径：不走代理，但会被全局监听器捕获
 const api = axios.create({
   baseURL: API_BASE,
@@ -379,7 +379,7 @@ const uploadFile = async (file: File) => {
   } catch (error: any) {
     showMessage(
       `上传 ${file.name} 失败: ` +
-      (error.response?.data?.message || error.message),
+        (error.response?.data?.message || error.message),
       'error',
     )
   } finally {
@@ -438,7 +438,11 @@ onMounted(async () => {
       <div class="auth-info">
         <span v-if="!authToken">未登录</span>
         <span v-else>已登录: {{ currentUser?.name }}</span>
-        <button v-if="!authToken" @click="showLogin = true" class="btn btn-primary">
+        <button
+          v-if="!authToken"
+          @click="showLogin = true"
+          class="btn btn-primary"
+        >
           登录
         </button>
         <button v-else @click="logout" class="btn btn-danger">退出</button>
@@ -462,8 +466,12 @@ onMounted(async () => {
     <main class="main-content">
       <!-- 标签页导航 -->
       <div class="tabs">
-        <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
-          :class="['tab', { active: activeTab === tab.key }]">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          @click="activeTab = tab.key"
+          :class="['tab', { active: activeTab === tab.key }]"
+        >
           {{ tab.label }}
         </button>
       </div>
@@ -499,10 +507,16 @@ onMounted(async () => {
                 <td>{{ user.role }}</td>
                 <td>{{ formatDate(user.createdAt) }}</td>
                 <td>
-                  <button @click="editUser(user)" class="btn btn-sm btn-secondary">
+                  <button
+                    @click="editUser(user)"
+                    class="btn btn-sm btn-secondary"
+                  >
                     编辑
                   </button>
-                  <button @click="deleteUser(user.id)" class="btn btn-sm btn-danger">
+                  <button
+                    @click="deleteUser(user.id)"
+                    class="btn btn-sm btn-danger"
+                  >
                     删除
                   </button>
                 </td>
@@ -543,10 +557,16 @@ onMounted(async () => {
                 <td>{{ product.stock }}</td>
                 <td>{{ product.description }}</td>
                 <td>
-                  <button @click="editProduct(product)" class="btn btn-sm btn-secondary">
+                  <button
+                    @click="editProduct(product)"
+                    class="btn btn-sm btn-secondary"
+                  >
                     编辑
                   </button>
-                  <button @click="deleteProduct(product.id)" class="btn btn-sm btn-danger">
+                  <button
+                    @click="deleteProduct(product.id)"
+                    class="btn btn-sm btn-danger"
+                  >
                     删除
                   </button>
                 </td>
@@ -587,10 +607,16 @@ onMounted(async () => {
                 <td>{{ order.status }}</td>
                 <td>{{ formatDate(order.createdAt) }}</td>
                 <td>
-                  <button @click="viewOrderItems(order)" class="btn btn-sm btn-info">
+                  <button
+                    @click="viewOrderItems(order)"
+                    class="btn btn-sm btn-info"
+                  >
                     查看详情
                   </button>
-                  <button @click="deleteOrder(order.id)" class="btn btn-sm btn-danger">
+                  <button
+                    @click="deleteOrder(order.id)"
+                    class="btn btn-sm btn-danger"
+                  >
                     删除
                   </button>
                 </td>
@@ -609,7 +635,13 @@ onMounted(async () => {
         <div class="upload-section">
           <div class="upload-area">
             <p>点击选择文件或拖拽文件到此处</p>
-            <input ref="fileInput" type="file" multiple @change="handleFileSelect" style="display: none" />
+            <input
+              ref="fileInput"
+              type="file"
+              multiple
+              @change="handleFileSelect"
+              style="display: none"
+            />
           </div>
 
           <div v-if="uploadFiles.length > 0" class="file-list">
@@ -627,7 +659,11 @@ onMounted(async () => {
 
           <div v-if="uploadedFiles.length > 0" class="uploaded-files">
             <h3>已上传文件</h3>
-            <div v-for="file in uploadedFiles" :key="file.filename" class="uploaded-file">
+            <div
+              v-for="file in uploadedFiles"
+              :key="file.filename"
+              class="uploaded-file"
+            >
               <a :href="file.url" target="_blank">{{ file.originalname }}</a>
               <span>({{ formatFileSize(file.size) }})</span>
             </div>
@@ -655,12 +691,20 @@ onMounted(async () => {
 
             <div class="form-group">
               <label>API路径:</label>
-              <input v-model="apiTest.path" placeholder="/api/users" class="form-input" />
+              <input
+                v-model="apiTest.path"
+                placeholder="/api/users"
+                class="form-input"
+              />
             </div>
 
             <div class="form-group" v-if="apiTest.method !== 'GET'">
               <label>请求体 (JSON):</label>
-              <textarea v-model="apiTest.body" placeholder='{"name": "test"}' class="form-textarea"></textarea>
+              <textarea
+                v-model="apiTest.body"
+                placeholder='{"name": "test"}'
+                class="form-textarea"
+              ></textarea>
             </div>
 
             <button @click="testApi" class="btn btn-primary">发送请求</button>
@@ -681,15 +725,29 @@ onMounted(async () => {
         <form @submit.prevent="login">
           <div class="form-group">
             <label>邮箱:</label>
-            <input v-model="loginForm.email" type="email" required class="form-input" />
+            <input
+              v-model="loginForm.email"
+              type="email"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-group">
             <label>密码:</label>
-            <input v-model="loginForm.password" type="password" required class="form-input" />
+            <input
+              v-model="loginForm.password"
+              type="password"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">登录</button>
-            <button type="button" @click="showLogin = false" class="btn btn-secondary">
+            <button
+              type="button"
+              @click="showLogin = false"
+              class="btn btn-secondary"
+            >
               取消
             </button>
           </div>
@@ -708,19 +766,38 @@ onMounted(async () => {
           </div>
           <div class="form-group">
             <label>邮箱:</label>
-            <input v-model="userForm.email" type="email" required class="form-input" />
+            <input
+              v-model="userForm.email"
+              type="email"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-group">
             <label>年龄:</label>
-            <input v-model.number="userForm.age" type="number" required class="form-input" />
+            <input
+              v-model.number="userForm.age"
+              type="number"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-group" v-if="!userForm.id">
             <label>密码:</label>
-            <input v-model="userForm.password" type="password" required class="form-input" />
+            <input
+              v-model="userForm.password"
+              type="password"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">保存</button>
-            <button type="button" @click="closeUserForm" class="btn btn-secondary">
+            <button
+              type="button"
+              @click="closeUserForm"
+              class="btn btn-secondary"
+            >
               取消
             </button>
           </div>
@@ -739,7 +816,13 @@ onMounted(async () => {
           </div>
           <div class="form-group">
             <label>价格:</label>
-            <input v-model.number="productForm.price" type="number" step="0.01" required class="form-input" />
+            <input
+              v-model.number="productForm.price"
+              type="number"
+              step="0.01"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-group">
             <label>分类:</label>
@@ -747,15 +830,27 @@ onMounted(async () => {
           </div>
           <div class="form-group">
             <label>库存:</label>
-            <input v-model.number="productForm.stock" type="number" required class="form-input" />
+            <input
+              v-model.number="productForm.stock"
+              type="number"
+              required
+              class="form-input"
+            />
           </div>
           <div class="form-group">
             <label>描述:</label>
-            <textarea v-model="productForm.description" class="form-textarea"></textarea>
+            <textarea
+              v-model="productForm.description"
+              class="form-textarea"
+            ></textarea>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">保存</button>
-            <button type="button" @click="closeProductForm" class="btn btn-secondary">
+            <button
+              type="button"
+              @click="closeProductForm"
+              class="btn btn-secondary"
+            >
               取消
             </button>
           </div>
