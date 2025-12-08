@@ -1,5 +1,9 @@
 import type { ViteHotContext } from 'vite/types/hot.d.ts'
-import type { RequestRecord, WSMessage } from '@baicie/faker-shared'
+import {
+  type RequestRecord,
+  type WSMessage,
+  WSMessageType,
+} from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 
 /**
@@ -187,7 +191,7 @@ export class WSClient {
   /**
    * 发送消息
    */
-  send(type: string, data?: any, id?: string): void {
+  send(type: WSMessageType, data?: any, id?: string): void {
     const message: WSMessage = { type, data, id }
     const messageStr = JSON.stringify(message)
 
@@ -221,7 +225,7 @@ export class WSClient {
   /**
    * 注册消息处理器
    */
-  on(type: string, handler: Function): void {
+  on(type: WSMessageType, handler: Function): void {
     if (!this.handlers.has(type)) {
       this.handlers.set(type, new Set())
     }
@@ -231,7 +235,7 @@ export class WSClient {
   /**
    * 取消注册消息处理器
    */
-  off(type: string, handler: Function): void {
+  off(type: WSMessageType, handler: Function): void {
     const handlers = this.handlers.get(type)
     if (handlers) {
       handlers.delete(handler)
@@ -242,7 +246,7 @@ export class WSClient {
    * 发送请求记录
    */
   sendRequestRecord(record: RequestRecord): void {
-    this.send('request-recorded', record)
+    this.send(WSMessageType.REQUEST_RECORDED, record)
   }
 
   /**

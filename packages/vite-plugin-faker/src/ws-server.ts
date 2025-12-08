@@ -12,14 +12,12 @@ import { EventBus } from './event-bus'
  */
 export class WSServer {
   private server: ViteDevServer
-  private dbManager: DBManager
   private eventBus: EventBus
   private messageHandler: WSMessageHandler
   private clients: Set<any> = new Set()
 
   constructor(server: ViteDevServer, dbManager: DBManager) {
     this.server = server
-    this.dbManager = dbManager
     this.eventBus = new EventBus()
     this.messageHandler = new WSMessageHandler(dbManager, this.eventBus)
     this.setup()
@@ -99,7 +97,7 @@ export class WSServer {
   /**
    * 处理客户端消息
    */
-  private handleMessage(client: any, message: WSMessage): void {
+  private handleMessage(_client: any, message: WSMessage): void {
     try {
       // 如果 data 是字符串，解析它
       if (typeof message === 'string') {
@@ -149,7 +147,7 @@ export class WSServer {
    * 发送消息给特定客户端（通过消息 ID 响应）
    * 用于响应客户端的请求（流程 2：Node → UI）
    */
-  private sendToClient(clientOrId: any, message: any): void {
+  private sendToClient(_clientOrId: any, message: any): void {
     try {
       // 使用 Vite 的 WebSocket 发送 API
       // 格式：server.ws.send(event, data)

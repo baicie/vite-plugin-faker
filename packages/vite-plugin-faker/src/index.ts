@@ -18,7 +18,7 @@ import {
   INTERCEPTOR_PATH,
   UI_ENTRY,
 } from './constants'
-import { cleanUrl, escapeReplacement } from '@baicie/faker-shared'
+import { cleanUrl } from '@baicie/faker-shared'
 
 export interface ViteFakerOptions {
   /**
@@ -108,7 +108,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           tag: 'script',
           attrs: {
             type: 'module',
-            src: path.posix.join(server.config.base, item),
+            src: path.posix.join(server!.config.base, item),
           },
           injectTo: 'head',
         }
@@ -139,6 +139,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
           .replace(`__FAKER_WS_PORT__`, JSON.stringify(port))
       }
+      return code
     },
   }
 }

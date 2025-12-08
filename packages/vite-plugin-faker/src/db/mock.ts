@@ -9,7 +9,6 @@ import type { DBConfig } from './base'
  */
 export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   private static instance: MocksDB
-  private static readonly INSTANCE_KEY = 'MocksDB'
 
   private constructor(config: DBConfig) {
     super('mocks', {}, config)

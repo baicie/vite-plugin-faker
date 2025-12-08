@@ -8,7 +8,6 @@ import type { DBConfig } from './base'
  */
 export class SettingsDB extends BaseDB<Settings> {
   private static instance: SettingsDB
-  private static readonly INSTANCE_KEY = 'SettingsDB'
 
   private constructor(config: DBConfig) {
     super('settings', { version: 1, theme: 'light' }, config)

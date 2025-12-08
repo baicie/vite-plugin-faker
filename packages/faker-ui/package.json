@@ -17,7 +17,8 @@
     "analyze": "cross-env ANALYZE=true rolldown --config rolldown.config.ts",
     "vite": "vite",
     "build": "vue-tsc -b && rolldown --config rolldown.config.ts --minify",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc --incremental --noEmit"
   },
   "dependencies": {
     "@baicie/faker-shared": "workspace:*",

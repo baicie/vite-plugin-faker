@@ -7,7 +7,7 @@
     "dev": "run-p --print-label dev-*",
     "build": "run-p --print-label build-*",
     "# Scrips for check #": "_",
-    "check": "tsc --incremental --noEmit",
+    "typecheck": "pnpm -r --parallel typecheck",
     "lint": "eslint --cache .",
     "lint-fix": "eslint --fix .",
     "format": "prettier --write --cache .",

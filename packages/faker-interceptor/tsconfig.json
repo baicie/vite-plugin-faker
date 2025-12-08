@@ -3,8 +3,8 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "lib": ["ES5", "ES2015", "ES2015.Iterable", "ES2017", "DOM"],
-    "types": [],
+    "lib": ["ES5", "ES2015", "ES2015.Iterable", "ES2017", "ES2019", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
       "@zeus-js/shared": ["../shared/src"],
@@ -12,5 +12,8 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "__tests__"]
+  "exclude": ["node_modules", "dist", "__tests__"],
+  "references": [
+    { "path": "../shared" }
+  ]
 }

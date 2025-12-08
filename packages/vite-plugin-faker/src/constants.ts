@@ -12,15 +12,15 @@ export const VITE_PLUGIN_PACKAGE_DIR: string = path.resolve(
   '..',
 )
 
-export const UI_ENTRY = path.resolve(
+export const UI_ENTRY: string = path.resolve(
   VITE_PLUGIN_PACKAGE_DIR,
   './node_modules/@baicie/faker-ui/dist/index.js',
 )
-export const UI_CSS = path.resolve(
+export const UI_CSS: string = path.resolve(
   VITE_PLUGIN_PACKAGE_DIR,
   './node_modules/@baicie/faker-ui/dist/index.css',
 )
-export const INTERCEPTOR_PATH = path.resolve(
+export const INTERCEPTOR_PATH: string = path.resolve(
   VITE_PLUGIN_PACKAGE_DIR,
   './node_modules/@baicie/faker-interceptor/dist/interceptor.js',
 )

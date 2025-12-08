@@ -60,7 +60,7 @@ export class DBManager {
   }
 
   backupDatabase(tableName: string): string {
-    const dbDir = path.resolve(cacheDir, 'db')
+    const dbDir = path.resolve(cacheDir!, 'db')
     const sourcePath = path.join(dbDir, `${tableName}.json`)
     const timestamp = new Date().toISOString().replace(/[:.-]/g, '_')
     const backupPath = path.join(

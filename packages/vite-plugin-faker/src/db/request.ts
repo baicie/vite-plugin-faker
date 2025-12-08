@@ -8,7 +8,6 @@ import type { DBConfig } from './base'
  */
 export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
   private static instance: RequestsDB
-  private static readonly INSTANCE_KEY = 'RequestsDB'
 
   private constructor(config: DBConfig) {
     super('requests', {}, config)

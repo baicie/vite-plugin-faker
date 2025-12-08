@@ -3,7 +3,7 @@
  * 在浏览器端运行，拦截 fetch 和 XHR 请求
  */
 
-import type { MockConfig } from '@baicie/faker-shared'
+import { type MockConfig, WSMessageType } from '@baicie/faker-shared'
 import { WSClient } from './ws-client'
 import { FetchInterceptor } from './fetch-interceptor'
 import { XHRInterceptor } from './xhr-interceptor'
@@ -11,8 +11,8 @@ import { initLogger, logger } from '@baicie/logger'
 
 declare const __FAKER_WS_PORT__: string
 
-const wsUrl = `ws://${window.location.host}/@faker-ws`
-const wsPort = Number(__FAKER_WS_PORT__)
+// const _wsUrl = `ws://${window.location.host}/@faker-ws`
+// const _wsPort = Number(__FAKER_WS_PORT__)
 
 /**
  * 初始化拦截器
@@ -41,7 +41,7 @@ export function initInterceptor(wsUrl: string): void {
   const xhrInterceptor = new XHRInterceptor(wsClient)
 
   // 监听 Mock 配置更新
-  wsClient.on('mock-config-updated', (mocks: MockConfig[]) => {
+  wsClient.on(WSMessageType.MOCK_CONFIG_UPDATED, (mocks: MockConfig[]) => {
     fetchInterceptor.updateMocks(mocks)
     xhrInterceptor.updateMocks(mocks)
   })

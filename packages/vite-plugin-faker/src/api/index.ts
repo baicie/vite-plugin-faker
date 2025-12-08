@@ -1,4 +1,4 @@
-import type { WSMessage } from '@baicie/faker-shared'
+import type { MockConfig, WSMessage } from '@baicie/faker-shared'
 import { WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { DBManager } from '../db'
@@ -64,7 +64,7 @@ export class WSMessageHandler {
   /**
    * 获取所有 Mock 配置（用于广播）
    */
-  getAllMockConfigs() {
+  getAllMockConfigs(): MockConfig[] {
     return this.mockHandler.getAllConfigs()
   }
 }
