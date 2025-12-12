@@ -2,6 +2,7 @@
   "name": "root",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.25.0",
   "scripts": {
     "# Scrips for group #": "_",
     "dev": "run-p --print-label dev-*",
