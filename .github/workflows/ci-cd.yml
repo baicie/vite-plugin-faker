@@ -53,6 +53,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+
+      - name: Build
+        run: pnpm build
+
       - name: Type check
         run: pnpm typecheck
       - name: Lint
