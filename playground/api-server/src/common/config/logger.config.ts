@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { createLogger, format, transports } from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 const { combine, timestamp, printf, colorize, errors } = format;
 
@@ -58,6 +58,11 @@ const createTransports = () => {
       format: consoleFormat,
     }),
   );
+
+  // 测试环境下只输出到控制台，避免文件依赖
+  if (process.env.NODE_ENV === 'test') {
+    return logTransports;
+  }
 
   // 错误日志文件
   logTransports.push(
