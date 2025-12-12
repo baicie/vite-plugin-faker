@@ -22,7 +22,7 @@ jobs:
       api-server: ${{ steps.filter.outputs.api-server }}
       vue-app: ${{ steps.filter.outputs.vue-app }}
     steps:
-      - uses: taiki-e/checkout-action@v1
+      - uses: actions/checkout@v4
 
       - uses: dorny/paths-filter@v3
         id: filter
@@ -50,7 +50,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
       - name: Type check
@@ -66,14 +66,14 @@ jobs:
     if: needs.detect-changes.outputs.shared == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
 
       - name: Build shared
         run: pnpm --filter ./packages/shared build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v
+        uses: actions/upload-artifact@v4
         with:
           name: shared-dist
           path: packages/shared/dist
@@ -87,7 +87,7 @@ jobs:
       (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
 
@@ -99,7 +99,7 @@ jobs:
       - name: Build vite-plugin-faker
         run: pnpm --filter ./packages/vite-plugin-faker build
       - name: Upload artifacts
-        uses: actions/upload-artifact@v
+        uses: actions/upload-artifact@v4
         with:
           name: vite-plugin-faker-dist
           path: packages/vite-plugin-faker/dist
@@ -112,7 +112,7 @@ jobs:
       (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
       - name: Download shared artifacts
@@ -131,7 +131,7 @@ jobs:
       (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
       - name: Download shared artifacts
@@ -147,7 +147,7 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
 
@@ -168,7 +168,7 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
@@ -194,7 +194,7 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
 
@@ -230,7 +230,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
