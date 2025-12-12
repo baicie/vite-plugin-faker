@@ -4,7 +4,9 @@ import { spawn } from 'node:child_process'
 import chokidar, { type FSWatcher } from 'chokidar'
 import { vitePluginFakerPath } from './../../packages/path'
 import kill from 'tree-kill'
+import process from 'node:process'
 
+const viteCmd = process.platform === 'win32' ? 'vite.cmd' : 'vite'
 const distPath = path.resolve(vitePluginFakerPath, 'dist')
 
 let watcher: FSWatcher
@@ -31,9 +33,9 @@ async function startWatcher() {
 }
 
 function startViteProcess() {
-  viteProcess = spawn('vite', ['--config', 'vite.config.ts'], {
+  viteProcess = spawn(viteCmd, ['--config', 'vite.config.ts'], {
     stdio: 'inherit',
-    shell: true,
+    // shell: true,
   })
 
   viteProcess.on('exit', code => {

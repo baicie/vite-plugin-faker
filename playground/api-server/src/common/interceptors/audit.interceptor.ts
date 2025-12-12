@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import type { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import type { Request } from 'express';
-import type { AuditLogService } from '../services/audit-log.service';
+import { AuditLogService } from '../services/audit-log.service';
 import type { AuditAction, AuditEntityType } from '../entities/audit-log.entity';
 
 export const AUDIT_LOG_KEY = 'audit_log';

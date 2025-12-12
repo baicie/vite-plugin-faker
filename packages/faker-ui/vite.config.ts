@@ -8,8 +8,10 @@ export default defineConfig({
     vue(),
     vueJsx(),
     postcss({
-      extract: 'index.css',
-      minimize: true,
+      minimize: false,
     }),
   ],
+  define: {
+    __MOUNT_TARGET__: JSON.stringify('body'),
+  },
 })

@@ -18,7 +18,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { OrdersService } from './orders.service';
+import { OrdersService } from './orders.service';
 import type { OrderFilterDto } from './dto/order.dto';
 import { CreateOrderDto, UpdateOrderStatusDto } from './dto/order.dto';
 import type { Order } from './entities/order.entity';

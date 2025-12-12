@@ -25,7 +25,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import type { ProductsService } from './products.service';
+import { ProductsService } from './products.service';
 import type { ProductFilterDto } from './dto/product.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import type { Product } from './entities/product.entity';

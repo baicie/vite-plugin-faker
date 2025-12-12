@@ -14,8 +14,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { I18nLang, type I18nService } from 'nestjs-i18n';
-import type { AuditLogService } from '../common/services/audit-log.service';
+import { I18nLang, I18nService } from 'nestjs-i18n';
+import { AuditLogService } from '../common/services/audit-log.service';
 import {
   AuditEntityType,
   type AuditLog,

@@ -6,7 +6,7 @@ import {
   type PaginatedResponseDto,
   PaginationDto,
 } from '../common/dto/pagination.dto';
-import type { PaginationService } from '../common/services/pagination.service';
+import { PaginationService } from '../common/services/pagination.service';
 import { UserNotFoundException } from '../common/exceptions/business.exception';
 import { User, UserRole } from './entities/user.entity';
 import type { CreateUserDto } from './dto/create-user.dto';

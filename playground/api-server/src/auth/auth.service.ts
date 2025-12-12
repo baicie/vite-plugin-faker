@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import type { JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';

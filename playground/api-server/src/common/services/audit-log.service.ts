@@ -7,8 +7,11 @@ import {
   AuditEntityType,
   AuditLog,
 } from '../entities/audit-log.entity';
-import type { PaginatedResponseDto, PaginationDto } from '../dto/pagination.dto';
-import type { PaginationService } from './pagination.service';
+import type {
+  PaginatedResponseDto,
+  PaginationDto,
+} from '../dto/pagination.dto';
+import { PaginationService } from './pagination.service';
 
 export interface AuditLogOptions {
   action: AuditAction;

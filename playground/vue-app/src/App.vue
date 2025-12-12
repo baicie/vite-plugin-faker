@@ -379,7 +379,7 @@ const uploadFile = async (file: File) => {
   } catch (error: any) {
     showMessage(
       `上传 ${file.name} 失败: ` +
-        (error.response?.data?.message || error.message),
+      (error.response?.data?.message || error.message),
       'error',
     )
   } finally {
@@ -432,23 +432,6 @@ onMounted(async () => {
 
 <template>
   <div id="app">
-    <!-- 头部导航 -->
-    <header class="header">
-      <h1>🚀 API 管理系统</h1>
-      <div class="auth-info">
-        <span v-if="!authToken">未登录</span>
-        <span v-else>已登录: {{ currentUser?.name }}</span>
-        <button
-          v-if="!authToken"
-          @click="showLogin = true"
-          class="btn btn-primary"
-        >
-          登录
-        </button>
-        <button v-else @click="logout" class="btn btn-danger">退出</button>
-      </div>
-    </header>
-
     <!-- 状态栏 -->
     <div class="status-bar">
       <div class="status-item">
@@ -466,12 +449,8 @@ onMounted(async () => {
     <main class="main-content">
       <!-- 标签页导航 -->
       <div class="tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab.key"
-          @click="activeTab = tab.key"
-          :class="['tab', { active: activeTab === tab.key }]"
-        >
+        <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
+          :class="['tab', { active: activeTab === tab.key }]">
           {{ tab.label }}
         </button>
       </div>
@@ -507,16 +486,10 @@ onMounted(async () => {
                 <td>{{ user.role }}</td>
                 <td>{{ formatDate(user.createdAt) }}</td>
                 <td>
-                  <button
-                    @click="editUser(user)"
-                    class="btn btn-sm btn-secondary"
-                  >
+                  <button @click="editUser(user)" class="btn btn-sm btn-secondary">
                     编辑
                   </button>
-                  <button
-                    @click="deleteUser(user.id)"
-                    class="btn btn-sm btn-danger"
-                  >
+                  <button @click="deleteUser(user.id)" class="btn btn-sm btn-danger">
                     删除
                   </button>
                 </td>
@@ -557,16 +530,10 @@ onMounted(async () => {
                 <td>{{ product.stock }}</td>
                 <td>{{ product.description }}</td>
                 <td>
-                  <button
-                    @click="editProduct(product)"
-                    class="btn btn-sm btn-secondary"
-                  >
+                  <button @click="editProduct(product)" class="btn btn-sm btn-secondary">
                     编辑
                   </button>
-                  <button
-                    @click="deleteProduct(product.id)"
-                    class="btn btn-sm btn-danger"
-                  >
+                  <button @click="deleteProduct(product.id)" class="btn btn-sm btn-danger">
                     删除
                   </button>
                 </td>
@@ -607,16 +574,10 @@ onMounted(async () => {
                 <td>{{ order.status }}</td>
                 <td>{{ formatDate(order.createdAt) }}</td>
                 <td>
-                  <button
-                    @click="viewOrderItems(order)"
-                    class="btn btn-sm btn-info"
-                  >
+                  <button @click="viewOrderItems(order)" class="btn btn-sm btn-info">
                     查看详情
                   </button>
-                  <button
-                    @click="deleteOrder(order.id)"
-                    class="btn btn-sm btn-danger"
-                  >
+                  <button @click="deleteOrder(order.id)" class="btn btn-sm btn-danger">
                     删除
                   </button>
                 </td>
@@ -635,13 +596,7 @@ onMounted(async () => {
         <div class="upload-section">
           <div class="upload-area">
             <p>点击选择文件或拖拽文件到此处</p>
-            <input
-              ref="fileInput"
-              type="file"
-              multiple
-              @change="handleFileSelect"
-              style="display: none"
-            />
+            <input ref="fileInput" type="file" multiple @change="handleFileSelect" style="display: none" />
           </div>
 
           <div v-if="uploadFiles.length > 0" class="file-list">
@@ -659,11 +614,7 @@ onMounted(async () => {
 
           <div v-if="uploadedFiles.length > 0" class="uploaded-files">
             <h3>已上传文件</h3>
-            <div
-              v-for="file in uploadedFiles"
-              :key="file.filename"
-              class="uploaded-file"
-            >
+            <div v-for="file in uploadedFiles" :key="file.filename" class="uploaded-file">
               <a :href="file.url" target="_blank">{{ file.originalname }}</a>
               <span>({{ formatFileSize(file.size) }})</span>
             </div>
@@ -691,20 +642,12 @@ onMounted(async () => {
 
             <div class="form-group">
               <label>API路径:</label>
-              <input
-                v-model="apiTest.path"
-                placeholder="/api/users"
-                class="form-input"
-              />
+              <input v-model="apiTest.path" placeholder="/api/users" class="form-input" />
             </div>
 
             <div class="form-group" v-if="apiTest.method !== 'GET'">
               <label>请求体 (JSON):</label>
-              <textarea
-                v-model="apiTest.body"
-                placeholder='{"name": "test"}'
-                class="form-textarea"
-              ></textarea>
+              <textarea v-model="apiTest.body" placeholder='{"name": "test"}' class="form-textarea"></textarea>
             </div>
 
             <button @click="testApi" class="btn btn-primary">发送请求</button>
@@ -725,29 +668,15 @@ onMounted(async () => {
         <form @submit.prevent="login">
           <div class="form-group">
             <label>邮箱:</label>
-            <input
-              v-model="loginForm.email"
-              type="email"
-              required
-              class="form-input"
-            />
+            <input v-model="loginForm.email" type="email" required class="form-input" />
           </div>
           <div class="form-group">
             <label>密码:</label>
-            <input
-              v-model="loginForm.password"
-              type="password"
-              required
-              class="form-input"
-            />
+            <input v-model="loginForm.password" type="password" required class="form-input" />
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">登录</button>
-            <button
-              type="button"
-              @click="showLogin = false"
-              class="btn btn-secondary"
-            >
+            <button type="button" @click="showLogin = false" class="btn btn-secondary">
               取消
             </button>
           </div>
@@ -766,38 +695,19 @@ onMounted(async () => {
           </div>
           <div class="form-group">
             <label>邮箱:</label>
-            <input
-              v-model="userForm.email"
-              type="email"
-              required
-              class="form-input"
-            />
+            <input v-model="userForm.email" type="email" required class="form-input" />
           </div>
           <div class="form-group">
             <label>年龄:</label>
-            <input
-              v-model.number="userForm.age"
-              type="number"
-              required
-              class="form-input"
-            />
+            <input v-model.number="userForm.age" type="number" required class="form-input" />
           </div>
           <div class="form-group" v-if="!userForm.id">
             <label>密码:</label>
-            <input
-              v-model="userForm.password"
-              type="password"
-              required
-              class="form-input"
-            />
+            <input v-model="userForm.password" type="password" required class="form-input" />
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">保存</button>
-            <button
-              type="button"
-              @click="closeUserForm"
-              class="btn btn-secondary"
-            >
+            <button type="button" @click="closeUserForm" class="btn btn-secondary">
               取消
             </button>
           </div>
@@ -816,13 +726,7 @@ onMounted(async () => {
           </div>
           <div class="form-group">
             <label>价格:</label>
-            <input
-              v-model.number="productForm.price"
-              type="number"
-              step="0.01"
-              required
-              class="form-input"
-            />
+            <input v-model.number="productForm.price" type="number" step="0.01" required class="form-input" />
           </div>
           <div class="form-group">
             <label>分类:</label>
@@ -830,27 +734,15 @@ onMounted(async () => {
           </div>
           <div class="form-group">
             <label>库存:</label>
-            <input
-              v-model.number="productForm.stock"
-              type="number"
-              required
-              class="form-input"
-            />
+            <input v-model.number="productForm.stock" type="number" required class="form-input" />
           </div>
           <div class="form-group">
             <label>描述:</label>
-            <textarea
-              v-model="productForm.description"
-              class="form-textarea"
-            ></textarea>
+            <textarea v-model="productForm.description" class="form-textarea"></textarea>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">保存</button>
-            <button
-              type="button"
-              @click="closeProductForm"
-              class="btn btn-secondary"
-            >
+            <button type="button" @click="closeProductForm" class="btn btn-secondary">
               取消
             </button>
           </div>
@@ -878,8 +770,8 @@ onMounted(async () => {
 
 #app {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  background-color: #f5f5f5;
+  color: #e0e0e0;
+  background-color: #1a1a1a;
   min-height: 100vh;
 }
 
@@ -907,11 +799,12 @@ onMounted(async () => {
 
 /* 状态栏样式 */
 .status-bar {
-  background: white;
+  background: #2d2d2d;
   padding: 0.75rem 2rem;
   display: flex;
   gap: 2rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #404040;
+  color: #e0e0e0;
 }
 
 .status-item {
@@ -937,7 +830,7 @@ onMounted(async () => {
 }
 
 .status-unknown {
-  color: #9e9e9e;
+  color: #888;
 }
 
 /* 主要内容区域 */
@@ -952,7 +845,7 @@ onMounted(async () => {
   display: flex;
   gap: 0.25rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid #404040;
 }
 
 .tab {
@@ -962,27 +855,27 @@ onMounted(async () => {
   border-bottom: 3px solid transparent;
   cursor: pointer;
   font-size: 1rem;
-  color: #666;
+  color: #999;
   transition: all 0.3s ease;
 }
 
 .tab:hover {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: #2d2d2d;
+  color: #e0e0e0;
 }
 
 .tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-  background-color: #f8f9ff;
+  color: #8b9aff;
+  border-bottom-color: #8b9aff;
+  background-color: #2a2a3a;
 }
 
 /* 内容区域 */
 .tab-content {
-  background: white;
+  background: #2d2d2d;
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .section-header {
@@ -994,7 +887,7 @@ onMounted(async () => {
 
 .section-header h2 {
   margin: 0;
-  color: #333;
+  color: #e0e0e0;
   font-size: 1.5rem;
 }
 
@@ -1006,24 +899,25 @@ onMounted(async () => {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: #2d2d2d;
+  color: #e0e0e0;
 }
 
 .data-table th,
 .data-table td {
   text-align: left;
   padding: 0.75rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #404040;
 }
 
 .data-table th {
-  background-color: #f8f9fa;
+  background-color: #1f1f1f;
   font-weight: 600;
-  color: #555;
+  color: #ccc;
 }
 
 .data-table tr:hover {
-  background-color: #f8f9ff;
+  background-color: #353535;
 }
 
 /* 按钮样式 */
@@ -1039,12 +933,12 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background-color: #667eea;
+  background-color: #8b9aff;
   color: white;
 }
 
 .btn-primary:hover {
-  background-color: #5a6fd8;
+  background-color: #7a8aef;
 }
 
 .btn-secondary {
@@ -1089,7 +983,7 @@ onMounted(async () => {
   display: block;
   margin-bottom: 0.25rem;
   font-weight: 500;
-  color: #555;
+  color: #ccc;
 }
 
 .form-input,
@@ -1097,17 +991,19 @@ onMounted(async () => {
 select {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #ddd;
+  border: 1px solid #404040;
   border-radius: 4px;
   font-size: 0.9rem;
+  background-color: #1f1f1f;
+  color: #e0e0e0;
 }
 
 .form-input:focus,
 .form-textarea:focus,
 select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+  border-color: #8b9aff;
+  box-shadow: 0 0 0 2px rgba(139, 154, 255, 0.2);
 }
 
 .form-textarea {
@@ -1128,7 +1024,7 @@ select:focus {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1136,19 +1032,20 @@ select:focus {
 }
 
 .modal-content {
-  background: white;
+  background: #2d2d2d;
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  color: #e0e0e0;
 }
 
 .modal-content h3 {
   margin-top: 0;
   margin-bottom: 1.5rem;
-  color: #333;
+  color: #e0e0e0;
 }
 
 /* 文件上传样式 */
@@ -1157,17 +1054,18 @@ select:focus {
 }
 
 .upload-area {
-  border: 2px dashed #ccc;
+  border: 2px dashed #555;
   border-radius: 8px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  color: #e0e0e0;
 }
 
 .upload-area:hover {
-  border-color: #667eea;
-  background-color: #f8f9ff;
+  border-color: #8b9aff;
+  background-color: #2a2a3a;
 }
 
 .file-list,
@@ -1181,9 +1079,11 @@ select:focus {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #404040;
   border-radius: 4px;
   margin-bottom: 0.5rem;
+  background-color: #1f1f1f;
+  color: #e0e0e0;
 }
 
 /* API测试样式 */
@@ -1194,12 +1094,13 @@ select:focus {
 }
 
 .test-result pre {
-  background-color: #f8f9fa;
+  background-color: #1f1f1f;
   padding: 1rem;
   border-radius: 4px;
   overflow-x: auto;
   max-height: 400px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #404040;
+  color: #e0e0e0;
 }
 
 /* 加载状态 */

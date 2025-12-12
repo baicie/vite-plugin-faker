@@ -6,8 +6,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { I18nLang, type I18nService } from 'nestjs-i18n';
-import type { DatabaseMigrationService } from '../common/services/database-migration.service';
+import { I18nLang, I18nService } from 'nestjs-i18n';
+import { DatabaseMigrationService } from '../common/services/database-migration.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';

@@ -77,6 +77,15 @@ export default defineConfig(
     },
   },
 
+  // api-server
+  {
+    name: 'api-server',
+    files: ['playground/api-server/**'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': 'off',
+    },
+  },
+
   // tests, no restrictions (runs in Node / Vitest with jsdom)
   {
     files: ['**/__tests__/**', '**/*.{test,spec}.{js,ts,tsx}'],
