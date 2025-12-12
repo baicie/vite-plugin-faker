@@ -1,0 +1,254 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+  REGISTRY: ghcr.io
+
+jobs:
+  # 变更检测
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      shared: ${{ steps.filter.outputs.shared }}
+      vite-plugin-faker: ${{ steps.filter.outputs.vite-plugin-faker }}
+      faker-interceptor: ${{ steps.filter.outputs.faker-interceptor }}
+      faker-ui: ${{ steps.filter.outputs.faker-ui }}
+      api-server: ${{ steps.filter.outputs.api-server }}
+      vue-app: ${{ steps.filter.outputs.vue-app }}
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared:
+              - 'packages/shared/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+            vite-plugin-faker:
+              - 'packages/vite-plugin-faker/**'
+              - 'packages/shared/**'
+            faker-interceptor:
+              - 'packages/faker-interceptor/**'
+              - 'packages/shared/**'
+            faker-ui:
+              - 'packages/faker-ui/**'
+              - 'packages/shared/**'
+            api-server:
+              - 'playground/api-server/**'
+            vue-app:
+              - 'playground/vue-app/**'
+
+  # 基础设置和代码检查
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+      - name: Type check
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Format check
+        run: pnpm format-check
+
+  # 构建 shared 包
+  build-shared:
+    needs: [detect-changes, setup]
+    if: needs.detect-changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+
+      - name: Build shared
+        run: pnpm --filter ./packages/shared build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+          retention-days: 1
+
+  # 构建 vite-plugin-faker
+  build-vite-plugin-faker:
+    needs: [detect-changes, setup, build-shared]
+    if: |
+      needs.detect-changes.outputs.vite-plugin-faker == 'true' &&
+      (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+
+      - name: Download shared artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+      - name: Build vite-plugin-faker
+        run: pnpm --filter ./packages/vite-plugin-faker build
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v
+        with:
+          name: vite-plugin-faker-dist
+          path: packages/vite-plugin-faker/dist
+
+  # 构建 faker-interceptor
+  build-faker-interceptor:
+    needs: [detect-changes, setup, build-shared]
+    if: |
+      needs.detect-changes.outputs.faker-interceptor == 'true' &&
+      (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+      - name: Download shared artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+      - name: Build faker-interceptor
+        run: pnpm --filter ./packages/faker-interceptor build
+
+  # 构建 faker-ui
+  build-faker-ui:
+    needs: [detect-changes, setup, build-shared]
+    if: |
+      needs.detect-changes.outputs.faker-ui == 'true' &&
+      (needs.build-shared.result == 'success' || needs.build-shared.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+      - name: Download shared artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: shared-dist
+          path: packages/shared/dist
+      - name: Build faker-ui
+        run: pnpm --filter ./packages/faker-ui build
+
+  # 测试
+  test:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+
+      - name: Run tests
+        run: pnpm test
+      - name: Generate coverage report
+        run: pnpm test-coverage || true
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          fail_ci_if_error: false
+
+  # 安全扫描
+  security:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      - name: Upload scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # 发布到 NPM
+  publish:
+    needs: [build-vite-plugin-faker, test, security]
+    if: |
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.build-vite-plugin-faker.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: vite-plugin-faker-dist
+          path: packages/vite-plugin-faker/dist
+      - name: Check if version is published
+        id: check-version
+        run: |
+          cd packages/vite-plugin-faker
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view vite-plugin-faker@$VERSION version 2>/dev/null; then
+            echo "published=true" >> $GITHUB_OUTPUT
+          else
+            echo "published=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Publish to NPM
+        if: steps.check-version.outputs.published == 'false'
+        run: |
+          cd packages/vite-plugin-faker
+          pnpm publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # 构建 Docker 镜像
+  build-docker:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.api-server == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: taiki-e/checkout-action@b13d20b7cda4e2f325ef19895128f7ff735c0b3d # v1.3.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./playground/api-server
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/api-server:latest
+            ${{ env.REGISTRY }}/${{ github.repository }}/api-server:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

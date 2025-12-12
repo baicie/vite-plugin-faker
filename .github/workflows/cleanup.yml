@@ -1,0 +1,21 @@
+name: Cleanup
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # 每周日执行
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      packages: write
+    steps:
+      - name: Delete old artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            shared-dist
+            vite-plugin-faker-dist
+          older-than: 7d
