@@ -35,24 +35,6 @@ export default defineConfig({
       // 配置选项
       mountTarget: '#app', // UI面板挂载目标
       storageDir: '.mock', // 自定义存储路径，默认为'.mock'
-      initialMocks: [
-        // 初始模拟配置
-        {
-          id: 'example-users',
-          path: '/api/users',
-          method: 'GET',
-          enabled: true,
-          statusCode: 200,
-          delay: 300,
-          response: {
-            users: [
-              { id: 1, name: '张三' },
-              { id: 2, name: '李四' },
-            ],
-          },
-          description: '获取用户列表',
-        },
-      ],
     }),
   ],
 })
@@ -60,12 +42,11 @@ export default defineConfig({
 
 ## 配置选项
 
-| 选项名         | 类型         | 默认值    | 说明                                 |
-| -------------- | ------------ | --------- | ------------------------------------ |
-| `enable`       | boolean      | `true`    | 是否启用插件                         |
-| `mountTarget`  | string       | `'#app'`  | UI面板挂载的目标元素选择器           |
-| `storageDir`   | string       | `'.mock'` | 存储配置的目录路径，相对于项目根目录 |
-| `initialMocks` | MockConfig[] | `[]`      | 初始模拟配置列表                     |
+| 选项名        | 类型    | 默认值    | 说明                                 |
+| ------------- | ------- | --------- | ------------------------------------ |
+| `enable`      | boolean | `true`    | 是否启用插件                         |
+| `mountTarget` | string  | `'#app'`  | UI面板挂载的目标元素选择器           |
+| `storageDir`  | string  | `'.mock'` | 存储配置的目录路径，相对于项目根目录 |
 
 ## 开发
 
