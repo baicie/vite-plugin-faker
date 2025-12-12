@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { type FindManyOptions, ILike, type Repository } from 'typeorm';
-import { PaginatedResponseDto, type PaginationDto } from '../dto/pagination.dto';
+import {
+  PaginatedResponseDto,
+  type PaginationDto,
+} from '../dto/pagination.dto';
 
 @Injectable()
 export class PaginationService {
