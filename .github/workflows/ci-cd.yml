@@ -229,33 +229,3 @@ jobs:
           pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  # 构建 Docker 镜像
-  build-docker:
-    needs: [detect-changes]
-    if: needs.detect-changes.outputs.api-server == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./playground/api-server
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/api-server:latest
-            ${{ env.REGISTRY }}/${{ github.repository }}/api-server:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
