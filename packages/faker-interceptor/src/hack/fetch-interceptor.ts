@@ -1,8 +1,8 @@
 import type { MockConfig, RequestRecord } from '@baicie/faker-shared'
-import { MockMatcher } from './mock-matcher'
-import { MockResponseGenerator } from './mock-response-generator'
-import type { WSClient } from './ws-client'
 import { logger } from '@baicie/logger'
+import { MockMatcher } from '../mock/mock-matcher'
+import { MockResponseGenerator } from '../mock/mock-response-generator'
+import type { WSClient } from '../ws-client'
 
 /**
  * Fetch 拦截器

@@ -1,5 +1,4 @@
 import { defineConfig } from 'rolldown'
-import { dts } from 'rolldown-plugin-dts'
 
 const external = [...Object.keys({})]
 

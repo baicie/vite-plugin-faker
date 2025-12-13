@@ -1,3 +1,5 @@
+import type { RequestRecord } from './ws-types'
+
 export function generateUUID(): string {
   const buf = new Uint8Array(16)
   crypto.getRandomValues(buf)
@@ -26,4 +28,21 @@ export function escapeReplacement(
 const postfixRE = /[?#].*$/
 export function cleanUrl(url: string): string {
   return url.replace(postfixRE, '')
+}
+
+export async function createRequestKey(data: RequestRecord): Promise<string> {
+  const { method, url, headers, body } = data
+  const sortedHeaders = Object.keys(headers)
+    .sort()
+    .map(k => `${k}:${headers[k]}`)
+    .join('&')
+
+  const raw = `${method}|${url}|${sortedHeaders}|${body}`
+  const buf = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(raw),
+  )
+  return [...new Uint8Array(buf)]
+    .map(x => x.toString(16).padStart(2, '0'))
+    .join('')
 }

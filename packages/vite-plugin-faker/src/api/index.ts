@@ -25,10 +25,10 @@ export class WSMessageHandler {
   /**
    * 处理 WebSocket 消息
    */
-  handleMessage(message: WSMessage): WSMessage | void {
+  async handleMessage(message: WSMessage): Promise<WSMessage | void> {
     switch (message.type) {
       case WSMessageType.REQUEST_RECORDED:
-        this.requestHandler.handleRecorded(message.data)
+        await this.requestHandler.handleRecorded(message.data)
         return // 请求记录不需要响应
 
       case WSMessageType.MOCK_CREATE:

@@ -1,3 +1,4 @@
+import type { ViteHotContext } from 'vite/types/hot.js'
 /**
  * WebSocket 消息类型定义
  * 用于 Hack、UI 和 Node 之间的通信
@@ -34,6 +35,10 @@ export enum WSMessageType {
   MOCK_UPDATED = 'mock-updated',
   MOCK_DELETED = 'mock-deleted',
   ERROR = 'error',
+  //
+  FAKER_RESPONSE = 'faker-response',
+  FAKER_BROADCAST = 'faker-broadcast',
+  FAKER_MESSAGE = 'faker-message',
 
   // Node → Hack/UI (广播)
   MOCK_CONFIG_UPDATED = 'mock-config-updated',
@@ -92,3 +97,15 @@ export interface EventBusEvent {
   data?: any
   timestamp?: number
 }
+
+export type FakerWebSocket = ViteHotContext | WebSocket | undefined
+
+export function isViteHot(ws: FakerWebSocket): ws is ViteHotContext {
+  return !!ws && typeof (ws as ViteHotContext).accept === 'function'
+}
+
+export function isWebSocket(ws: FakerWebSocket): ws is WebSocket {
+  return !!ws && typeof (ws as WebSocket).onopen === 'function'
+}
+
+export const FAKER_WEBSOCKET_PRESET = 'faker-websocket-preset'

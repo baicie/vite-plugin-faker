@@ -35,6 +35,7 @@ export function useRequest() {
         pageSize: pagination.value.pageSize,
         ...params,
       })
+      console.log(result)
 
       if (result.items) {
         requests.value = result.items.map((item: any) => item.value)

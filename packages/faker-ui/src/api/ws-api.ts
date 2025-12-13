@@ -1,5 +1,9 @@
 import type { useWebSocket } from '../composables/useWebSocket'
-import type { DashboardQuery, Page } from '@baicie/faker-shared'
+import {
+  type DashboardQuery,
+  type Page,
+  WSMessageType,
+} from '@baicie/faker-shared'
 import type { MockConfig, SystemSettings } from './type'
 
 /**
@@ -100,7 +104,7 @@ export class WSApiClient {
       totalPages: number
     }
   }> {
-    const result = await this.ws.send('request-history', params)
+    const result = await this.ws.send(WSMessageType.REQUEST_HISTORY, params)
     return result.data || result
   }
 

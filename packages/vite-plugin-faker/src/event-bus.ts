@@ -30,7 +30,7 @@ export class EventBus {
       })
     }
 
-    logger.debug(`[EventBus] 事件已触发: ${type}`, data)
+    logger.debug(`[EventBus] 事件已触发: ${type}`)
   }
 
   /**

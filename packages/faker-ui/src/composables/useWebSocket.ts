@@ -1,6 +1,11 @@
 import { onUnmounted, ref } from 'vue'
-import { generateUUID } from '@baicie/faker-shared'
+import {
+  FAKER_WEBSOCKET_PRESET,
+  WSMessageType,
+  generateUUID,
+} from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
+import type { ViteHotContext } from 'vite/types/hot.d.ts'
 
 interface WSMessage {
   type: string
@@ -13,12 +18,13 @@ interface PendingRequest {
   reject: (reason: any) => void
   timer: number
 }
-
+const hasConnect = ref<boolean>(false)
 /**
  * WebSocket 客户端 Composable
  */
 export function useWebSocket(wsUrl?: string) {
   const ws = ref<WebSocket | null>(null)
+
   const connected = ref(false)
   const pendingRequests = new Map<string, PendingRequest>()
   const messageHandlers = new Map<string, Set<Function>>()
@@ -29,10 +35,12 @@ export function useWebSocket(wsUrl?: string) {
    * 优先使用 Vite HMR WebSocket
    */
   function connect(url?: string): void {
+    if (hasConnect.value) return
     // 尝试使用 Vite HMR WebSocket
     const viteHMR = import.meta?.hot
     if (viteHMR && typeof viteHMR === 'object') {
       setupViteHMRConnection(viteHMR)
+      hasConnect.value = true
       return
     }
 
@@ -81,7 +89,6 @@ export function useWebSocket(wsUrl?: string) {
           } else {
             return
           }
-
           handleMessage(message)
         } catch (error) {
           logger.error('[Faker UI] 解析消息失败:', error)
@@ -103,6 +110,7 @@ export function useWebSocket(wsUrl?: string) {
           }
         }, 3000)
       }
+      hasConnect.value = true
     } catch (error) {
       logger.error('[Faker UI] WebSocket 连接失败:', error)
     }
@@ -113,32 +121,17 @@ export function useWebSocket(wsUrl?: string) {
    */
   function setupViteHMRConnection(hmr: any): void {
     connected.value = true
-
+    let hot: ViteHotContext | undefined
     // 监听自定义事件
     // 优先使用 import.meta.hot
     if (import.meta?.hot) {
-      const hot = import.meta.hot
-
-      hot.on('faker:response', (data: any) => {
-        try {
-          const message = typeof data === 'string' ? JSON.parse(data) : data
-          handleMessage(message)
-        } catch (error) {
-          logger.error('[Faker UI] 解析消息失败:', error)
-        }
-      })
-
-      hot.on('faker:broadcast', (data: any) => {
-        try {
-          const message = typeof data === 'string' ? JSON.parse(data) : data
-          handleMessage(message)
-        } catch (error) {
-          logger.error('[Faker UI] 解析广播消息失败:', error)
-        }
-      })
+      hot = import.meta.hot
     } else if (hmr.on) {
-      // 备用方案
-      hmr.on('faker:response', (data: any) => {
+      hot = hmr
+    }
+
+    if (hot) {
+      hot.on(WSMessageType.FAKER_RESPONSE, (data: any) => {
         try {
           const message = typeof data === 'string' ? JSON.parse(data) : data
           handleMessage(message)
@@ -147,7 +140,7 @@ export function useWebSocket(wsUrl?: string) {
         }
       })
 
-      hmr.on('faker:broadcast', (data: any) => {
+      hot.on(WSMessageType.FAKER_BROADCAST, (data: any) => {
         try {
           const message = typeof data === 'string' ? JSON.parse(data) : data
           handleMessage(message)
@@ -227,11 +220,11 @@ export function useWebSocket(wsUrl?: string) {
         try {
           // 使用 import.meta.hot.send() 发送消息
           if (import.meta?.hot) {
-            import.meta.hot.send('faker:message', messageStr)
+            import.meta.hot.send(FAKER_WEBSOCKET_PRESET, messageStr)
             return
           } else if ((hmr as any).send) {
             // 备用方案
-            ;(hmr as any).send('faker:message', messageStr)
+            ;(hmr as any).send(FAKER_WEBSOCKET_PRESET, messageStr)
             return
           }
         } catch (error) {
@@ -282,7 +275,6 @@ export function useWebSocket(wsUrl?: string) {
     connected.value = false
   }
 
-  // 自动连接
   if (typeof window !== 'undefined') {
     connect()
   }

@@ -56,17 +56,22 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     loggerOptions,
     port,
   } = options
+  const _loggerOptions = extend(
+    {
+      enabled: true,
+      level: 'error',
+      showTimestamp: true,
+      showLevel: true,
+    },
+    loggerOptions,
+  )
 
   initLogger(
     extend(
       {
-        enabled: true,
-        level: 'debug',
         prefix: '[Faker Plugin]',
-        showTimestamp: true,
-        showLevel: true,
       },
-      loggerOptions,
+      _loggerOptions,
     ),
   )
 
@@ -138,6 +143,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         return code
           .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
           .replace(`__FAKER_WS_PORT__`, JSON.stringify(port))
+          .replace(`__FAKER_LOGGER_OPTIONS__`, JSON.stringify(_loggerOptions))
       }
       return code
     },

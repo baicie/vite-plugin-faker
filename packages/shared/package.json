@@ -31,11 +31,16 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "tsdown": "^0.17.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "catalog:"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.21"
   }
 }

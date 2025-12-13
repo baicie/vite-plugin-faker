@@ -1,5 +1,9 @@
 import type { WSMessage } from '@baicie/faker-shared'
-import { EventBusType, WSMessageType } from '@baicie/faker-shared'
+import {
+  EventBusType,
+  FAKER_WEBSOCKET_PRESET,
+  WSMessageType,
+} from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { ViteDevServer } from 'vite'
 import { WSMessageHandler } from './api'
@@ -45,16 +49,18 @@ export class WSServer {
       })
     })
 
-    // 监听自定义事件：客户端通过 import.meta.hot.send('faker:message', data) 发送
     try {
-      this.server.ws.on('faker:message', (data: any, client?: any) => {
-        try {
-          const message = typeof data === 'string' ? JSON.parse(data) : data
-          this.handleMessage(client, message)
-        } catch (error) {
-          logger.error('[Faker] 解析消息失败:', error)
-        }
-      })
+      this.server.ws.on(
+        FAKER_WEBSOCKET_PRESET,
+        (data: unknown, client?: any) => {
+          try {
+            const message = typeof data === 'string' ? JSON.parse(data) : data
+            this.handleMessage(client, message)
+          } catch (error) {
+            logger.error('[Faker] 解析消息失败:', error)
+          }
+        },
+      )
     } catch (error) {
       logger.warn('[Faker] 无法监听自定义事件:', error)
     }
@@ -97,7 +103,7 @@ export class WSServer {
   /**
    * 处理客户端消息
    */
-  private handleMessage(_client: any, message: WSMessage): void {
+  private async handleMessage(_client: any, message: WSMessage): Promise<void> {
     try {
       // 如果 data 是字符串，解析它
       if (typeof message === 'string') {
@@ -105,7 +111,7 @@ export class WSServer {
       }
 
       // 使用 handler 处理消息
-      const response = this.messageHandler.handleMessage(message)
+      const response = await this.messageHandler.handleMessage(message)
 
       // 如果有响应（需要返回给客户端），发送响应
       if (response) {
@@ -149,10 +155,7 @@ export class WSServer {
    */
   private sendToClient(_clientOrId: any, message: any): void {
     try {
-      // 使用 Vite 的 WebSocket 发送 API
-      // 格式：server.ws.send(event, data)
-      // 客户端通过 import.meta.hot.on('faker:response', handler) 接收
-      this.server.ws.send('faker:response', message)
+      this.server.ws.send(WSMessageType.FAKER_RESPONSE, message)
     } catch (error) {
       logger.error('[Faker] 发送消息失败:', error)
     }
@@ -164,9 +167,7 @@ export class WSServer {
    */
   private broadcast(message: any): void {
     try {
-      // 使用 Vite 的 WebSocket 广播 API
-      // 所有客户端通过 import.meta.hot.on('faker:broadcast', handler) 接收
-      this.server.ws.send('faker:broadcast', message)
+      this.server.ws.send(WSMessageType.FAKER_BROADCAST, message)
     } catch (error) {
       logger.error('[Faker] 广播消息失败:', error)
     }

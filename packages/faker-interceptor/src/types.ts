@@ -1,6 +1,6 @@
-import type { FetchInterceptor } from './fetch-interceptor'
+import type { FetchInterceptor } from './hack/fetch-interceptor'
+import type { XHRInterceptor } from './hack/xhr-interceptor'
 import type { WSClient } from './ws-client'
-import type { XHRInterceptor } from './xhr-interceptor'
 
 /**
  * 从 shared 模块导出类型，保持向后兼容

@@ -1,3 +1,4 @@
+export { extend } from 'lodash-es'
 export * from './utils'
 export * from './ws-types'
 
@@ -33,3 +34,5 @@ export interface Pagination {
   pageSize: number
   totalPages?: number
 }
+
+export const wsPath = '@faker-ws'

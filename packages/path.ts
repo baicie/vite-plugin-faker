@@ -10,3 +10,4 @@ export const vitePluginFakerPath = path.resolve(
   packagesPath,
   'vite-plugin-faker',
 )
+export const hackPath = path.resolve(packagesPath, 'faker-interceptor')

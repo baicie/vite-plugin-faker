@@ -3,6 +3,7 @@ import type { RequestRecord, WSMessage } from '@baicie/faker-shared'
 import { EventBusType, WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { EventBus } from './types'
+import { createRequestKey } from '@baicie/faker-shared'
 
 /**
  * 请求记录相关消息处理器
@@ -13,18 +14,13 @@ export class RequestHandler {
     private eventBus: EventBus,
   ) {}
 
-  /**
-   * 处理请求记录（流程 1：Hack → Node）
-   */
-  handleRecorded(data: RequestRecord): void {
+  async handleRecorded(data: RequestRecord): Promise<void> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
-      const id =
-        data.id ||
-        `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      const id = await createRequestKey(data)
 
       requestsDB.saveRequest(id, this.toRequestItem(data))
-      logger.debug(`[Faker] 请求已记录: ${data.method} ${data.url}`)
+      logger.debug(`[Faker] 请求已记录id: ${id}`)
 
       // 触发数据库变更事件
       this.eventBus.emit(EventBusType.DB_REQUEST_SAVED, { id, ...data })

@@ -1,30 +1,22 @@
-/**
- * Faker 拦截器入口
- * 在浏览器端运行，拦截 fetch 和 XHR 请求
- */
-
-import { type MockConfig, WSMessageType } from '@baicie/faker-shared'
+import { type MockConfig, WSMessageType, wsPath } from '@baicie/faker-shared'
 import { WSClient } from './ws-client'
-import { FetchInterceptor } from './fetch-interceptor'
-import { XHRInterceptor } from './xhr-interceptor'
 import { initLogger, logger } from '@baicie/logger'
+import { FetchInterceptor } from './hack/fetch-interceptor'
+import { XHRInterceptor } from './hack/xhr-interceptor'
+import { extend } from '@baicie/faker-shared'
 
 declare const __FAKER_WS_PORT__: string
+declare const __FAKER_LOGGER_OPTIONS__: string
 
-// const _wsUrl = `ws://${window.location.host}/@faker-ws`
-// const _wsPort = Number(__FAKER_WS_PORT__)
+const wsPort = Number(__FAKER_WS_PORT__)
+const loogerOptions: string = __FAKER_LOGGER_OPTIONS__
 
 /**
  * 初始化拦截器
  */
 export function initInterceptor(wsUrl: string): void {
-  initLogger({
-    enabled: true,
-    level: 'debug',
-    prefix: '[FakerInterceptor]',
-    showTimestamp: true,
-    showLevel: true,
-  })
+  const options = extend(loogerOptions, { prefix: '[FakerInterceptor]' })
+  initLogger(options)
   // 检查是否已经初始化
   if (window.__fakerInterceptorInitialized) {
     logger.warn('拦截器已初始化，跳过重复初始化')
@@ -58,7 +50,9 @@ export function initInterceptor(wsUrl: string): void {
 }
 
 if (typeof window !== 'undefined') {
-  const wsUrl = `ws://${window.location.host}/@faker-ws`
+  const wsUrl = wsPort
+    ? `ws://${window.location.hostname}:${wsPort}/${wsPath}`
+    : ''
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initInterceptor(wsUrl)

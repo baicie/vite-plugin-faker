@@ -2,18 +2,24 @@ import path from 'node:path'
 import type { ChildProcess } from 'node:child_process'
 import { spawn } from 'node:child_process'
 import chokidar, { type FSWatcher } from 'chokidar'
-import { vitePluginFakerPath } from './../../packages/path'
+import {
+  fakerUiPath,
+  hackPath,
+  vitePluginFakerPath,
+} from './../../packages/path'
 import kill from 'tree-kill'
 import process from 'node:process'
 
-const viteCmd = process.platform === 'win32' ? 'vite.cmd' : 'vite'
+const useShell = process.platform === 'win32'
 const distPath = path.resolve(vitePluginFakerPath, 'dist')
+const hackDistPath = path.resolve(hackPath, 'dist')
+const uiDistPath = path.resolve(fakerUiPath, 'dist')
 
 let watcher: FSWatcher
 let viteProcess: ChildProcess
 
 async function startWatcher() {
-  watcher = chokidar.watch(distPath, {
+  watcher = chokidar.watch([distPath, hackDistPath, uiDistPath], {
     persistent: true,
     ignoreInitial: true,
     awaitWriteFinish: {
@@ -33,9 +39,9 @@ async function startWatcher() {
 }
 
 function startViteProcess() {
-  viteProcess = spawn(viteCmd, ['--config', 'vite.config.ts'], {
+  viteProcess = spawn('vite', ['--config', 'vite.config.ts'], {
     stdio: 'inherit',
-    // shell: true,
+    shell: useShell,
   })
 
   viteProcess.on('exit', code => {

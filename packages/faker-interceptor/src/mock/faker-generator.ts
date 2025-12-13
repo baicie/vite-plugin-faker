@@ -1,8 +1,3 @@
-/**
- * Faker.js 浏览器端生成器
- * 注意：这个文件会在浏览器环境中运行，需要确保 Faker.js 可用
- */
-
 import { faker } from '@faker-js/faker'
 import { logger } from '@baicie/logger'
 
@@ -14,10 +9,6 @@ export class BrowserFakerGenerator {
     return JSON.parse(JSON.stringify(data))
   }
 
-  /**
-   * 从 Faker 模板生成数据
-   * 模板格式：{{ faker.person.firstName }}
-   */
   generateFromTemplate(template: string, _request?: any): any {
     try {
       // 检查 faker 是否可用
