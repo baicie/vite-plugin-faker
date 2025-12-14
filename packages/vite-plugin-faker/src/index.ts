@@ -144,6 +144,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
           .replace(`__FAKER_WS_PORT__`, JSON.stringify(port))
           .replace(`__FAKER_LOGGER_OPTIONS__`, JSON.stringify(_loggerOptions))
+          .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(_loggerOptions))
       }
       return code
     },

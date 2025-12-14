@@ -1,7 +1,7 @@
 import type { WSMessage } from '@baicie/faker-shared'
 import {
   EventBusType,
-  FAKER_WEBSOCKET_PRESET,
+  FAKER_WEBSOCKET_SYMBOL,
   WSMessageType,
 } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
@@ -51,7 +51,7 @@ export class WSServer {
 
     try {
       this.server.ws.on(
-        FAKER_WEBSOCKET_PRESET,
+        FAKER_WEBSOCKET_SYMBOL,
         (data: unknown, client?: any) => {
           try {
             const message = typeof data === 'string' ? JSON.parse(data) : data
@@ -105,15 +105,8 @@ export class WSServer {
    */
   private async handleMessage(_client: any, message: WSMessage): Promise<void> {
     try {
-      // 如果 data 是字符串，解析它
-      if (typeof message === 'string') {
-        message = JSON.parse(message)
-      }
-
-      // 使用 handler 处理消息
       const response = await this.messageHandler.handleMessage(message)
 
-      // 如果有响应（需要返回给客户端），发送响应
       if (response) {
         this.sendToClient(message.id, response)
       }
@@ -167,7 +160,7 @@ export class WSServer {
    */
   private broadcast(message: any): void {
     try {
-      this.server.ws.send(WSMessageType.FAKER_BROADCAST, message)
+      // this.server.ws.send(WSMessageType.FAKER_BROADCAST, message)
     } catch (error) {
       logger.error('[Faker] 广播消息失败:', error)
     }

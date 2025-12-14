@@ -29,7 +29,7 @@ export class WSMessageHandler {
     switch (message.type) {
       case WSMessageType.REQUEST_RECORDED:
         await this.requestHandler.handleRecorded(message.data)
-        return // 请求记录不需要响应
+        return
 
       case WSMessageType.MOCK_CREATE:
         return this.mockHandler.handleCreate(message.data, message.id)
@@ -57,7 +57,6 @@ export class WSMessageHandler {
 
       default:
         logger.warn(`[Faker] 未知消息类型: ${message.type}`)
-        throw new Error(`未知消息类型: ${message.type}`)
     }
   }
 

@@ -14,7 +14,6 @@ import {
   NTabPane,
   NTabs,
 } from 'naive-ui'
-import { useMock } from '../composables/useMock'
 import CodeEditor from './editors/code-editor'
 import JsonEditor from './editors/json-editor'
 import VisualEditor from './editors/visual-editor'

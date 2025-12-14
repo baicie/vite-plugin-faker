@@ -1,7 +1,6 @@
+import type { WSClient } from '@baicie/faker-shared'
 import type { FetchInterceptor } from './hack/fetch-interceptor'
 import type { XHRInterceptor } from './hack/xhr-interceptor'
-import type { WSClient } from './ws-client'
-
 /**
  * 从 shared 模块导出类型，保持向后兼容
  */

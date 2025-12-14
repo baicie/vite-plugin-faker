@@ -1,8 +1,12 @@
-import type { MockConfig, RequestRecord } from '@baicie/faker-shared'
+import {
+  type MockConfig,
+  type RequestRecord,
+  type WSClient,
+  WSMessageType,
+} from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import { MockMatcher } from '../mock/mock-matcher'
 import { MockResponseGenerator } from '../mock/mock-response-generator'
-import type { WSClient } from '../ws-client'
 
 /**
  * XMLHttpRequest 拦截器
@@ -165,9 +169,6 @@ export class XHRInterceptor {
         self.recordXHRRequest(this, mock, responseData, duration, true)
       }
 
-      /**
-       * 设置响应监听（用于记录非 Mock 请求）
-       */
       private setupResponseListener(): void {
         const xhr = this
 
@@ -226,11 +227,15 @@ export class XHRInterceptor {
         timestamp: Date.now(),
       }
 
-      this.wsClient.sendRequestRecord(record)
+      this.sendRequestRecord(record)
     } catch (error) {
       // 静默失败
       logger.error('记录 XHR 请求失败:', error)
     }
+  }
+
+  private sendRequestRecord(record: RequestRecord) {
+    this.wsClient.send(WSMessageType.REQUEST_RECORDED, record)
   }
 
   /**

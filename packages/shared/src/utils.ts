@@ -1,4 +1,4 @@
-import type { RequestRecord } from './ws-types'
+import type { RequestRecord } from './ws'
 
 export function generateUUID(): string {
   const buf = new Uint8Array(16)
@@ -45,4 +45,15 @@ export async function createRequestKey(data: RequestRecord): Promise<string> {
   return [...new Uint8Array(buf)]
     .map(x => x.toString(16).padStart(2, '0'))
     .join('')
+}
+
+export function safeJsonParse<T>(input: string, fallback: Partial<T>): T {
+  if (typeof input !== 'string') return fallback as T
+
+  try {
+    const parsed = JSON.parse(input)
+    return parsed as T
+  } catch {
+    return fallback as T
+  }
 }

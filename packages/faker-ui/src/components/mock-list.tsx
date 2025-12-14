@@ -9,7 +9,6 @@ import {
   NSwitch,
   useMessage,
 } from 'naive-ui'
-import { useMock } from '../composables/useMock'
 import MockEditor from './mock-editor'
 
 const MockList = defineComponent({

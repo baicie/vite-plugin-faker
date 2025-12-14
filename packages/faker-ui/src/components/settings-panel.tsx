@@ -12,7 +12,6 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { useSettings } from '../composables/useSettings'
 
 const SettingsPanel = defineComponent({
   name: 'SettingsPanel',

@@ -1,5 +1,9 @@
-import { type MockConfig, WSMessageType, wsPath } from '@baicie/faker-shared'
-import { WSClient } from './ws-client'
+import {
+  type MockConfig,
+  WSClient,
+  WSMessageType,
+  wsPath,
+} from '@baicie/faker-shared'
 import { initLogger, logger } from '@baicie/logger'
 import { FetchInterceptor } from './hack/fetch-interceptor'
 import { XHRInterceptor } from './hack/xhr-interceptor'
@@ -25,8 +29,7 @@ export function initInterceptor(wsUrl: string): void {
 
   logger.info('初始化拦截器...')
 
-  // 创建 WebSocket 客户端
-  const wsClient = new WSClient(wsUrl)
+  const wsClient = new WSClient(wsUrl, logger)
 
   // 创建拦截器
   const fetchInterceptor = new FetchInterceptor(wsClient)

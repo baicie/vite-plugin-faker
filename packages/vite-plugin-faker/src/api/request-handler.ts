@@ -22,7 +22,6 @@ export class RequestHandler {
       requestsDB.saveRequest(id, this.toRequestItem(data))
       logger.debug(`[Faker] 请求已记录id: ${id}`)
 
-      // 触发数据库变更事件
       this.eventBus.emit(EventBusType.DB_REQUEST_SAVED, { id, ...data })
     } catch (error) {
       logger.error('[Faker] 保存请求记录失败:', error)

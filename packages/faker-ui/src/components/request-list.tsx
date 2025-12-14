@@ -1,6 +1,5 @@
 import { defineComponent, onMounted, ref } from 'vue'
 import { NButton, NDataTable, NInput, NTag, useMessage } from 'naive-ui'
-import { useRequest } from '../composables/useRequest'
 import RequestDetail from './request-detail'
 
 const RequestList = defineComponent({
@@ -85,7 +84,6 @@ const RequestList = defineComponent({
       })
     }
 
-    // 初始化加载
     onMounted(() => {
       loadRequests()
     })

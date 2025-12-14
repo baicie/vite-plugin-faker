@@ -1,12 +1,105 @@
-import {
-  FAKER_WEBSOCKET_PRESET,
-  type FakerWebSocket,
-  type RequestRecord,
-  type WSMessage,
-  WSMessageType,
-  isWebSocket,
-} from '@baicie/faker-shared'
-import { logger } from '@baicie/logger'
+import type { ViteHotContext } from 'vite/types/hot.js'
+import type { Logger } from '@baicie/logger'
+
+export interface WSMessage {
+  type: WSMessageType
+  data?: any
+  id?: string
+}
+
+/**
+ * WebSocket 消息类型枚举
+ */
+export enum WSMessageType {
+  // Hack → Node
+  REQUEST_RECORDED = 'faker:request-recorded',
+
+  // UI → Node
+  MOCK_CREATE = 'faker:mock-create',
+  MOCK_UPDATE = 'faker:mock-update',
+  MOCK_DELETE = 'faker:mock-delete',
+  MOCK_LIST = 'faker:mock-list',
+  REQUEST_HISTORY = 'faker:request-history',
+  SETTINGS_GET = 'faker:settings-get',
+  SETTINGS_UPDATE = 'faker:settings-update',
+  SETTINGS_CLEAR_CACHE = 'faker:settings-clear-cache',
+
+  // Node → UI (响应)
+  MOCK_CREATED = 'faker:mock-created',
+  MOCK_UPDATED = 'faker:mock-updated',
+  MOCK_DELETED = 'faker:mock-deleted',
+  ERROR = 'faker:error',
+
+  // Node → Hack/UI (广播)
+  MOCK_CONFIG_UPDATED = 'faker:mock-config-updated',
+}
+
+/**
+ * 请求记录接口
+ */
+export interface RequestRecord {
+  id?: string
+  url: string
+  method: string
+  headers: Record<string, string>
+  query?: Record<string, string>
+  body?: any
+  response?: {
+    statusCode: number
+    headers: Record<string, string>
+    body: any
+  }
+  duration?: number
+  isMocked?: boolean
+  mockId?: string
+  timestamp: number
+}
+
+/**
+ * Mock 配置接口
+ */
+export interface MockConfig {
+  id: string
+  url: string
+  method: string
+  enabled: boolean
+  [key: string]: any
+}
+
+/**
+ * 事件总线事件类型
+ */
+export enum EventBusType {
+  // 数据库变更事件
+  DB_MOCK_CREATED = 'db:mock:created',
+  DB_MOCK_UPDATED = 'db:mock:updated',
+  DB_MOCK_DELETED = 'db:mock:deleted',
+  DB_REQUEST_SAVED = 'db:request:saved',
+  DB_SETTINGS_UPDATED = 'db:settings:updated',
+  DB_CACHE_CLEARED = 'db:cache:cleared',
+}
+
+/**
+ * 事件总线事件接口
+ */
+export interface EventBusEvent {
+  type: EventBusType
+  data?: any
+  timestamp?: number
+}
+
+export type FakerWebSocket = ViteHotContext | WebSocket | undefined
+
+export function isViteHot(ws: FakerWebSocket): ws is ViteHotContext {
+  return !!ws && typeof (ws as ViteHotContext).accept === 'function'
+}
+
+export function isWebSocket(ws: FakerWebSocket): ws is WebSocket {
+  return !!ws && typeof (ws as WebSocket).onopen === 'function'
+}
+
+export const FAKER_WEBSOCKET_SYMBOL = 'faker-websocket'
+// export const FAKER_EVENT_REGEX: RegExp = /faker:[\w-]+/g
 
 export class WSClient {
   private ws: FakerWebSocket
@@ -16,9 +109,11 @@ export class WSClient {
   private reconnectDelay = 1000
   private handlers: Map<string, Set<Function>> = new Map()
   private isConnecting = false
+  private logger: Logger
 
-  constructor(wsUrl: string) {
+  constructor(wsUrl: string, logger: Logger) {
     this.wsUrl = wsUrl
+    this.logger = logger
     this.connect()
   }
 
@@ -37,7 +132,7 @@ export class WSClient {
       }
 
       if (!this.ws) {
-        logger.error('interceptor error: websocket faile')
+        this.logger.error('interceptor error: websocket faile')
         return
       }
 
@@ -45,23 +140,19 @@ export class WSClient {
         this.ws.onopen = () => {
           this.isConnecting = false
           this.reconnectAttempts = 0
-          logger.info('WebSocket 连接成功')
+          this.logger.info('WebSocket 连接成功')
         }
 
         this.ws.onmessage = event => {
           try {
-            // 处理 Vite WebSocket 事件格式
             let message: WSMessage
-
             if (typeof event.data === 'string') {
-              // 尝试解析为 JSON
               try {
                 message = JSON.parse(event.data)
               } catch {
                 return
               }
             } else if (event.data && typeof event.data === 'object') {
-              // 已经是对象
               message = event.data as WSMessage
             } else {
               return
@@ -69,12 +160,12 @@ export class WSClient {
 
             this.handleMessage(message)
           } catch (error) {
-            logger.error('解析 WebSocket 消息失败:', error)
+            this.logger.error('解析 WebSocket 消息失败:', error)
           }
         }
 
         this.ws.onerror = error => {
-          logger.error('WebSocket 错误:', error)
+          this.logger.error('WebSocket 错误:', error)
           this.isConnecting = false
         }
 
@@ -85,21 +176,21 @@ export class WSClient {
         }
       }
     } catch (error) {
-      logger.error('WebSocket 连接失败:', error)
+      this.logger.error('WebSocket 连接失败:', error)
       this.isConnecting = false
     }
   }
 
   private attemptReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      logger.warn('WebSocket 重连次数已达上限')
+      this.logger.warn('WebSocket 重连次数已达上限')
       return
     }
 
     this.reconnectAttempts++
     const delay = this.reconnectDelay * this.reconnectAttempts
 
-    logger.info(
+    this.logger.info(
       `${delay}ms 后尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
     )
 
@@ -115,7 +206,7 @@ export class WSClient {
         try {
           handler(message.data, message)
         } catch (error) {
-          logger.error(`处理消息失败 [${message.type}]:`, error)
+          this.logger.error(`处理消息失败 [${message.type}]:`, error)
         }
       })
     }
@@ -128,14 +219,13 @@ export class WSClient {
   }
 
   send<T = any>(type: WSMessageType, data?: T): void {
-    logger.debug(type, data)
+    this.logger.debug(type, data)
     try {
       this.messageGrid()
       const message: WSMessage = { type, data }
-      const messageStr = JSON.stringify(message)
-      this.ws?.send(FAKER_WEBSOCKET_PRESET, messageStr)
+      this.ws?.send(FAKER_WEBSOCKET_SYMBOL, message)
     } catch (error) {
-      logger.error('message send error:', error)
+      this.logger.error('message send error:', error)
     }
   }
 
@@ -157,13 +247,6 @@ export class WSClient {
     if (handlers) {
       handlers.delete(handler)
     }
-  }
-
-  /**
-   * 发送请求记录
-   */
-  sendRequestRecord(record: RequestRecord): void {
-    this.send(WSMessageType.REQUEST_RECORDED, record)
   }
 
   /**
