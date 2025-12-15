@@ -17,7 +17,7 @@ const loogerOptions: Logger = safeJsonParse<Logger>(
 const uiOptions: UIOPtions = safeJsonParse<UIOPtions>(__FAKER_UI_OPTIONS__, {})
 const mountTarget: string = __MOUNT_TARGET__
 
-export async function fakerUI(target: string, wsUrl: string): Promise<void> {
+export async function fakerUI(target: string, wsUrl?: string): Promise<void> {
   const options = extend(loogerOptions, { prefix: '[FakerUI]' })
   initLogger(options)
   const app = createApp(App)

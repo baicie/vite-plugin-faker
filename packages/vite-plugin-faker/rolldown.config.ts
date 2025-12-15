@@ -22,6 +22,9 @@ const esmConfig = defineConfig({
     dir: 'dist',
     sourcemap: true,
   },
+  watch: {
+    clearScreen: false,
+  },
 })
 
 const dtsConfig = defineConfig({
@@ -31,6 +34,9 @@ const dtsConfig = defineConfig({
     dir: 'dist',
   },
   plugins: [dts({ emitDtsOnly: true })],
+  watch: {
+    clearScreen: false,
+  },
 })
 
 export default defineConfig([esmConfig, dtsConfig])

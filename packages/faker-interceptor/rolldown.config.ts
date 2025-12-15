@@ -18,6 +18,9 @@ const esmConfig = defineConfig({
   },
   treeshake: true,
   platform: 'browser',
+  watch: {
+    clearScreen: false,
+  },
 })
 
 export default defineConfig([esmConfig])

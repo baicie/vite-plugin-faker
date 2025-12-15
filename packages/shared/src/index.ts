@@ -1,6 +1,6 @@
-export { extend } from 'lodash-es'
 export * from './utils'
 export * from './ws'
+export * from './lodash'
 
 /**
  * 分页查询接口

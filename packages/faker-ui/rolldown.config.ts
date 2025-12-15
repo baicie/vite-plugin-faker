@@ -28,5 +28,6 @@ export default defineConfig({
   ],
   watch: {
     include: 'src/**',
+    clearScreen: false,
   },
 })
