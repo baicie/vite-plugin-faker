@@ -57,7 +57,7 @@ const MockEditor = defineComponent({
       responseType: 'static',
       responseData: '{}',
       responseTemplate: '{}',
-      responseCode: 'return {\n  message: "Hello World"\n};',
+      responseCode: '',
       delay: 0,
       headers: { 'Content-Type': 'application/json' },
     })
@@ -95,7 +95,7 @@ const MockEditor = defineComponent({
             responseType: 'static',
             responseData: '{}',
             responseTemplate: '{}',
-            responseCode: 'return {\n  message: "Hello World"\n};',
+            responseCode: '',
             delay: 0,
             headers: { 'Content-Type': 'application/json' },
           })

@@ -1,4 +1,3 @@
-import { generateUUID } from '@baicie/faker-shared'
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
@@ -23,7 +22,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
 
   // 添加Mock配置
   addMock(config: Omit<MockConfig, 'id'>): MockConfig {
-    const id = generateUUID()
+    const id = `${config.url}-${config.method}`
     const newConfig = { ...config, id } as MockConfig
     this.db.data[id] = newConfig
     this.save()

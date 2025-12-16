@@ -1,8 +1,12 @@
-import type { MockConfig, RequestRecord } from '@baicie/faker-shared'
+import {
+  type MockConfig,
+  type RequestRecord,
+  type WSClient,
+  WSMessageType,
+} from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import { MockMatcher } from '../mock/mock-matcher'
 import { MockResponseGenerator } from '../mock/mock-response-generator'
-import type { WSClient } from '../ws-client'
 
 /**
  * Fetch 拦截器
@@ -183,7 +187,7 @@ export class FetchInterceptor {
       }
 
       // 通过 WebSocket 发送记录
-      this.wsClient.sendRequestRecord(record)
+      this.sendRequestRecord(record)
     } catch (error) {
       // 静默失败，不影响正常请求
       logger.error('记录请求失败:', error)
@@ -213,10 +217,14 @@ export class FetchInterceptor {
         timestamp: Date.now(),
       }
 
-      this.wsClient.sendRequestRecord(record)
+      this.sendRequestRecord(record)
     } catch {
       // 静默失败
     }
+  }
+
+  private sendRequestRecord(record: RequestRecord) {
+    this.wsClient.send(WSMessageType.REQUEST_RECORDED, record)
   }
 
   /**

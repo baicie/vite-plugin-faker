@@ -59,6 +59,7 @@ export class XHRInterceptor {
           // 有 Mock，生成响应
           this.handleMockResponse(this._mock, body).catch(error => {
             logger.error('XHR Mock 响应失败:', error)
+            console.error(error)
             // 失败时继续正常请求
             super.send(body)
           })
@@ -81,7 +82,6 @@ export class XHRInterceptor {
         if (mock.delay && mock.delay > 0) {
           await new Promise(resolve => setTimeout(resolve, mock.delay))
         }
-
         // 构建请求信息
         const requestInfo = {
           url: this._url,
@@ -102,7 +102,6 @@ export class XHRInterceptor {
         )
 
         const responseText = JSON.stringify(responseData)
-        const duration = Date.now() - this._startTime
 
         // 模拟 XHR 响应
         Object.defineProperty(this, 'status', {
@@ -157,16 +156,11 @@ export class XHRInterceptor {
           configurable: true,
         })
 
-        // 触发事件
-        if (this.onreadystatechange) {
-          this.onreadystatechange(new Event('readystatechange') as any)
-        }
-        if (this.onload) {
-          this.onload(new Event('load') as any)
-        }
-
-        // 记录请求
-        self.recordXHRRequest(this, mock, responseData, duration, true)
+        queueMicrotask(() => {
+          this.dispatchEvent(new ProgressEvent('readystatechange'))
+          this.dispatchEvent(new ProgressEvent('load'))
+          this.dispatchEvent(new ProgressEvent('loadend'))
+        })
       }
 
       private setupResponseListener(): void {

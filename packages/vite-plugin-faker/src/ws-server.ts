@@ -37,10 +37,9 @@ export class WSServer {
       this.clients.add(client)
       logger.debug('[Faker] 客户端已连接')
 
-      // 连接时广播当前 Mock 配置
       setTimeout(() => {
         this.broadcastMockConfigs()
-      }, 100)
+      }, 0)
 
       // 监听断开连接
       client.on('close', () => {
