@@ -12,10 +12,9 @@ import {
 import RequestList from './components/request-list'
 import MockList from './components/mock-list'
 import SettingsPanel from './components/settings-panel'
-import { WebSocketProvider } from './hooks/use-ws'
 import { useAppContext } from './hooks/use-app-context'
 import { logger } from '@baicie/logger'
-
+import { connect } from './hooks/use-ws'
 const App = defineComponent({
   setup() {
     const state = reactive({
@@ -33,43 +32,43 @@ const App = defineComponent({
       logger.info('ui mounted')
     })
 
-    return () => (
-      <WebSocketProvider wsUrl={wsUrl} logger={logger}>
-        <NConfigProvider>
-          <NDialogProvider>
-            <NMessageProvider>
-              <NButton
-                type="primary"
-                onClick={handleOpen}
-                style={{
-                  position: 'fixed',
-                  bottom: '24px',
-                  right: '24px',
-                  zIndex: 1000,
-                }}
-              >
-                open
-              </NButton>
+    connect(wsUrl, logger)
 
-              <NDrawer v-model:show={state.open} defaultWidth={720} resizable>
-                <div class="drawer-content">
-                  <NTabs v-model:value={state.activeTab} type="line" animated>
-                    <NTabPane name="requests" tab="请求记录">
-                      <RequestList />
-                    </NTabPane>
-                    <NTabPane name="mocks" tab="接口模拟">
-                      <MockList />
-                    </NTabPane>
-                    <NTabPane name="settings" tab="设置">
-                      <SettingsPanel />
-                    </NTabPane>
-                  </NTabs>
-                </div>
-              </NDrawer>
-            </NMessageProvider>
-          </NDialogProvider>
-        </NConfigProvider>
-      </WebSocketProvider>
+    return () => (
+      <NConfigProvider>
+        <NDialogProvider>
+          <NMessageProvider>
+            <NButton
+              type="primary"
+              onClick={handleOpen}
+              style={{
+                position: 'fixed',
+                bottom: '24px',
+                right: '24px',
+                zIndex: 1000,
+              }}
+            >
+              open
+            </NButton>
+
+            <NDrawer v-model:show={state.open} defaultWidth={720} resizable>
+              <div class="drawer-content">
+                <NTabs v-model:value={state.activeTab} type="line" animated>
+                  <NTabPane name="requests" tab="请求记录">
+                    <RequestList />
+                  </NTabPane>
+                  <NTabPane name="mocks" tab="接口模拟">
+                    <MockList />
+                  </NTabPane>
+                  <NTabPane name="settings" tab="设置">
+                    <SettingsPanel />
+                  </NTabPane>
+                </NTabs>
+              </div>
+            </NDrawer>
+          </NMessageProvider>
+        </NDialogProvider>
+      </NConfigProvider>
     )
   },
 })

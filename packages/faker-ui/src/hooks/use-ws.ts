@@ -1,46 +1,10 @@
 import { WSClient } from '@baicie/faker-shared'
 import type { Logger } from '@baicie/logger'
-import {
-  type InjectionKey,
-  type PropType,
-  defineComponent,
-  inject,
-  provide,
-  useSlots,
-} from 'vue'
 
-interface Context {
-  wsClient: WSClient
+export let wsClient: WSClient
+
+export function connect(wsUrl: string, logger: Logger) {
+  if (!wsClient) {
+    wsClient = new WSClient(wsUrl, logger)
+  }
 }
-
-const wscontext = Symbol('wscontext') as InjectionKey<Context>
-
-export function useWebSocketContextProvider(context: Context) {
-  return provide(wscontext, context)
-}
-
-export function useWebSocket() {
-  return inject(wscontext)!
-}
-
-export const WebSocketProvider = defineComponent({
-  name: 'WebSocketProvider',
-  props: {
-    logger: {
-      type: Object as PropType<Logger>,
-      required: true,
-    },
-    wsUrl: {
-      type: String,
-      required: true,
-    },
-  },
-  setup(props) {
-    const slots = useSlots()
-    const wsClient = new WSClient(props.wsUrl, props.logger)
-    useWebSocketContextProvider({
-      wsClient,
-    })
-    return () => slots.default && slots.default()
-  },
-})

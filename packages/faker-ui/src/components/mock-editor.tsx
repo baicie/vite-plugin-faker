@@ -1,5 +1,5 @@
 import type { PropType } from 'vue'
-import { defineComponent, reactive, ref, toRaw, watch } from 'vue'
+import { computed, defineComponent, reactive, ref, toRaw, watch } from 'vue'
 import {
   NButton,
   NDivider,
@@ -36,6 +36,15 @@ const MockEditor = defineComponent({
     const formRef = ref(null)
     const activeTab = ref('basic')
     const saving = ref(false)
+
+    const _show = computed({
+      get() {
+        return props.show
+      },
+      set(value) {
+        emit('cancel', value)
+      },
+    })
 
     // 表单数据
     const formData = reactive({
@@ -153,7 +162,7 @@ const MockEditor = defineComponent({
 
     return () => (
       <NModal
-        v-model:show={props.show}
+        v-model:show={_show.value}
         style="width: 90%; max-width: 1000px;"
         maskClosable={false}
         preset="card"

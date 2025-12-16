@@ -1,7 +1,7 @@
 import type { WSMessage, WSMessageType } from '@baicie/faker-shared'
 import { extend, generateUUID } from '@baicie/faker-shared'
-import { useWebSocket } from './use-ws'
 import { useAppContext } from './use-app-context'
+import { wsClient } from './use-ws'
 
 interface RequestOptions {}
 
@@ -15,7 +15,6 @@ type WSHandler<T = any> = (data: T, message: WSMessage) => void
 
 export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
   function request(data?: T): Promise<R> {
-    const { wsClient } = useWebSocket()
     const { timeout } = useAppContext()
 
     function send(payload: T): void {
