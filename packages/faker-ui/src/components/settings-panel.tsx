@@ -12,14 +12,15 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
+import { clearCache, getSettings, updateSettings } from '../api'
+import { ref } from 'vue'
 
 const SettingsPanel = defineComponent({
   name: 'SettingsPanel',
   setup() {
     const { warning } = useDialog()
     const message = useMessage()
-    const { settings, loading, loadSettings, updateSettings, clearCache } =
-      useSettings()
+    const loading = ref(false)
 
     const formData = reactive({
       globalDelay: 0,
@@ -31,10 +32,13 @@ const SettingsPanel = defineComponent({
 
     async function handleSave() {
       try {
+        loading.value = true
         await updateSettings(formData)
         message.success('设置已保存')
       } catch (error) {
         message.error('保存设置失败')
+      } finally {
+        loading.value = false
       }
     }
 
@@ -46,19 +50,28 @@ const SettingsPanel = defineComponent({
         negativeText: '取消',
         onPositiveClick: async () => {
           try {
+            loading.value = true
             await clearCache()
             message.success('缓存已清除')
           } catch (error) {
             message.error('清除缓存失败')
+          } finally {
+            loading.value = false
           }
         },
       })
     }
 
-    onMounted(() => {
-      loadSettings().then(() => {
-        Object.assign(formData, settings.value)
-      })
+    onMounted(async () => {
+      loading.value = true
+      try {
+        const result = await getSettings()
+        if (result) {
+          Object.assign(formData, result)
+        }
+      } finally {
+        loading.value = false
+      }
     })
 
     return () => (

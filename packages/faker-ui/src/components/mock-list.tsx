@@ -10,12 +10,15 @@ import {
   useMessage,
 } from 'naive-ui'
 import MockEditor from './mock-editor'
+import type { MockConfig, Page } from '@baicie/faker-shared'
+import { deleteMock as apiDeleteMock, fetchMockList, updateMock } from '../api'
 
 const MockList = defineComponent({
   name: 'MockList',
   setup() {
     const message = useMessage()
-    const { mocks, loading, loadMocks, deleteMock, toggleMock } = useMock()
+    const mocks = ref<MockConfig[]>([])
+    const loading = ref(false)
     const showEditor = ref(false)
     const currentMock = ref<any>(null)
 
@@ -27,20 +30,12 @@ const MockList = defineComponent({
       pageSizes: [10, 20, 50],
       onChange: (page: number) => {
         pagination.page = page
-        loadMocks({ page, pageSize: pagination.pageSize }).then(result => {
-          if (result?.pagination) {
-            pagination.itemCount = result.pagination.total
-          }
-        })
+        loadMocks({ page, pageSize: pagination.pageSize })
       },
       onUpdatePageSize: (pageSize: number) => {
         pagination.pageSize = pageSize
         pagination.page = 1
-        loadMocks({ page: 1, pageSize }).then(result => {
-          if (result?.pagination) {
-            pagination.itemCount = result.pagination.total
-          }
-        })
+        loadMocks({ page: 1, pageSize })
       },
     })
 
@@ -117,9 +112,34 @@ const MockList = defineComponent({
       showEditor.value = true
     }
 
+    async function loadMocks(params?: {
+      page?: number
+      pageSize?: number
+      search?: string
+    }) {
+      loading.value = true
+      try {
+        const query = {
+          page: params && params.page ? params.page : pagination.page,
+          pageSize:
+            params && params.pageSize ? params.pageSize : pagination.pageSize,
+          search: params ? params.search : undefined,
+        }
+        const result: Page<MockConfig> = await fetchMockList(query)
+        mocks.value = result.items
+        pagination.itemCount = result.pagination.total
+        pagination.page = result.pagination.page
+        pagination.pageSize = result.pagination.pageSize
+      } catch (error) {
+        message.error('加载 Mock 列表失败')
+      } finally {
+        loading.value = false
+      }
+    }
+
     async function handleDelete(id: string) {
       try {
-        await deleteMock(id)
+        await apiDeleteMock({ id })
         message.success('删除成功')
       } catch (error) {
         message.error('删除失败')
@@ -128,7 +148,7 @@ const MockList = defineComponent({
 
     async function handleToggle(id: string, enabled: boolean) {
       try {
-        await toggleMock(id, enabled)
+        await updateMock({ id, updates: { enabled } })
         message.success(enabled ? '已启用' : '已禁用')
       } catch (error) {
         message.error('操作失败')
@@ -146,11 +166,7 @@ const MockList = defineComponent({
     }
 
     onMounted(() => {
-      loadMocks({ page: 1, pageSize: pagination.pageSize }).then(result => {
-        if (result?.pagination) {
-          pagination.itemCount = result.pagination.total
-        }
-      })
+      loadMocks({ page: 1, pageSize: pagination.pageSize })
     })
 
     return () => (

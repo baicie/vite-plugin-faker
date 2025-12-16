@@ -14,6 +14,7 @@ import {
   NTabPane,
   NTabs,
 } from 'naive-ui'
+import { createMock, updateMock } from '../api'
 import CodeEditor from './editors/code-editor'
 import JsonEditor from './editors/json-editor'
 import VisualEditor from './editors/visual-editor'
@@ -32,7 +33,6 @@ const MockEditor = defineComponent({
   },
   emits: ['save', 'cancel'],
   setup(props, { emit }) {
-    const { createMock, updateMock } = useMock()
     const formRef = ref(null)
     const activeTab = ref('basic')
     const saving = ref(false)
@@ -132,7 +132,7 @@ const MockEditor = defineComponent({
         }
 
         if (data.id) {
-          await updateMock(data.id, data)
+          await updateMock({ id: data.id, updates: data })
         } else {
           await createMock(data)
         }

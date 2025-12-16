@@ -1,6 +1,7 @@
 import { BaseDB } from './base'
 import type { RequestItem } from './types'
 import type { DBConfig } from './base'
+import type { Page, RequestRecord } from '@baicie/faker-shared'
 
 /**
  * 请求记录数据库
@@ -54,21 +55,44 @@ export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
     searchVal?: string,
     sortBy: string = 'timestamp',
     sortDesc: boolean = true,
-  ): {
-    items: { key: string; value: RequestItem }[]
-    pagination: {
-      total: number
-      page: number
-      pageSize: number
-      totalPages: number
-    }
-  } {
-    return this.getPaginatedItems(this.db.data, page, pageSize, {
+  ): Page<RequestRecord> {
+    const result = this.getPaginatedItems(this.db.data, page, pageSize, {
       searchVal,
       searchFields: ['req.method', 'req.path'], // 可以指定搜索的特定字段
       sortBy,
       sortDesc,
     })
+
+    const records: RequestRecord[] = result.items.map(function (item) {
+      return RequestsDB.toRequestRecord(item.key, item.value)
+    })
+
+    return {
+      items: records,
+      pagination: result.pagination,
+    }
+  }
+
+  private static toRequestRecord(id: string, item: RequestItem): RequestRecord {
+    return {
+      id,
+      url: (item.req && (item.req as any).url) || '',
+      method: (item.req && (item.req as any).method) || 'GET',
+      headers: (item.req && (item.req as any).headers) || {},
+      query: item.req ? (item.req as any).query : undefined,
+      body: item.req ? (item.req as any).body : undefined,
+      response: item.res
+        ? {
+            statusCode: (item.res as any).statusCode,
+            headers: (item.res as any).headers || {},
+            body: (item.res as any).body,
+          }
+        : undefined,
+      duration: item.duration,
+      isMocked: item.req ? (item.req as any).isMocked : undefined,
+      mockId: item.req ? (item.req as any).mockId : undefined,
+      timestamp: item.timestamp || Date.now(),
+    }
   }
 
   clear(): void {

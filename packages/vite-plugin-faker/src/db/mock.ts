@@ -1,5 +1,5 @@
 import { generateUUID } from '@baicie/faker-shared'
-import type { MockConfig } from '@baicie/faker-shared'
+import type { MockConfig, Page } from '@baicie/faker-shared'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
 
@@ -49,7 +49,6 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     )
   }
 
-  // 更新Mock配置
   updateMock(id: string, updates: Partial<MockConfig>): boolean {
     if (this.db.data[id]) {
       this.db.data[id] = { ...this.db.data[id], ...updates }
@@ -59,7 +58,6 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     return false
   }
 
-  // 删除Mock配置
   deleteMock(id: string): boolean {
     const initialLength = Object.keys(this.db.data).length
     delete this.db.data[id]
@@ -70,19 +68,37 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     return false
   }
 
-  // 分页获取Mock配置
   getMocksWithPagination(
     page: number = 1,
     pageSize: number = 10,
     searchVal?: string,
     sortBy: string = 'url',
     sortDesc: boolean = false,
-  ): any {
-    return this.getPaginatedItems(this.db.data, page, pageSize, {
+  ): Page<MockConfig> {
+    const result = this.getPaginatedItems(this.db.data, page, pageSize, {
       searchVal,
       searchFields: ['url', 'method', 'description'],
       sortBy,
       sortDesc,
     })
+
+    const items = result.items.map(function (item) {
+      return MocksDB.toMockConfig(item.key, item.value)
+    })
+
+    return {
+      items,
+      pagination: result.pagination,
+    }
+  }
+
+  private static toMockConfig(id: string, value: MockConfig): MockConfig {
+    if (!value) {
+      return { id, url: '', method: 'GET', enabled: false }
+    }
+    return {
+      ...value,
+      id: value.id || id,
+    }
   }
 }

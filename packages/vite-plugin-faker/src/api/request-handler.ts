@@ -24,7 +24,6 @@ export class RequestHandler {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
       const id = await createRequestKey(data)
-
       requestsDB.saveRequest(id, this.toRequestItem(data))
       logger.debug(`[Faker] 请求已记录id: ${id}`)
 

@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import type { LowSync } from 'lowdb'
 import { JSONFileSyncPreset } from 'lowdb/node'
 import { clamp, filter, get, map, orderBy, slice } from 'lodash-es'
+import type { Pagination } from '@baicie/faker-shared'
 
 /**
  * 数据库配置选项
@@ -57,12 +58,7 @@ export abstract class BaseDB<T extends object> {
     },
   ): {
     items: { key: string; value: V }[]
-    pagination: {
-      total: number
-      page: number
-      pageSize: number
-      totalPages: number
-    }
+    pagination: Pagination
   } {
     // 将对象转换为数组
     let items = map(data, (value, key) => ({

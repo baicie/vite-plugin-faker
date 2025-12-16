@@ -1,5 +1,11 @@
 import type { DBManager } from '../db'
-import type { MockConfig, WSMessage } from '@baicie/faker-shared'
+import type {
+  DashboardQuery,
+  MockConfig,
+  Page,
+  WSMessage,
+  WithId,
+} from '@baicie/faker-shared'
 import { EventBusType, WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { EventBus } from './types'
@@ -88,10 +94,10 @@ export class MockHandler {
   /**
    * 处理 Mock 列表查询
    */
-  handleList(data: any, id?: string): WSMessage {
+  handleList(data: WithId<DashboardQuery>): WSMessage<Page<MockConfig>> {
     try {
       const mocksDB = this.dbManager.getMocksDB()
-      const { page = 1, pageSize = 20, search } = data || {}
+      const { page = 1, pageSize = 20, search, id } = data || {}
 
       const result = mocksDB.getMocksWithPagination(
         page,

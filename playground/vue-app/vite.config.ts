@@ -8,7 +8,7 @@ export default defineConfig({
     vue(),
     faker({
       loggerOptions: {
-        level: 'debug',
+        level: 'error',
       },
     }),
   ],
