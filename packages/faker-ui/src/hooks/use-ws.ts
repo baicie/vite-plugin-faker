@@ -1,4 +1,4 @@
-import { FAKER_WEBSOCKET_SYMBOL, WSClient } from '@baicie/faker-shared'
+import { WSClient } from '@baicie/faker-shared'
 import type { Logger } from '@baicie/logger'
 import {
   type InjectionKey,
@@ -38,10 +38,6 @@ export const WebSocketProvider = defineComponent({
   setup(props) {
     const slots = useSlots()
     const wsClient = new WSClient(props.wsUrl, props.logger)
-
-    wsClient.on(FAKER_WEBSOCKET_SYMBOL, function (data, msg) {
-      console.log(data, msg)
-    })
 
     useWebSocketContextProvider({
       wsClient,

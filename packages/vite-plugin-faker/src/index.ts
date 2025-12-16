@@ -35,10 +35,18 @@ export interface ViteFakerOptions {
    * @description 日志配置
    */
   loggerOptions?: Partial<LoggerConfig>
-  /**
-   * @description ws服务器端口 默认复用vite ws server
-   */
-  port?: number
+
+  uiOptions?: {
+    /**
+     * @description ws服务器端口 默认复用vite ws server
+     */
+    wsPort?: string
+    /**
+     * @description 默认请求超时时间 默认10秒
+     * @default 10 * 1000
+     */
+    timeout?: number
+  }
 }
 
 let server: ViteDevServer | null = null
@@ -54,7 +62,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     mountTarget = '#mock-ui',
     storeDir = '.mock',
     loggerOptions,
-    port,
+    uiOptions = {},
   } = options
   const _loggerOptions = extend(
     {
@@ -142,9 +150,9 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         logger.debug('mountTarget', mountTarget)
         return code
           .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
-          .replace(`__FAKER_WS_PORT__`, JSON.stringify(port))
+          .replace(`__FAKER_WS_PORT__`, JSON.stringify(uiOptions?.wsPort))
           .replace(`__FAKER_LOGGER_OPTIONS__`, JSON.stringify(_loggerOptions))
-          .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(_loggerOptions))
+          .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(uiOptions))
       }
       return code
     },

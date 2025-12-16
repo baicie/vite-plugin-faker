@@ -23,14 +23,14 @@ const App = defineComponent({
       activeTab: 'requests',
     })
 
-    const appContext = useAppContext()
+    const { wsUrl } = useAppContext()
 
     const handleOpen = () => {
       state.open = true
     }
 
     return () => (
-      <WebSocketProvider wsUrl={appContext.wsUrl} logger={logger}>
+      <WebSocketProvider wsUrl={wsUrl} logger={logger}>
         <NConfigProvider>
           <NDialogProvider>
             <NMessageProvider>

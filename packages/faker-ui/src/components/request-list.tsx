@@ -1,13 +1,20 @@
-import { defineComponent, onMounted, ref } from 'vue'
+import { computed, defineComponent, onMounted, ref } from 'vue'
 import { NButton, NDataTable, NInput, NTag, useMessage } from 'naive-ui'
 import RequestDetail from './request-detail'
+import { fetchRequestHistory } from '../api'
+import type { RequestRecord } from '@baicie/faker-shared'
 
 const RequestList = defineComponent({
   name: 'RequestList',
   setup() {
     const message = useMessage()
-    const { requests, loading, pagination, loadRequests } = useRequest()
-    const selectedRequest = ref<any>(null)
+    const requests = ref<RequestRecord[]>([])
+    const loading = ref(false)
+    const page = ref(1)
+    const pageSize = ref(20)
+    const total = ref(0)
+    const search = ref('')
+    const selectedRequest = ref<RequestRecord | null>(null)
     const showDetail = ref(false)
 
     const columns = [
@@ -78,6 +85,39 @@ const RequestList = defineComponent({
       },
     ]
 
+    async function loadRequests(targetPage?: number) {
+      if (typeof targetPage === 'number') {
+        page.value = targetPage
+      }
+
+      loading.value = true
+      try {
+        const result = await fetchRequestHistory({
+          page: page.value,
+          pageSize: pageSize.value,
+          search: search.value || undefined,
+        })
+        requests.value = result.data
+        total.value = result.pagination.total
+        page.value = result.pagination.page
+        pageSize.value = result.pagination.pageSize
+      } catch (error) {
+        message.error('加载请求列表失败')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const pagination = computed(() => ({
+      page: page.value,
+      pageSize: pageSize.value,
+      itemCount: total.value,
+      showSizePicker: false,
+      onChange(newPage: number) {
+        loadRequests(newPage)
+      },
+    }))
+
     function handleRefresh() {
       loadRequests().then(() => {
         message.success('已刷新')
@@ -91,7 +131,15 @@ const RequestList = defineComponent({
     return () => (
       <div>
         <div style="margin-bottom: 16px; display: flex; justify-content: space-between;">
-          <NInput placeholder="搜索请求..." style="width: 300px;" />
+          <NInput
+            placeholder="搜索请求..."
+            style="width: 300px;"
+            value={search.value}
+            onUpdateValue={value => {
+              search.value = value
+              loadRequests(1)
+            }}
+          />
           <NButton onClick={handleRefresh}>刷新</NButton>
         </div>
 
