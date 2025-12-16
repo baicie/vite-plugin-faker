@@ -99,8 +99,8 @@ importers:
   packages/faker-interceptor:
     dependencies:
       '@baicie/logger':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.3
+        version: 0.1.3
       '@faker-js/faker':
         specifier: ^10.1.0
         version: 10.1.0
@@ -127,8 +127,8 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@baicie/logger':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.3
+        version: 0.1.3
       '@monaco-editor/loader':
         specifier: ^1.7.0
         version: 1.7.0
@@ -183,8 +183,8 @@ importers:
         version: 4.17.21
     devDependencies:
       '@baicie/logger':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.3
+        version: 0.1.3
       '@types/lodash-es':
         specifier: ^4.17.12
         version: 4.17.12
@@ -213,8 +213,8 @@ importers:
         specifier: workspace:*
         version: link:../faker-ui
       '@baicie/logger':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.3
+        version: 0.1.3
       '@faker-js/faker':
         specifier: ^10.1.0
         version: 10.1.0
@@ -705,8 +705,8 @@ packages:
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
 
-  '@baicie/logger@0.1.1':
-    resolution: {integrity: sha512-sHekVQDwdAowUCUKeqBCdoN8y2CwdYB6YhIs+uePNafOTL13sSC3T2XpdzxMzzfDzRMcYdc0MS7Ukqu7xlKtQg==}
+  '@baicie/logger@0.1.3':
+    resolution: {integrity: sha512-d/Ls+SkOx8DlULU5xT6PqWE13wrGX1gsk+FP+Fn7c7/LnFFYVFHgDNJG4tksNI/HN3YdbvMLC1ua8pinVIrVHg==}
     engines: {node: '>=18'}
 
   '@baicie/release@0.1.11':
@@ -7720,7 +7720,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@baicie/logger@0.1.1':
+  '@baicie/logger@0.1.3':
     dependencies:
       picocolors: 1.1.1
 

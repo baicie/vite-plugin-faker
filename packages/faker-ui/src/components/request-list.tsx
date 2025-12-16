@@ -97,7 +97,7 @@ const RequestList = defineComponent({
           pageSize: pageSize.value,
           search: search.value || undefined,
         })
-        requests.value = result.data
+        requests.value = result.items
         total.value = result.pagination.total
         page.value = result.pagination.page
         pageSize.value = result.pagination.pageSize

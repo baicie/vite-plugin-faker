@@ -27,7 +27,6 @@ export default defineConfig({
     needAnalyze && visualizer({ open: true }),
   ],
   watch: {
-    include: 'src/**',
     clearScreen: false,
   },
 })

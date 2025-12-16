@@ -17,11 +17,12 @@ export interface DashboardQuery extends PageQuery {
   search?: string
 }
 
+export type WithId<T> = T & { id: string }
 /**
  * 分页响应接口
  */
 export interface Page<T> {
-  data: T[]
+  items: T[]
   pagination: Pagination
 }
 

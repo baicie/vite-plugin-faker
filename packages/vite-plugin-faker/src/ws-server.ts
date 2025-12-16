@@ -5,7 +5,7 @@ import {
   WSMessageType,
 } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
-import type { ViteDevServer } from 'vite'
+import type { ViteDevServer, WebSocketClient } from 'vite'
 import { WSMessageHandler } from './api'
 import type { DBManager } from './db'
 import { EventBus } from './event-bus'
@@ -52,7 +52,7 @@ export class WSServer {
     try {
       this.server.ws.on(
         FAKER_WEBSOCKET_SYMBOL,
-        (data: unknown, client?: any) => {
+        (data: unknown, client?: WebSocketClient) => {
           try {
             const message = typeof data === 'string' ? JSON.parse(data) : data
             this.handleMessage(client, message)
@@ -105,15 +105,17 @@ export class WSServer {
    */
   private async handleMessage(_client: any, message: WSMessage): Promise<void> {
     try {
+      logger.debug('handleMessage', `type:${message.type};id:${message.id}`)
       const response = await this.messageHandler.handleMessage(message)
 
       if (response) {
-        this.sendToClient(message.id, response)
+        logger.debug('response', `type:${response.type};id:${response.id}`)
+        this.sendToClient(response)
       }
     } catch (error) {
       logger.error('[Faker] 处理 WebSocket 消息失败:', error)
       // 发送错误响应
-      this.sendToClient(message.id, {
+      this.sendToClient({
         type: WSMessageType.ERROR,
         data: {
           message: error instanceof Error ? error.message : '处理消息失败',
@@ -146,9 +148,9 @@ export class WSServer {
    * 发送消息给特定客户端（通过消息 ID 响应）
    * 用于响应客户端的请求（流程 2：Node → UI）
    */
-  private sendToClient(_clientOrId: any, message: any): void {
+  private sendToClient<T = any>(message: T): void {
     try {
-      this.server.ws.send(WSMessageType.FAKER_RESPONSE, message)
+      this.server.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
     } catch (error) {
       logger.error('[Faker] 发送消息失败:', error)
     }
@@ -158,9 +160,9 @@ export class WSServer {
    * 广播消息给所有客户端
    * 用于通知所有客户端（Hack 和 UI）配置更新（流程 4：Node → Hack/UI）
    */
-  private broadcast(message: any): void {
+  private broadcast<T = any>(message: T): void {
     try {
-      // this.server.ws.send(WSMessageType.FAKER_BROADCAST, message)
+      this.server.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
     } catch (error) {
       logger.error('[Faker] 广播消息失败:', error)
     }

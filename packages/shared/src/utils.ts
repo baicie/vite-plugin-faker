@@ -31,13 +31,9 @@ export function cleanUrl(url: string): string {
 }
 
 export async function createRequestKey(data: RequestRecord): Promise<string> {
-  const { method, url, headers, body } = data
-  const sortedHeaders = Object.keys(headers)
-    .sort()
-    .map(k => `${k}:${headers[k]}`)
-    .join('&')
+  const { method, url } = data
 
-  const raw = `${method}|${url}|${sortedHeaders}|${body}`
+  const raw = `${method}|${url}`
   const buf = await crypto.subtle.digest(
     'SHA-256',
     new TextEncoder().encode(raw),

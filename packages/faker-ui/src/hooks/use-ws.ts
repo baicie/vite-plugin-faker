@@ -38,7 +38,6 @@ export const WebSocketProvider = defineComponent({
   setup(props) {
     const slots = useSlots()
     const wsClient = new WSClient(props.wsUrl, props.logger)
-
     useWebSocketContextProvider({
       wsClient,
     })

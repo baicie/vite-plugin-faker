@@ -1,5 +1,11 @@
 import type { DBManager } from '../db'
-import type { RequestRecord, WSMessage } from '@baicie/faker-shared'
+import type {
+  DashboardQuery,
+  Page,
+  RequestRecord,
+  WSMessage,
+  WithId,
+} from '@baicie/faker-shared'
 import { EventBusType, WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { EventBus } from './types'
@@ -32,15 +38,15 @@ export class RequestHandler {
   /**
    * 处理请求历史查询
    */
-  handleHistory(data: any, id?: string): WSMessage {
+  handleHistory(data: WithId<DashboardQuery>): WSMessage<Page<RequestRecord>> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
-      const { page = 1, pageSize = 20 } = data || {}
+      const { page = 1, pageSize = 20, id, search } = data
 
       const result = requestsDB.getRequestsWithPagination(
         page,
         pageSize,
-        undefined,
+        search,
         'timestamp',
         true,
       )

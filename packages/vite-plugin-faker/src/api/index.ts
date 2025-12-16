@@ -44,7 +44,7 @@ export class WSMessageHandler {
         return this.mockHandler.handleList(message.data, message.id)
 
       case WSMessageType.REQUEST_HISTORY:
-        return this.requestHandler.handleHistory(message.data, message.id)
+        return this.requestHandler.handleHistory(message.data)
 
       case WSMessageType.SETTINGS_GET:
         return this.settingsHandler.handleGet(message.id)

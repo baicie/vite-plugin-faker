@@ -1,9 +1,9 @@
 import type { ViteHotContext } from 'vite/types/hot.js'
 import type { Logger } from '@baicie/logger'
 
-export interface WSMessage {
+export interface WSMessage<T = any> {
   type: WSMessageType
-  data?: any
+  data?: T
   id?: string
 }
 
@@ -99,7 +99,6 @@ export function isWebSocket(ws: FakerWebSocket): ws is WebSocket {
 }
 
 export const FAKER_WEBSOCKET_SYMBOL = 'faker-websocket'
-// export const FAKER_EVENT_REGEX: RegExp = /faker:[\w-]+/g
 
 export class WSClient {
   private ws: FakerWebSocket
@@ -174,6 +173,10 @@ export class WSClient {
           this.ws = undefined
           this.attemptReconnect()
         }
+      } else if (isViteHot(this.ws)) {
+        this.ws.on(FAKER_WEBSOCKET_SYMBOL, (message: WSMessage) => {
+          this.handleMessage(message)
+        })
       }
     } catch (error) {
       this.logger.error('WebSocket 连接失败:', error)
@@ -201,6 +204,8 @@ export class WSClient {
 
   private handleMessage(message: WSMessage): void {
     const handlers = this.handlers.get(message.type)
+    this.logger.debug('message type:', message.type, handlers)
+
     if (handlers) {
       handlers.forEach(handler => {
         try {
@@ -219,7 +224,7 @@ export class WSClient {
   }
 
   send<T = any>(type: WSMessageType, data?: T): void {
-    this.logger.debug(type, data)
+    this.logger.debug('ws send start', type, data)
     try {
       this.messageGrid()
       const message: WSMessage = { type, data }

@@ -4,7 +4,14 @@ import faker from 'vite-plugin-faker'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), faker()],
+  plugins: [
+    vue(),
+    faker({
+      loggerOptions: {
+        level: 'debug',
+      },
+    }),
+  ],
   server: {
     port: 3001,
     proxy: {

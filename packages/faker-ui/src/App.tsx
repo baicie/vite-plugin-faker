@@ -1,5 +1,5 @@
 // App.tsx
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, onMounted, reactive } from 'vue'
 import {
   NButton,
   NConfigProvider,
@@ -28,6 +28,10 @@ const App = defineComponent({
     const handleOpen = () => {
       state.open = true
     }
+
+    onMounted(() => {
+      logger.info('ui mounted')
+    })
 
     return () => (
       <WebSocketProvider wsUrl={wsUrl} logger={logger}>

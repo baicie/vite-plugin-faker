@@ -1,4 +1,3 @@
-import { onUnmounted } from 'vue'
 import type { WSMessage, WSMessageType } from '@baicie/faker-shared'
 import { extend, generateUUID } from '@baicie/faker-shared'
 import { useWebSocket } from './use-ws'
@@ -15,23 +14,22 @@ export interface WsRequestContext {
 type WSHandler<T = any> = (data: T, message: WSMessage) => void
 
 export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
-  const { wsClient } = useWebSocket()
-  const { timeout } = useAppContext()
-  const pendingTimers: number[] = []
-
-  function send(payload: T): void {
-    wsClient.send(context.sendType, payload)
-  }
-
-  function on(handler: WSHandler<T>): void {
-    wsClient.on(context.responseType, handler)
-  }
-
-  function off(handler: WSHandler<T>): void {
-    wsClient.off(context.responseType, handler)
-  }
-
   function request(data?: T): Promise<R> {
+    const { wsClient } = useWebSocket()
+    const { timeout } = useAppContext()
+
+    function send(payload: T): void {
+      wsClient.send(context.sendType, payload)
+    }
+
+    function on(handler: WSHandler<T>): void {
+      wsClient.on(context.responseType, handler)
+    }
+
+    function off(handler: WSHandler<T>): void {
+      wsClient.off(context.responseType, handler)
+    }
+
     const reqId = generateUUID()
 
     return new Promise(function (resolve, reject) {
@@ -60,10 +58,6 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
           off(handler)
           reject(new Error('WebSocket request timeout: ' + context.sendType))
         }, timeout)
-
-        if (timer) {
-          pendingTimers.push(timer)
-        }
       }
 
       try {
@@ -84,12 +78,6 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
       }
     })
   }
-
-  onUnmounted(function () {
-    pendingTimers.forEach(function (id) {
-      window.clearTimeout(id)
-    })
-  })
 
   return request
 }
