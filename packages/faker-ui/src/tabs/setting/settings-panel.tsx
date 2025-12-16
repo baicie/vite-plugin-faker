@@ -12,7 +12,7 @@ import {
   useDialog,
   useMessage,
 } from 'naive-ui'
-import { clearCache, getSettings, updateSettings } from '../api'
+import { clearCache, getSettings, updateSettings } from '../../api'
 import { ref } from 'vue'
 
 const SettingsPanel = defineComponent({

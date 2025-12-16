@@ -1,11 +1,12 @@
-import { defineComponent, ref } from 'vue'
+import { type PropType, defineComponent, ref } from 'vue'
 import { NCode, NTabPane, NTabs } from 'naive-ui'
+import type { RequestRecord } from '@baicie/faker-shared'
 
 const RequestDetail = defineComponent({
   name: 'RequestDetail',
   props: {
     request: {
-      type: Object,
+      type: Object as PropType<RequestRecord>,
       required: true,
     },
   },
@@ -27,34 +28,28 @@ const RequestDetail = defineComponent({
           <NTabPane name="request" tab="请求信息">
             <div class="detail-section">
               <h4>请求头</h4>
-              <NCode
-                code={formatJson(props.request.request.headers)}
-                language="json"
-              />
+              <NCode code={formatJson(props.request.headers)} language="json" />
             </div>
 
-            {props.request.request.body && (
+            {props.request.body && (
               <div class="detail-section">
                 <h4>请求体</h4>
-                <NCode
-                  code={formatJson(props.request.request.body)}
-                  language="json"
-                />
+                <NCode code={formatJson(props.request.body)} language="json" />
               </div>
             )}
           </NTabPane>
 
           <NTabPane name="response" tab="响应信息">
             <div class="detail-section">
-              <h4>状态: {props.request.statusCode}</h4>
+              <h4>状态: {props.request.response?.statusCode}</h4>
               <h4>响应头</h4>
               <NCode
-                code={formatJson(props.request.response.headers)}
+                code={formatJson(props.request.response?.headers)}
                 language="json"
               />
             </div>
 
-            {props.request.response.body && (
+            {props.request.response?.body && (
               <div class="detail-section">
                 <h4>响应体</h4>
                 <NCode

@@ -1,5 +1,6 @@
-// App.tsx
-import { defineComponent, onMounted, reactive } from 'vue'
+import { logger } from '@baicie/logger'
+import hljs from 'highlight.js/lib/core'
+import json from 'highlight.js/lib/languages/json'
 import {
   NButton,
   NConfigProvider,
@@ -9,12 +10,15 @@ import {
   NTabPane,
   NTabs,
 } from 'naive-ui'
-import RequestList from './components/request-list'
-import MockList from './components/mock-list'
-import SettingsPanel from './components/settings-panel'
+import { defineComponent, onMounted, reactive } from 'vue'
 import { useAppContext } from './hooks/use-app-context'
-import { logger } from '@baicie/logger'
 import { connect } from './hooks/use-ws'
+import MockList from './tabs/mock/mock-list'
+import RequestList from './tabs/request/request-list'
+import SettingsPanel from './tabs/setting/settings-panel'
+
+hljs.registerLanguage('json', json)
+
 const App = defineComponent({
   setup() {
     const state = reactive({
@@ -35,7 +39,7 @@ const App = defineComponent({
     connect(wsUrl, logger)
 
     return () => (
-      <NConfigProvider>
+      <NConfigProvider hljs={hljs}>
         <NDialogProvider>
           <NMessageProvider>
             <NButton
@@ -51,16 +55,33 @@ const App = defineComponent({
               open
             </NButton>
 
-            <NDrawer v-model:show={state.open} defaultWidth={720} resizable>
+            <NDrawer
+              v-model:show={state.open}
+              defaultWidth={720}
+              resizable
+              contentStyle={{ padding: '12px' }}
+            >
               <div class="drawer-content">
                 <NTabs v-model:value={state.activeTab} type="line" animated>
-                  <NTabPane name="requests" tab="请求记录">
+                  <NTabPane
+                    name="requests"
+                    tab="请求记录"
+                    displayDirective="show:lazy"
+                  >
                     <RequestList />
                   </NTabPane>
-                  <NTabPane name="mocks" tab="接口模拟">
+                  <NTabPane
+                    name="mocks"
+                    tab="接口模拟"
+                    displayDirective="show:lazy"
+                  >
                     <MockList />
                   </NTabPane>
-                  <NTabPane name="settings" tab="设置">
+                  <NTabPane
+                    name="settings"
+                    tab="设置"
+                    displayDirective="show:lazy"
+                  >
                     <SettingsPanel />
                   </NTabPane>
                 </NTabs>

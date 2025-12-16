@@ -11,7 +11,11 @@ import {
 } from 'naive-ui'
 import MockEditor from './mock-editor'
 import type { MockConfig, Page } from '@baicie/faker-shared'
-import { deleteMock as apiDeleteMock, fetchMockList, updateMock } from '../api'
+import {
+  deleteMock as apiDeleteMock,
+  fetchMockList,
+  updateMock,
+} from '../../api'
 
 const MockList = defineComponent({
   name: 'MockList',

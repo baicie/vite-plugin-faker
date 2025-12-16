@@ -135,6 +135,9 @@ importers:
       '@vicons/ionicons5':
         specifier: ^0.13.0
         version: 0.13.0
+      highlight.js:
+        specifier: ^11.11.1
+        version: 11.11.1
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1

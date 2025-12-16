@@ -1,7 +1,14 @@
 import { computed, defineComponent, onMounted, ref } from 'vue'
-import { NButton, NDataTable, NInput, NTag, useMessage } from 'naive-ui'
+import {
+  type DataTableColumns,
+  NButton,
+  NDataTable,
+  NInput,
+  NTag,
+  useMessage,
+} from 'naive-ui'
 import RequestDetail from './request-detail'
-import { fetchRequestHistory } from '../api'
+import { fetchRequestHistory } from '../../api'
 import type { RequestRecord } from '@baicie/faker-shared'
 
 const RequestList = defineComponent({
@@ -17,7 +24,7 @@ const RequestList = defineComponent({
     const selectedRequest = ref<RequestRecord | null>(null)
     const showDetail = ref(false)
 
-    const columns = [
+    const columns: DataTableColumns<RequestRecord> = [
       {
         title: '请求路径',
         key: 'url',
@@ -28,13 +35,13 @@ const RequestList = defineComponent({
         title: '方法',
         key: 'method',
         width: 80,
-        render: (row: any) => <NTag type="info">{row.method}</NTag>,
+        render: row => <NTag type="info">{row.method}</NTag>,
       },
       {
         title: '状态码',
         key: 'response.statusCode',
         width: 100,
-        render: (row: any) => {
+        render: row => {
           const status = row.response?.statusCode || 0
           const type =
             status >= 200 && status < 300
@@ -49,7 +56,7 @@ const RequestList = defineComponent({
         title: '是否Mock',
         key: 'isMocked',
         width: 100,
-        render: (row: any) => (
+        render: row => (
           <NTag type={row.isMocked ? 'success' : 'default'}>
             {row.isMocked ? '是' : '否'}
           </NTag>
@@ -59,19 +66,20 @@ const RequestList = defineComponent({
         title: '耗时',
         key: 'duration',
         width: 100,
-        render: (row: any) => `${row.duration || 0}ms`,
+        render: row => `${row.duration || 0}ms`,
       },
       {
         title: '时间',
         key: 'timestamp',
         width: 180,
-        render: (row: any) => new Date(row.timestamp).toLocaleString(),
+        render: row => new Date(row.timestamp).toLocaleString(),
       },
       {
         title: '操作',
         key: 'actions',
         width: 100,
-        render: (row: any) => (
+        fixed: 'right',
+        render: row => (
           <NButton
             size="small"
             onClick={() => {
@@ -149,6 +157,7 @@ const RequestList = defineComponent({
           loading={loading.value}
           pagination={pagination.value}
           rowKey={row => row.id || row.timestamp}
+          scrollX={columns.reduce((pre, next) => pre + Number(next.width), 0)}
         />
 
         {showDetail.value && selectedRequest.value && (

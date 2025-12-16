@@ -1,5 +1,3 @@
-import type { PropType } from 'vue'
-import { computed, defineComponent, reactive, ref, toRaw, watch } from 'vue'
 import {
   NButton,
   NDivider,
@@ -14,10 +12,12 @@ import {
   NTabPane,
   NTabs,
 } from 'naive-ui'
-import { createMock, updateMock } from '../api'
-import CodeEditor from './editors/code-editor'
-import JsonEditor from './editors/json-editor'
-import VisualEditor from './editors/visual-editor'
+import type { PropType } from 'vue'
+import { computed, defineComponent, reactive, ref, toRaw, watch } from 'vue'
+import { createMock, updateMock } from '../../api'
+import CodeEditor from '../../components/editors/code-editor'
+import JsonEditor from '../../components/editors/json-editor'
+import VisualEditor from '../../components/editors/visual-editor'
 
 const MockEditor = defineComponent({
   name: 'MockEditor',
