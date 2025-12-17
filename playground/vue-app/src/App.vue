@@ -116,7 +116,7 @@ const formatFileSize = (bytes: number) => {
 const checkHealth = async () => {
   try {
     apiStatus.value = { text: '正常', class: 'status-success' }
-
+    console.log(new Date().toISOString(), 'checkHealth')
     // 检测认证模式
     try {
       await api.get('/users')
@@ -159,6 +159,7 @@ const login = async () => {
 
 const loadUsers = async () => {
   try {
+    console.log(new Date().toISOString(), 'loadUsers')
     const response = await api.get('/users')
     console.log('app response', response)
     users.value =

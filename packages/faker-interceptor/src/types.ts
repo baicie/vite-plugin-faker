@@ -1,6 +1,6 @@
 import type { WSClient } from '@baicie/faker-shared'
-import type { FetchInterceptor } from './hack/fetch-interceptor'
-import type { XHRInterceptor } from './hack/xhr-interceptor'
+import type { MSWAdapter } from './mock/msw-adapter'
+import type { SetupWorker } from 'msw/browser'
 /**
  * 从 shared 模块导出类型，保持向后兼容
  */
@@ -9,10 +9,11 @@ export type { MockConfig, RequestRecord, WSMessage } from '@baicie/faker-shared'
 declare global {
   interface Window {
     __fakerInterceptorInitialized: boolean
+    __fakerInterceptorReadyCallbacks: Array<() => void>
     __fakerInterceptor: {
       wsClient: WSClient
-      fetchInterceptor: FetchInterceptor
-      xhrInterceptor: XHRInterceptor
+      mswAdapter: MSWAdapter
+      worker: SetupWorker
     }
   }
 }

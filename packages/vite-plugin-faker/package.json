@@ -29,6 +29,7 @@
     "@baicie/faker-interceptor": "workspace:*",
     "@baicie/faker-shared": "workspace:*",
     "@baicie/faker-ui": "workspace:*",
+    "@baicie/faker-worker": "workspace:*",
     "@baicie/logger": "^0.1.3",
     "@faker-js/faker": "^10.1.0",
     "lodash-es": "^4.17.22",
