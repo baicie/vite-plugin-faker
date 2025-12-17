@@ -39,7 +39,7 @@ export interface ViteFakerOptions {
     /**
      * @description ws服务器端口 默认复用vite ws server
      */
-    wsPort?: string
+    wsPort?: number
     /**
      * @description 默认请求超时时间 默认10秒
      * @default 10 * 1000
@@ -106,7 +106,10 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
 
       if (dbManager) {
         try {
-          new WSServer(server, dbManager)
+          new WSServer(dbManager, {
+            viteServer: server,
+            port: uiOptions.wsPort,
+          })
           logger.info('[Faker] WebSocket 服务器已启动')
         } catch (error) {
           logger.error('[Faker] WebSocket 服务器启动失败:', error)
@@ -119,7 +122,6 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         return {
           tag: 'script',
           attrs: {
-            type: 'module',
             src: path.posix.join(server!.config.base, item),
           },
           injectTo: 'head',

@@ -6,50 +6,64 @@ import {
 } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { ViteDevServer, WebSocketClient } from 'vite'
+import { type WebSocket, WebSocketServer } from 'ws'
 import { WSMessageHandler } from './api'
 import type { DBManager } from './db'
 import { EventBus } from './event-bus'
 
 /**
- * WebSocket 服务器（Reactive/Emitter 事件中心）
- * 基于 Vite HMR WebSocket，作为 Hack 和 UI 之间的通信桥梁
+ * WebSocket 服务器
+ * 支持 Vite HMR WebSocket 或独立 ws 服务器
  */
 export class WSServer {
-  private server: ViteDevServer
+  private viteServer?: ViteDevServer
+  private standaloneServer?: WebSocketServer
   private eventBus: EventBus
   private messageHandler: WSMessageHandler
-  private clients: Set<any> = new Set()
+  private clients: Set<WebSocket | WebSocketClient> = new Set()
+  private useStandalone: boolean
 
-  constructor(server: ViteDevServer, dbManager: DBManager) {
-    this.server = server
+  constructor(
+    dbManager: DBManager,
+    options?: { viteServer?: ViteDevServer; port?: number },
+  ) {
     this.eventBus = new EventBus()
     this.messageHandler = new WSMessageHandler(dbManager, this.eventBus)
-    this.setup()
+
+    if (options?.viteServer) {
+      // 使用 Vite HMR WebSocket
+      this.viteServer = options.viteServer
+      this.useStandalone = false
+      this.setupVite()
+    } else {
+      // 启动独立 WebSocket 服务器
+      this.useStandalone = true
+      this.setupStandalone(options?.port || 3456)
+    }
   }
 
   /**
-   * 设置 WebSocket 服务器
-   * 监听客户端消息，作为事件中心分发消息
+   * 设置 Vite HMR WebSocket
    */
-  private setup(): void {
-    // 监听连接事件，管理客户端连接
-    this.server.ws.on('connection', (client: any) => {
+  private setupVite(): void {
+    if (!this.viteServer) return
+
+    this.viteServer.ws.on('connection', (client: any) => {
       this.clients.add(client)
-      logger.debug('[Faker] 客户端已连接')
+      logger.debug('[Faker] Vite 客户端已连接')
 
       setTimeout(() => {
         this.broadcastMockConfigs()
       }, 0)
 
-      // 监听断开连接
       client.on('close', () => {
         this.clients.delete(client)
-        logger.debug('[Faker] 客户端已断开')
+        logger.debug('[Faker] Vite 客户端已断开')
       })
     })
 
     try {
-      this.server.ws.on(
+      this.viteServer.ws.on(
         FAKER_WEBSOCKET_SYMBOL,
         (data: unknown, client?: WebSocketClient) => {
           try {
@@ -64,16 +78,63 @@ export class WSServer {
       logger.warn('[Faker] 无法监听自定义事件:', error)
     }
 
-    // 监听事件总线，当数据库变更时广播更新
+    this.setupEventBusListeners()
+  }
+
+  /**
+   * 设置独立 WebSocket 服务器
+   */
+  private setupStandalone(port: number): void {
+    this.standaloneServer = new WebSocketServer({ port })
+
+    logger.info(`[Faker] 独立 WebSocket 服务器已启动，端口: ${port}`)
+
+    this.standaloneServer.on('connection', (ws: WebSocket) => {
+      this.clients.add(ws)
+      logger.debug('[Faker] 客户端已连接')
+
+      // 连接后立即广播 Mock 配置
+      setTimeout(() => {
+        this.broadcastMockConfigs()
+      }, 0)
+
+      ws.on('message', (data: Buffer | string) => {
+        try {
+          const raw = typeof data === 'string' ? data : data.toString()
+          const parsed = JSON.parse(raw)
+
+          // 兼容 faker-websocket 协议
+          if (parsed.type === FAKER_WEBSOCKET_SYMBOL && parsed.data) {
+            this.handleMessage(ws, parsed.data)
+          } else {
+            this.handleMessage(ws, parsed)
+          }
+        } catch (error) {
+          logger.error('[Faker] 解析消息失败:', error)
+        }
+      })
+
+      ws.on('close', () => {
+        this.clients.delete(ws)
+        logger.debug('[Faker] 客户端已断开')
+      })
+
+      ws.on('error', error => {
+        logger.error('[Faker] WebSocket 错误:', error)
+      })
+    })
+
+    this.standaloneServer.on('error', error => {
+      logger.error('[Faker] WebSocket 服务器错误:', error)
+    })
+
     this.setupEventBusListeners()
   }
 
   /**
    * 设置事件总线监听器
-   * 当数据库变更时，自动广播相关更新
    */
   private setupEventBusListeners(): void {
-    // Mock 配置变更时，广播更新
     this.eventBus.on(EventBusType.DB_MOCK_CREATED, () => {
       this.broadcastMockConfigs()
     })
@@ -86,35 +147,30 @@ export class WSServer {
       this.broadcastMockConfigs()
     })
 
-    // 设置变更时，可以广播通知（如果需要）
     this.eventBus.on(EventBusType.DB_SETTINGS_UPDATED, event => {
       logger.debug('[Faker] 设置已更新:', event.data)
-      // 可以在这里广播设置更新，如果需要的话
     })
 
-    // 缓存清除时，可以广播通知（如果需要）
     this.eventBus.on(EventBusType.DB_CACHE_CLEARED, () => {
       logger.debug('[Faker] 缓存已清除')
-      // 可以在这里广播缓存清除通知，如果需要的话
     })
   }
 
   /**
    * 处理客户端消息
    */
-  private async handleMessage(_client: any, message: WSMessage): Promise<void> {
+  private async handleMessage(client: any, message: WSMessage): Promise<void> {
     try {
       logger.debug('handleMessage', `type:${message.type};id:${message.id}`)
       const response = await this.messageHandler.handleMessage(message)
 
       if (response) {
         logger.debug('response', `type:${response.type};id:${response.id}`)
-        this.sendToClient(response)
+        this.sendToClient(client, response)
       }
     } catch (error) {
       logger.error('[Faker] 处理 WebSocket 消息失败:', error)
-      // 发送错误响应
-      this.sendToClient({
+      this.sendToClient(client, {
         type: WSMessageType.ERROR,
         data: {
           message: error instanceof Error ? error.message : '处理消息失败',
@@ -125,8 +181,7 @@ export class WSServer {
   }
 
   /**
-   * 广播 Mock 配置更新（流程 4：Node → Hack/UI）
-   * 当 Mock 配置发生变化时，通知所有客户端更新
+   * 广播 Mock 配置更新
    */
   private broadcastMockConfigs(): void {
     try {
@@ -144,12 +199,19 @@ export class WSServer {
   }
 
   /**
-   * 发送消息给特定客户端（通过消息 ID 响应）
-   * 用于响应客户端的请求（流程 2：Node → UI）
+   * 发送消息给特定客户端
    */
-  private sendToClient<T = any>(message: T): void {
+  private sendToClient<T = any>(client: any, message: T): void {
     try {
-      this.server.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      if (this.useStandalone) {
+        // 独立模式：直接发送 JSON
+        if (client && client.readyState === 1) {
+          client.send(JSON.stringify(message))
+        }
+      } else {
+        // Vite 模式
+        this.viteServer?.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      }
     } catch (error) {
       logger.error('[Faker] 发送消息失败:', error)
     }
@@ -157,13 +219,33 @@ export class WSServer {
 
   /**
    * 广播消息给所有客户端
-   * 用于通知所有客户端（Hack 和 UI）配置更新（流程 4：Node → Hack/UI）
    */
   private broadcast<T = any>(message: T): void {
     try {
-      this.server.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      if (this.useStandalone) {
+        // 独立模式：遍历所有客户端发送
+        const payload = JSON.stringify(message)
+        this.clients.forEach(client => {
+          if ((client as WebSocket).readyState === 1) {
+            ;(client as WebSocket).send(payload)
+          }
+        })
+      } else {
+        // Vite 模式
+        this.viteServer?.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      }
     } catch (error) {
       logger.error('[Faker] 广播消息失败:', error)
+    }
+  }
+
+  /**
+   * 关闭服务器
+   */
+  close(): void {
+    if (this.standaloneServer) {
+      this.standaloneServer.close()
+      logger.info('[Faker] 独立 WebSocket 服务器已关闭')
     }
   }
 }

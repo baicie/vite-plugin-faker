@@ -12,7 +12,8 @@ export default defineConfig({
   output: {
     dir: 'dist',
     entryFileNames: 'index.js',
-    format: 'esm',
+    format: 'iife',
+    name: 'fakerUi',
     sourcemap: true,
     inlineDynamicImports: true,
     manualChunks: undefined,

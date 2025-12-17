@@ -35,5 +35,3 @@ export interface Pagination {
   pageSize: number
   totalPages?: number
 }
-
-export const wsPath = '@faker-ws'

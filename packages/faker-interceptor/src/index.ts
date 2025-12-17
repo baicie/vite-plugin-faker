@@ -1,9 +1,4 @@
-import {
-  type MockConfig,
-  WSClient,
-  WSMessageType,
-  wsPath,
-} from '@baicie/faker-shared'
+import { type MockConfig, WSClient, WSMessageType } from '@baicie/faker-shared'
 import { initLogger, logger } from '@baicie/logger'
 import { setupWorker } from 'msw/browser'
 import { MSWAdapter } from './mock/msw-adapter'
@@ -29,12 +24,7 @@ export async function initInterceptor(wsUrl: string): Promise<void> {
 
   logger.info('初始化拦截器（使用 MSW）...')
 
-  const wsClient = new WSClient(wsUrl, logger)
-
-  // 创建 MSW 适配器
-  const mswAdapter = new MSWAdapter(wsClient)
-
-  // 启动 MSW worker
+  // 先启动 MSW worker（在创建 WSClient 之前）
   const worker = setupWorker()
   await worker.start({
     serviceWorker: {
@@ -43,8 +33,15 @@ export async function initInterceptor(wsUrl: string): Promise<void> {
         scope: '/', // 显式指定 scope 为根路径
       },
     },
-    onUnhandledRequest: 'bypass', // 未匹配的请求继续正常发送
+    // 未匹配的请求直接放行（包括 WebSocket）
+    onUnhandledRequest: 'bypass',
   })
+
+  // MSW 启动后再创建 WSClient
+  const wsClient = new WSClient(wsUrl, logger)
+
+  // 创建 MSW 适配器
+  const mswAdapter = new MSWAdapter(wsClient)
 
   // 更新 handlers 的函数
   function updateMockHandlers(mocks: MockConfig[]) {
@@ -75,41 +72,11 @@ export async function initInterceptor(wsUrl: string): Promise<void> {
   }
   window.__fakerInterceptorInitialized = true
 
-  // 触发 ready 回调
-  if (window.__fakerInterceptorReadyCallbacks) {
-    window.__fakerInterceptorReadyCallbacks.forEach((cb: () => void) => cb())
-    window.__fakerInterceptorReadyCallbacks = []
-  }
-
   logger.info('拦截器初始化完成（MSW）')
 }
 
-/**
- * 等待拦截器就绪
- * @param timeout 超时时间（毫秒），默认 5000
- */
-export function waitForInterceptor(timeout = 5000): Promise<void> {
-  return new Promise(resolve => {
-    if (window.__fakerInterceptorInitialized) {
-      resolve()
-      return
-    }
-
-    // 注册回调
-    if (!window.__fakerInterceptorReadyCallbacks) {
-      window.__fakerInterceptorReadyCallbacks = []
-    }
-    window.__fakerInterceptorReadyCallbacks.push(resolve)
-
-    // 超时后也 resolve，不阻塞应用
-    setTimeout(resolve, timeout)
-  })
-}
-
 if (typeof window !== 'undefined') {
-  const wsUrl = wsPort
-    ? `ws://${window.location.hostname}:${wsPort}/${wsPath}`
-    : ''
+  const wsUrl = wsPort ? `ws://${window.location.hostname}:${wsPort}/` : ''
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initInterceptor(wsUrl).catch(error => {

@@ -9,7 +9,6 @@ export type { MockConfig, RequestRecord, WSMessage } from '@baicie/faker-shared'
 declare global {
   interface Window {
     __fakerInterceptorInitialized: boolean
-    __fakerInterceptorReadyCallbacks: Array<() => void>
     __fakerInterceptor: {
       wsClient: WSClient
       mswAdapter: MSWAdapter
