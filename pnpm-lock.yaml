@@ -10,6 +10,11 @@ catalogs:
       specifier: 7.2.7
       version: 7.2.7
 
+patchedDependencies:
+  msw@2.12.4:
+    hash: 051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0
+    path: patches/msw@2.12.4.patch
+
 importers:
 
   .:
@@ -94,7 +99,7 @@ importers:
         version: 7.3.0(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
       vitest:
         specifier: ^4.0.16
-        version: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
+        version: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
 
   packages/faker-interceptor:
     dependencies:
@@ -106,7 +111,7 @@ importers:
         version: 10.1.0
       msw:
         specifier: ^2.12.4
-        version: 2.12.4(@types/node@25.0.3)(typescript@5.9.3)
+        version: 2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3)
     devDependencies:
       '@baicie/faker-shared':
         specifier: workspace:*
@@ -431,7 +436,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^4.0.16
-        version: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
+        version: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
 
   playground/vue-app:
     dependencies:
@@ -9647,7 +9652,7 @@ snapshots:
       eslint: 9.39.2(jiti@2.4.2)
     optionalDependencies:
       typescript: 5.9.3
-      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
+      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -9660,13 +9665,13 @@ snapshots:
       chai: 6.2.1
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.16(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(vite@7.3.0(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1))':
+  '@vitest/mocker@4.0.16(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(vite@7.3.0(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1))':
     dependencies:
       '@vitest/spy': 4.0.16
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      msw: 2.12.4(@types/node@25.0.3)(typescript@5.9.3)
+      msw: 2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3)
       vite: 7.3.0(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
 
   '@vitest/pretty-format@4.0.16':
@@ -9695,7 +9700,7 @@ snapshots:
       sirv: 3.0.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
+      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
 
   '@vitest/utils@4.0.16':
     dependencies:
@@ -12627,7 +12632,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3):
+  msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3):
     dependencies:
       '@inquirer/confirm': 5.1.21(@types/node@25.0.3)
       '@mswjs/interceptors': 0.40.0
@@ -14431,10 +14436,10 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.7.1
 
-  vitest@4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1):
+  vitest@4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1):
     dependencies:
       '@vitest/expect': 4.0.16
-      '@vitest/mocker': 4.0.16(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(vite@7.3.0(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1))
+      '@vitest/mocker': 4.0.16(msw@2.12.4(patch_hash=051eaba384ab47468abfa9f46fcec1cc8d81dfcfe4270a369ce2c6396da61aa0)(@types/node@25.0.3)(typescript@5.9.3))(vite@7.3.0(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1))
       '@vitest/pretty-format': 4.0.16
       '@vitest/runner': 4.0.16
       '@vitest/snapshot': 4.0.16

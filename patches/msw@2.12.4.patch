@@ -1,0 +1,80 @@
+diff --git a/lib/browser/index.js b/lib/browser/index.js
+index 6a3f51abaffafd4c7eb24fe6dea584af989d43b3..217ee3a94b0655519eb63289754aff73123b5580 100644
+--- a/lib/browser/index.js
++++ b/lib/browser/index.js
+@@ -1465,9 +1465,6 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
+ var import_devUtils8 = require("../core/utils/internal/devUtils");
+ var import_SetupApi = require("../core/SetupApi");
+ var import_mergeRight2 = require("../core/utils/internal/mergeRight");
+-var import_webSocketInterceptor = require("../core/ws/webSocketInterceptor");
+-var import_handleWebSocketEvent = require("../core/ws/handleWebSocketEvent");
+-var import_attachWebSocketLogger = require("../core/ws/utils/attachWebSocketLogger");
+ 
+ // node_modules/.pnpm/rettime@0.7.0/node_modules/rettime/build/index.js
+ var kDefaultPrevented = Symbol("kDefaultPrevented");
+@@ -3123,25 +3120,6 @@ var SetupWorkerApi = class extends import_SetupApi.SetupApi {
+       DEFAULT_START_OPTIONS,
+       options
+     );
+-    (0, import_handleWebSocketEvent.handleWebSocketEvent)({
+-      getUnhandledRequestStrategy: () => {
+-        return this.context.startOptions.onUnhandledRequest;
+-      },
+-      getHandlers: () => {
+-        return this.handlersController.currentHandlers();
+-      },
+-      onMockedConnection: (connection) => {
+-        if (!this.context.startOptions.quiet) {
+-          (0, import_attachWebSocketLogger.attachWebSocketLogger)(connection);
+-        }
+-      },
+-      onPassthroughConnection() {
+-      }
+-    });
+-    import_webSocketInterceptor.webSocketInterceptor.apply();
+-    this.subscriptions.push(() => {
+-      import_webSocketInterceptor.webSocketInterceptor.dispose();
+-    });
+     if (!supportsServiceWorker()) {
+       const fallbackInterceptor = createFallbackRequestListener(
+         this.context,
+diff --git a/lib/browser/index.mjs b/lib/browser/index.mjs
+index 4b3035592029c3b39c149f0fc2413917947c4bb7..3b44402901e5682e54918cb4aaf21c163b9f9f9d 100644
+--- a/lib/browser/index.mjs
++++ b/lib/browser/index.mjs
+@@ -1438,9 +1438,6 @@ Please consider using a custom "serviceWorker.url" option to point to the actual
+ import { devUtils as devUtils8 } from '../core/utils/internal/devUtils.mjs';
+ import { SetupApi } from '../core/SetupApi.mjs';
+ import { mergeRight as mergeRight2 } from '../core/utils/internal/mergeRight.mjs';
+-import { webSocketInterceptor } from '../core/ws/webSocketInterceptor.mjs';
+-import { handleWebSocketEvent } from '../core/ws/handleWebSocketEvent.mjs';
+-import { attachWebSocketLogger } from '../core/ws/utils/attachWebSocketLogger.mjs';
+ 
+ // node_modules/.pnpm/rettime@0.7.0/node_modules/rettime/build/index.js
+ var kDefaultPrevented = Symbol("kDefaultPrevented");
+@@ -3096,25 +3093,6 @@ var SetupWorkerApi = class extends SetupApi {
+       DEFAULT_START_OPTIONS,
+       options
+     );
+-    handleWebSocketEvent({
+-      getUnhandledRequestStrategy: () => {
+-        return this.context.startOptions.onUnhandledRequest;
+-      },
+-      getHandlers: () => {
+-        return this.handlersController.currentHandlers();
+-      },
+-      onMockedConnection: (connection) => {
+-        if (!this.context.startOptions.quiet) {
+-          attachWebSocketLogger(connection);
+-        }
+-      },
+-      onPassthroughConnection() {
+-      }
+-    });
+-    webSocketInterceptor.apply();
+-    this.subscriptions.push(() => {
+-      webSocketInterceptor.dispose();
+-    });
+     if (!supportsServiceWorker()) {
+       const fallbackInterceptor = createFallbackRequestListener(
+         this.context,
