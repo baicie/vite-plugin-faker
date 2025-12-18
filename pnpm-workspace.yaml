@@ -8,5 +8,5 @@ catalog:
 ignoredBuiltDependencies:
   - sqlite3
 
-patchedDependencies:
-  msw@2.12.4: patches/msw@2.12.4.patch
+# patchedDependencies:
+#   msw@2.12.4: patches/msw@2.12.4.patch

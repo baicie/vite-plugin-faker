@@ -41,7 +41,7 @@ export class WSMessageHandler {
         return this.mockHandler.handleDelete(message.data, message.id)
 
       case WSMessageType.MOCK_LIST:
-        return this.mockHandler.handleList(message.data, message.id)
+        return this.mockHandler.handleList(message.data)
 
       case WSMessageType.REQUEST_HISTORY:
         return this.requestHandler.handleHistory(message.data)

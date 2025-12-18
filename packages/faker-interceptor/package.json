@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@baicie/faker-shared": "workspace:*",
-    "rolldown": "1.0.0-beta.54",
+    "rolldown": "1.0.0-beta.55",
     "typescript": "~5.9.3",
     "vite": "catalog:"
   }

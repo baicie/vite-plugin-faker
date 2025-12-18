@@ -10,7 +10,7 @@ import { type WebSocket, WebSocketServer } from 'ws'
 import { WSMessageHandler } from './api'
 import type { DBManager } from './db'
 import { EventBus } from './event-bus'
-
+import { isValidJSON } from '@baicie/faker-shared'
 /**
  * WebSocket 服务器
  * 支持 Vite HMR WebSocket 或独立 ws 服务器
@@ -30,15 +30,16 @@ export class WSServer {
     this.eventBus = new EventBus()
     this.messageHandler = new WSMessageHandler(dbManager, this.eventBus)
 
-    if (options?.viteServer) {
-      // 使用 Vite HMR WebSocket
+    if (options?.port) {
+      this.useStandalone = true
+      this.setupStandalone(options.port)
+    } else if (options?.viteServer) {
       this.viteServer = options.viteServer
       this.useStandalone = false
       this.setupVite()
     } else {
-      // 启动独立 WebSocket 服务器
-      this.useStandalone = true
-      this.setupStandalone(options?.port || 3456)
+      logger.error('[Faker] 未提供 Vite 服务器或独立 WebSocket 服务器端口')
+      throw new Error('[Faker] 未提供 Vite 服务器或独立 WebSocket 服务器端口')
     }
   }
 
@@ -67,7 +68,7 @@ export class WSServer {
         FAKER_WEBSOCKET_SYMBOL,
         (data: unknown, client?: WebSocketClient) => {
           try {
-            const message = typeof data === 'string' ? JSON.parse(data) : data
+            const message = isValidJSON(data) ? JSON.parse(data) : data
             this.handleMessage(client, message)
           } catch (error) {
             logger.error('[Faker] 解析消息失败:', error)
@@ -101,7 +102,7 @@ export class WSServer {
       ws.on('message', (data: Buffer | string) => {
         try {
           const raw = typeof data === 'string' ? data : data.toString()
-          const parsed = JSON.parse(raw)
+          const parsed = isValidJSON(raw) ? JSON.parse(raw) : raw
 
           // 兼容 faker-websocket 协议
           if (parsed.type === FAKER_WEBSOCKET_SYMBOL && parsed.data) {

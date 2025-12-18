@@ -53,3 +53,15 @@ export function safeJsonParse<T>(input: string, fallback: Partial<T>): T {
     return fallback as T
   }
 }
+
+export function isValidJSON(str: unknown): str is string {
+  if (typeof str !== 'string') return false
+  if (str.trim() === '') return false
+
+  try {
+    JSON.parse(str)
+    return true
+  } catch {
+    return false
+  }
+}

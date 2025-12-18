@@ -8,7 +8,7 @@ export default defineConfig({
     vue(),
     faker({
       loggerOptions: {
-        level: 'error',
+        level: 'info',
       },
       uiOptions: {
         wsPort: 3456,
