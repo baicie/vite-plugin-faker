@@ -40,11 +40,6 @@
     "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "~5.9.3",
     "vite": "catalog:",
-    "vue-tsc": "^3.2.1"
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
+    "vue-tsc": "^3.1.8"
   }
 }

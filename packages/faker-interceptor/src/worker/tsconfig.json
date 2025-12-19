@@ -1,7 +1,8 @@
 {
   "extends": "../../../../tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["es5", "es2015", "webworker", "webworker.importscripts"],
+    "lib": ["es5", "es2015"],
+    "types": ["serviceworker"],
     "rootDir": "."
   },
   "include": ["./index.ts"]
