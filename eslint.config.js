@@ -119,7 +119,6 @@ export default defineConfig(
       'eslint.config.js',
       '*.config.{js,ts}',
       'rolldown*.config.{js,ts}',
-      'tsdown*.config.{js,ts}',
       'vitest.config.{js,ts}',
       'scripts/**',
       'packages/*/*.config.{js,ts}',
