@@ -26,8 +26,8 @@
   },
   "devDependencies": {
     "@baicie/faker-shared": "workspace:*",
-    "@types/serviceworker": "^0.0.169",
-    "rolldown": "1.0.0-beta.55",
+    "@types/serviceworker": "^0.0.170",
+    "rolldown": "1.0.0-beta.56",
     "rollup-plugin-web-worker-loader": "^1.7.0",
     "typescript": "~5.9.3",
     "vite": "catalog:"

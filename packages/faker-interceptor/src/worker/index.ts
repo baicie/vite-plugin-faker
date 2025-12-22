@@ -110,6 +110,14 @@ addEventListener('fetch', function (event) {
   event.respondWith(handleRequest(event, requestId))
 })
 
+function headersToObject(headers: Headers): Record<string, string> {
+  const result: Record<string, string> = {}
+  headers.forEach((value, key) => {
+    result[key] = value
+  })
+  return result
+}
+
 async function handleRequest(
   event: FetchEvent,
   requestId: string,
@@ -141,7 +149,7 @@ async function handleRequest(
             type: responseClone.type,
             status: responseClone.status,
             statusText: responseClone.statusText,
-            headers: Object.fromEntries(responseClone.headers.entries()),
+            headers: headersToObject(responseClone.headers),
             body: responseClone.body,
           },
         },
@@ -254,17 +262,15 @@ async function getResponse(
   return passthrough()
 }
 
-/**
- * @param {Client} client
- * @param {any} message
- * @param {Array<Transferable>} transferrables
- * @returns {Promise<any>}
- */
-function sendToClient(client, message, transferrables = []) {
+function sendToClient(
+  client: Client,
+  message: any,
+  transferrables: Transferable[] = [],
+): Promise<any> {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel()
 
-    channel.port1.onmessage = event => {
+    channel.port1.onmessage = (event: MessageEvent) => {
       if (event.data && event.data.error) {
         return reject(event.data.error)
       }
@@ -305,7 +311,7 @@ async function serializeRequest(
     url: request.url,
     mode: request.mode,
     method: request.method,
-    headers: Object.fromEntries(request.headers.entries()),
+    headers: headersToObject(request.headers),
     cache: request.cache,
     credentials: request.credentials,
     destination: request.destination,
