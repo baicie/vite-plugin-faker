@@ -1,10 +1,6 @@
 import type { EventBusEvent, EventBusType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 
-/**
- * 事件总线
- * 用于在数据库变更时通知相关组件
- */
 export class EventBus {
   private handlers: Map<EventBusType, Set<(event: EventBusEvent) => void>> =
     new Map()

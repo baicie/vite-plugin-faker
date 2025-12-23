@@ -5,9 +5,6 @@ import { JSONFileSyncPreset } from 'lowdb/node'
 import { clamp, filter, get, map, orderBy, slice } from 'lodash-es'
 import type { Pagination } from '@baicie/faker-shared'
 
-/**
- * 数据库配置选项
- */
 export interface DBConfig {
   dbDir?: string
   cacheDir: string

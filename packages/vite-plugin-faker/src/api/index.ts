@@ -7,10 +7,6 @@ import { RequestHandler } from './request-handler'
 import { SettingsHandler } from './settings-handler'
 import type { EventBus } from './types'
 
-/**
- * WebSocket 消息处理器
- * 统一管理所有消息类型的处理
- */
 export class WSMessageHandler {
   private mockHandler: MockHandler
   private settingsHandler: SettingsHandler

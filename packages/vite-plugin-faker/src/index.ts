@@ -18,7 +18,7 @@ import {
   UI_ENTRY,
 } from './constants'
 import { cleanUrl } from '@baicie/faker-shared'
-import { workerMiddleware } from './middlewares'
+import { mockMiddleware } from './mock'
 
 export interface ViteFakerOptions {
   /**
@@ -50,7 +50,7 @@ export interface ViteFakerOptions {
 }
 
 let server: ViteDevServer | null = null
-let dbManager: DBManager | null = null
+export let dbManager: DBManager | null = null
 export let cacheDir: string | undefined
 export let _baseDir: string | undefined
 
@@ -105,7 +105,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     configureServer(_server) {
       server = _server
 
-      server.middlewares.use(workerMiddleware(server))
+      server.middlewares.use(mockMiddleware(server))
 
       if (dbManager) {
         try {
@@ -163,7 +163,5 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     },
   }
 }
-
-export * from './types'
 
 export default viteFaker

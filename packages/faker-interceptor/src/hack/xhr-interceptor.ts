@@ -5,20 +5,18 @@ import {
   WSMessageType,
 } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
-import { MockMatcher } from '../mock/mock-matcher'
-import { MockResponseGenerator } from '../mock/mock-response-generator'
 
-/**
- * XMLHttpRequest 拦截器
- */
+interface HackXMLHttpRequest extends XMLHttpRequest {
+  _url: string
+  _method: string
+}
+
 export class XHRInterceptor {
   private mocks: MockConfig[] = []
-  private responseGenerator: MockResponseGenerator
   private wsClient: WSClient
   private OriginalXHR: typeof XMLHttpRequest
 
   constructor(wsClient: WSClient) {
-    this.responseGenerator = new MockResponseGenerator()
     this.wsClient = wsClient
     this.OriginalXHR = window.XMLHttpRequest
     this.setup()
@@ -31,9 +29,10 @@ export class XHRInterceptor {
     const self = this
 
     window.XMLHttpRequest = class extends self.OriginalXHR {
+      // @ts-expect-error
       private _url: string = ''
+      // @ts-expect-error
       private _method: string = 'GET'
-      private _mock: MockConfig | null = null
       private _startTime: number = 0
 
       open(
@@ -47,120 +46,12 @@ export class XHRInterceptor {
         this._url = typeof url === 'string' ? url : url.toString()
         this._startTime = Date.now()
 
-        // 检查是否有 Mock
-        const pathname = new URL(this._url, window.location.origin).pathname
-        this._mock = MockMatcher.findMock(self.mocks, pathname, this._method)
-
         return super.open(method, url, async ?? true, username, password)
       }
 
       send(body?: Document | XMLHttpRequestBodyInit | null): void {
-        if (this._mock) {
-          // 有 Mock，生成响应
-          this.handleMockResponse(this._mock, body).catch(error => {
-            logger.error('XHR Mock 响应失败:', error)
-            console.error(error)
-            // 失败时继续正常请求
-            super.send(body)
-          })
-        } else {
-          // 没有 Mock，继续正常请求
-          // 监听响应以记录请求
-          this.setupResponseListener()
-          super.send(body)
-        }
-      }
-
-      /**
-       * 处理 Mock 响应
-       */
-      private async handleMockResponse(
-        mock: MockConfig,
-        body: any,
-      ): Promise<void> {
-        // 添加延迟
-        if (mock.delay && mock.delay > 0) {
-          await new Promise(resolve => setTimeout(resolve, mock.delay))
-        }
-        // 构建请求信息
-        const requestInfo = {
-          url: this._url,
-          method: this._method,
-          pathname: new URL(this._url, window.location.origin).pathname,
-          headers: {},
-          body: body
-            ? typeof body === 'string'
-              ? JSON.parse(body)
-              : body
-            : null,
-        }
-
-        // 生成响应数据
-        const responseData = self.responseGenerator.generateResponseData(
-          mock,
-          requestInfo,
-        )
-
-        const responseText = JSON.stringify(responseData)
-
-        // 模拟 XHR 响应
-        Object.defineProperty(this, 'status', {
-          value: mock.statusCode || 200,
-          writable: false,
-          configurable: true,
-        })
-
-        Object.defineProperty(this, 'statusText', {
-          value: 'OK',
-          writable: false,
-          configurable: true,
-        })
-
-        Object.defineProperty(this, 'responseText', {
-          value: responseText,
-          writable: false,
-          configurable: true,
-        })
-
-        Object.defineProperty(this, 'response', {
-          value: responseText,
-          writable: false,
-          configurable: true,
-        })
-
-        Object.defineProperty(this, 'readyState', {
-          value: 4, // DONE
-          writable: false,
-          configurable: true,
-        })
-
-        // 设置响应头
-        const responseHeaders = self.responseGenerator.getResponseHeaders(mock)
-        const headers = new Headers(responseHeaders)
-
-        Object.defineProperty(this, 'getResponseHeader', {
-          value: (name: string) => headers.get(name),
-          writable: false,
-          configurable: true,
-        })
-
-        Object.defineProperty(this, 'getAllResponseHeaders', {
-          value: () => {
-            const headerStrings: string[] = []
-            headers.forEach((value, key) => {
-              headerStrings.push(`${key}: ${value}`)
-            })
-            return headerStrings.join('\r\n')
-          },
-          writable: false,
-          configurable: true,
-        })
-
-        queueMicrotask(() => {
-          this.dispatchEvent(new ProgressEvent('readystatechange'))
-          this.dispatchEvent(new ProgressEvent('load'))
-          this.dispatchEvent(new ProgressEvent('loadend'))
-        })
+        this.setupResponseListener()
+        super.send(body)
       }
 
       private setupResponseListener(): void {
@@ -171,7 +62,13 @@ export class XHRInterceptor {
         this.onreadystatechange = function (event) {
           if (xhr.readyState === 4) {
             const duration = Date.now() - xhr._startTime
-            self.recordXHRRequest(xhr, null, xhr.responseText, duration, false)
+            self.recordXHRRequest(
+              xhr as unknown as HackXMLHttpRequest,
+              null,
+              xhr.responseText,
+              duration,
+              false,
+            )
           }
 
           if (originalOnReadyStateChange) {
@@ -182,18 +79,15 @@ export class XHRInterceptor {
     } as any
   }
 
-  /**
-   * 记录 XHR 请求
-   */
   private recordXHRRequest(
-    xhr: any,
+    xhr: HackXMLHttpRequest,
     mock: MockConfig | null,
-    responseBody: any,
+    responseBody: string,
     duration: number,
     isMocked: boolean,
   ): void {
     try {
-      let body: any = null
+      let body: unknown = null
       try {
         body =
           typeof responseBody === 'string'

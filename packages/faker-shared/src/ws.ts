@@ -55,11 +55,9 @@ export interface RequestRecord {
   timestamp: number
 }
 
-/**
- * Mock 配置接口
- */
+export type MockKey = `${string}-${string}`
+
 export interface MockConfig {
-  id: string
   url: string
   method: string
   enabled: boolean

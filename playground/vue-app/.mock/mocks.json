@@ -1,6 +1,5 @@
 {
   "/api/users-GET": {
-    "id": "29f8fde7-7f82-49c3-9829-e2b471b397ed",
     "url": "/api/users",
     "method": "GET",
     "statusCode": 200,

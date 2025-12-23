@@ -29,15 +29,11 @@ export class MockMatcher {
     url: string,
     method: string,
   ): MockConfig | null {
-    // 提取路径名（去除查询参数）
-    const pathname = new URL(url, window.location.origin).pathname
-
     // 按优先级查找：精确匹配 > 通配符匹配
     const exactMatch = mocks.find(
       mock =>
         mock.enabled &&
         mock.method.toUpperCase() === method.toUpperCase() &&
-        this.matchUrl(pathname, mock.url) &&
         !mock.url.includes('*') &&
         !mock.url.includes(':'),
     )
@@ -50,9 +46,7 @@ export class MockMatcher {
     return (
       mocks.find(
         mock =>
-          mock.enabled &&
-          mock.method.toUpperCase() === method.toUpperCase() &&
-          this.matchUrl(pathname, mock.url),
+          mock.enabled && mock.method.toUpperCase() === method.toUpperCase(),
       ) || null
     )
   }
