@@ -52,7 +52,7 @@ export default defineConfig(
   // faker interceptor package
   {
     name: 'faker-interceptor',
-    files: ['packages/interceptor/**'],
+    files: ['packages/faker-interceptor/**'],
     rules: {
       'no-restricted-globals': ['error', ...NodeGlobals],
     },
@@ -61,7 +61,7 @@ export default defineConfig(
   // faker ui package
   {
     name: 'faker-ui',
-    files: ['packages/ui/**'],
+    files: ['packages/faker-ui/**'],
     rules: {
       'no-restricted-globals': ['error', ...NodeGlobals],
     },
