@@ -10,12 +10,11 @@ const sharedConfig = defineConfig({
 const esmConfig = defineConfig({
   ...sharedConfig,
   output: {
-    format: 'iife',
+    format: 'esm',
     dir: 'dist',
     entryFileNames: 'interceptor.js',
     sourcemap: true,
     extend: true,
-    name: 'fakerInterceptor',
   },
   treeshake: true,
   platform: 'browser',

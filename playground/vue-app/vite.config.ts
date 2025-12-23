@@ -10,9 +10,6 @@ export default defineConfig({
       loggerOptions: {
         level: 'info',
       },
-      uiOptions: {
-        wsPort: 3456,
-      },
     }),
   ],
   server: {

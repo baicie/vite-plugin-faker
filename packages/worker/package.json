@@ -1,0 +1,49 @@
+{
+  "name": "@baicie/faker-worker",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "module": "./index.js",
+      "import": "./index.js",
+      "require": "./index.js"
+    },
+    "./*": "./*"
+  },
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "",
+    "directory": ""
+  },
+  "buildOptions": {
+    "name": "default",
+    "formats": [
+      "esm-bundler",
+      "esm-browser",
+      "cjs",
+      "global"
+    ]
+  },
+  "keywords": [
+    "default"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "dependencies": {},
+  "type": "module",
+  "msw": {
+    "workerDirectory": [
+      ""
+    ]
+  }
+}

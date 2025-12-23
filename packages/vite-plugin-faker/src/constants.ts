@@ -25,6 +25,10 @@ export const INTERCEPTOR_PATH: string = path.resolve(
   VITE_PLUGIN_PACKAGE_DIR,
   './node_modules/@baicie/faker-interceptor/dist/interceptor.js',
 )
+export const WORKER_PATH: string = path.resolve(
+  VITE_PLUGIN_PACKAGE_DIR,
+  './node_modules/@baicie/faker-worker/dist/index.js',
+)
 
 export const FS_PREFIX = `/@fs/`
 

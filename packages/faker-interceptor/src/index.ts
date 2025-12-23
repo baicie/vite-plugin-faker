@@ -1,4 +1,9 @@
-import { type MockConfig, WSClient, WSMessageType } from '@baicie/faker-shared'
+import {
+  MSWWORKER,
+  type MockConfig,
+  WSClient,
+  WSMessageType,
+} from '@baicie/faker-shared'
 import { initLogger, logger } from '@baicie/logger'
 import { setupWorker } from 'msw/browser'
 import { MSWAdapter } from './mock/msw-adapter'
@@ -10,34 +15,26 @@ declare const __FAKER_LOGGER_OPTIONS__: string
 const wsPort = Number(__FAKER_WS_PORT__)
 const loogerOptions: string = __FAKER_LOGGER_OPTIONS__
 
-/**
- * 初始化拦截器（使用 MSW）
- */
+const worker = setupWorker()
+worker.start({
+  serviceWorker: {
+    url: MSWWORKER,
+    options: {
+      scope: '/',
+    },
+  },
+  onUnhandledRequest: 'bypass',
+})
+
 export async function initInterceptor(wsUrl: string): Promise<void> {
   const options = extend(loogerOptions, { prefix: '[FakerInterceptor]' })
   initLogger(options)
-  // 检查是否已经初始化
+
   if (window.__fakerInterceptorInitialized) {
     logger.warn('拦截器已初始化，跳过重复初始化')
     return
   }
 
-  logger.info('初始化拦截器（使用 MSW）...')
-
-  // 先启动 MSW worker（在创建 WSClient 之前）
-  const worker = setupWorker()
-  await worker.start({
-    serviceWorker: {
-      url: '/@faker/worker',
-      options: {
-        scope: '/', // 显式指定 scope 为根路径
-      },
-    },
-    // 未匹配的请求直接放行（包括 WebSocket）
-    onUnhandledRequest: 'bypass',
-  })
-
-  // MSW 启动后再创建 WSClient
   const wsClient = new WSClient(wsUrl, logger)
 
   // 创建 MSW 适配器

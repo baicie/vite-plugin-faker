@@ -18,6 +18,7 @@ import {
   UI_ENTRY,
 } from './constants'
 import { cleanUrl } from '@baicie/faker-shared'
+import { workerMiddleware } from './middlewares'
 
 export interface ViteFakerOptions {
   /**
@@ -104,6 +105,8 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     configureServer(_server) {
       server = _server
 
+      server.middlewares.use(workerMiddleware(server))
+
       if (dbManager) {
         try {
           new WSServer(dbManager, {
@@ -122,6 +125,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         return {
           tag: 'script',
           attrs: {
+            type: 'module',
             src: path.posix.join(server!.config.base, item),
           },
           injectTo: 'head',
