@@ -7,11 +7,6 @@ const sharedConfig = defineConfig({
   external,
 })
 
-const sharedWorkerConfig = defineConfig({
-  input: 'src/worker/index.ts',
-  external,
-})
-
 const esmConfig = defineConfig({
   ...sharedConfig,
   output: {
@@ -28,20 +23,4 @@ const esmConfig = defineConfig({
   },
 })
 
-const esmWorkerConfig = defineConfig({
-  ...sharedWorkerConfig,
-  output: {
-    format: 'esm',
-    dir: 'dist',
-    entryFileNames: 'worker.js',
-    sourcemap: true,
-    extend: true,
-  },
-  treeshake: true,
-  platform: 'browser',
-  watch: {
-    clearScreen: false,
-  },
-})
-
-export default defineConfig([esmConfig, esmWorkerConfig])
+export default defineConfig([esmConfig])

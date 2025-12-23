@@ -45,4 +45,8 @@ export const CLIENT_ALIAS: AliasOptions = [
     find: /^\/?@faker\/interceptor/,
     replacement: path.posix.join(FS_PREFIX, normalizePath(INTERCEPTOR_PATH)),
   },
+  {
+    find: /^\/?@faker\/worker/,
+    replacement: path.posix.join(FS_PREFIX, normalizePath(INTERCEPTOR_PATH)),
+  },
 ]
