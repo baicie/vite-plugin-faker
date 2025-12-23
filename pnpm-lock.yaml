@@ -32,9 +32,6 @@ importers:
       '@types/node':
         specifier: ^25.0.3
         version: 25.0.3
-      '@vitest/eslint-plugin':
-        specifier: ^1.6.1
-        version: 1.6.3(eslint@9.39.2(jiti@2.4.2))(typescript@5.9.3)(vitest@4.0.16)
       chokidar:
         specifier: ^5.0.0
         version: 5.0.0
@@ -2563,19 +2560,6 @@ packages:
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
       vue: ^3.2.25
-
-  '@vitest/eslint-plugin@1.6.3':
-    resolution: {integrity: sha512-2h4GQ113DR2KGQkZyXXXyKpAv9L130YCe/0be44VeSUsYXdh9XGt0+snCPTijNxG0vJo0YDrdFvpY1bOUfx5ng==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      eslint: '>=8.57.0'
-      typescript: '>=5.0.0'
-      vitest: '*'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-      vitest:
-        optional: true
 
   '@vitest/expect@4.0.16':
     resolution: {integrity: sha512-eshqULT2It7McaJkQGLkPjPjNph+uevROGuIMJdG3V+0BSR2w9u6J9Lwu+E8cK5TETlfou8GRijhafIMhXsimA==}
@@ -9347,17 +9331,6 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.53
       vite: 7.2.7(@types/node@25.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
       vue: 3.5.26(typescript@5.9.3)
-
-  '@vitest/eslint-plugin@1.6.3(eslint@9.39.2(jiti@2.4.2))(typescript@5.9.3)(vitest@4.0.16)':
-    dependencies:
-      '@typescript-eslint/scope-manager': 8.50.1
-      '@typescript-eslint/utils': 8.50.1(eslint@9.39.2(jiti@2.4.2))(typescript@5.9.3)
-      eslint: 9.39.2(jiti@2.4.2)
-    optionalDependencies:
-      typescript: 5.9.3
-      vitest: 4.0.16(@types/node@25.0.3)(@vitest/ui@4.0.16)(jiti@2.4.2)(jsdom@27.3.0(postcss@8.5.6))(lightningcss@1.30.1)(msw@2.12.4(@types/node@25.0.3)(typescript@5.9.3))(terser@5.43.1)(tsx@4.21.0)(yaml@2.7.1)
-    transitivePeerDependencies:
-      - supports-color
 
   '@vitest/expect@4.0.16':
     dependencies:
