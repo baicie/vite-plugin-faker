@@ -12,23 +12,23 @@ export interface WSMessage<T = any> {
  */
 export enum WSMessageType {
   // Hack → Node
-  REQUEST_RECORDED = 'faker:request-recorded',
+  REQUEST_RECORDED,
 
   // UI → Node
-  MOCK_CREATE = 'faker:mock-create',
-  MOCK_UPDATE = 'faker:mock-update',
-  MOCK_DELETE = 'faker:mock-delete',
-  MOCK_LIST = 'faker:mock-list',
-  REQUEST_HISTORY = 'faker:request-history',
-  SETTINGS_GET = 'faker:settings-get',
-  SETTINGS_UPDATE = 'faker:settings-update',
-  SETTINGS_CLEAR_CACHE = 'faker:settings-clear-cache',
+  MOCK_CREATE,
+  MOCK_UPDATE,
+  MOCK_DELETE,
+  MOCK_LIST,
+  REQUEST_HISTORY,
+  SETTINGS_GET,
+  SETTINGS_UPDATE,
+  SETTINGS_CLEAR_CACHE,
 
   // Node → UI (响应)
-  MOCK_CREATED = 'faker:mock-created',
-  MOCK_UPDATED = 'faker:mock-updated',
-  MOCK_DELETED = 'faker:mock-deleted',
-  ERROR = 'faker:error',
+  MOCK_CREATED,
+  MOCK_UPDATED,
+  MOCK_DELETED,
+  ERROR,
 
   // Node → Hack/UI (广播)
   MOCK_CONFIG_UPDATED = 'faker:mock-config-updated',
@@ -106,7 +106,7 @@ export class WSClient {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectDelay = 1000
-  private handlers: Map<string, Set<Function>> = new Map()
+  private handlers: Map<WSMessageType, Set<Function>> = new Map()
   private isConnecting = false
   private logger: Logger
 

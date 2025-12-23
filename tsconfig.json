@@ -15,8 +15,8 @@
       "@zeus-js/vite-plugin-faker/*": ["./packages/vite-plugin-faker/src/*"],
       "@zeus-js/faker-interceptor": ["./packages/faker-interceptor/src"],
       "@zeus-js/faker-interceptor/*": ["./packages/faker-interceptor/src/*"],
-      "@zeus-js/faker-ui": ["./packages/faker-ui/src"],
-      "@zeus-js/faker-ui/*": ["./packages/faker-ui/src/*"]
+      "@zeus-js/faker-ui": ["packages/ui/src"],
+      "@zeus-js/faker-ui/*": ["packages/ui/src/*"]
     }
   }
 }

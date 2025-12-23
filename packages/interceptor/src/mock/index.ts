@@ -1,5 +1,3 @@
-import { logger } from '@baicie/logger'
-
 export type FakerSwRequestMessage = {
   type: 'FAKER_SW_REQUEST'
   requestId: string
@@ -116,18 +114,11 @@ function headersToObject(headers: Headers): Record<string, string> {
 export async function registerFakerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof navigator === 'undefined') return Promise.resolve(null)
   if (!('serviceWorker' in navigator)) return Promise.resolve(null)
-
-  // dist/interceptor.js 同目录下输出 dist/worker.js
-  const url = new URL('./worker.js', import.meta.url).toString()
-
-  return navigator.serviceWorker
-    .register(url, { scope: '/', type: 'module' as any })
-    .then(reg => reg)
-    .catch(err => {
-      logger.warn(
-        '注册 Faker Service Worker 失败，回退到 fetch monkey patch',
-        err,
-      )
-      return null
+  return new Promise((resolve, reject) => {
+    ServiceWorker.then(function (registration: ServiceWorkerRegistration) {
+      resolve(registration)
+    }).catch((error: unknown) => {
+      reject(error)
     })
+  })
 }

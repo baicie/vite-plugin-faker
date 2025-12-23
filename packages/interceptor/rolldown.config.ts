@@ -1,5 +1,4 @@
 import { defineConfig } from 'rolldown'
-import workerLoaderPlugin from 'rollup-plugin-web-worker-loader'
 
 const external = [...Object.keys({})]
 
@@ -27,14 +26,6 @@ const esmConfig = defineConfig({
   watch: {
     clearScreen: false,
   },
-  plugins: [
-    workerLoaderPlugin({
-      targetPlatform: 'browser',
-      inline: true,
-      preserveSource: true,
-      sourceMap: true,
-    }),
-  ],
 })
 
 const esmWorkerConfig = defineConfig({

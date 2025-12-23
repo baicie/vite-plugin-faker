@@ -1,5 +1,6 @@
 export * from './utils'
 export * from './ws'
+export * from './message'
 export * from './lodash'
 
 /**

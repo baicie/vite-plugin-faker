@@ -6,11 +6,9 @@ import {
 } from '@baicie/faker-shared'
 import { initLogger, logger } from '@baicie/logger'
 import { XHRInterceptor } from './hack/xhr-interceptor'
-import { MockMatcher } from './mock/mock-matcher'
-import { MockResponseGenerator } from './mock/mock-response-generator'
 import { extend } from '@baicie/faker-shared'
 import { FetchInterceptor } from './hack/fetch-interceptor'
-import { type FakerSwRequestMessage, registerFakerServiceWorker } from './mock'
+import { registerFakerServiceWorker } from './mock'
 
 declare const __FAKER_WS_PORT__: string
 declare const __FAKER_LOGGER_OPTIONS__: string
@@ -39,7 +37,6 @@ export async function initInterceptor(wsUrl: string): Promise<void> {
   }
 
   const wsClient = new WSClient(wsUrl, logger)
-  const responseGenerator = new MockResponseGenerator()
   let mocks: MockConfig[] = []
 
   const xhrInterceptor = new XHRInterceptor(wsClient)
@@ -57,23 +54,18 @@ export async function initInterceptor(wsUrl: string): Promise<void> {
 
     // 监听来自 SW 的请求消息（MessageChannel 端口在 event.ports[0]）
     navigator.serviceWorker.addEventListener('message', event => {
-      console.log(event)
+      logger.info('收到来自 Service Worker 的消息:', event)
     })
-
-    logger.info('Faker Service Worker 已启用（fetch 将由 SW 拦截）')
   })
 
-  // 初始化完成后主动拉一次 Mock 配置
   wsClient.send(WSMessageType.MOCK_LIST, { page: 1, pageSize: 1000 })
 
-  // 暴露到全局，方便调试
   window.__fakerInterceptor = {
     wsClient,
     xhrInterceptor,
+    fetchInterceptor,
   }
   window.__fakerInterceptorInitialized = true
-
-  logger.info('拦截器初始化完成（MSW）')
 }
 
 if (typeof window !== 'undefined') {
