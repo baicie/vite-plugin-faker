@@ -1,22 +1,17 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Chrome",
+      "name": "Debug Vite Plugin (server)",
+      "type": "node",
       "request": "launch",
-      "type": "chrome",
-      "url": "http://localhost:3001",
-      "webRoot": "${workspaceFolder}",
-      "sourceMapPathOverrides": {
-        "${workspaceFolder}/packages/*/dist/**/*.js": "${workspaceFolder}/packages/*/src/**/*.ts",
-        "../src/**/*.ts": "${workspaceFolder}/packages/*/src/**/*.ts",
-        "webpack:///../src/**/*.ts": "${workspaceFolder}/packages/*/src/**/*.ts",
-        "./packages/*/src/**/*.ts": "${workspaceFolder}/packages/*/src/**/*.ts",
-        "webpack:///*": "${workspaceFolder}/*"
-      }
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect", "../../node_modules/tsx/dist/cli.cjs"],
+      "args": ["vite.script.ts"],
+      "cwd": "${workspaceFolder}/playground/vue-app",
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }

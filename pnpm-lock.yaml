@@ -220,6 +220,9 @@ importers:
       '@faker-js/faker':
         specifier: ^10.1.0
         version: 10.1.0
+      chokidar:
+        specifier: ^5.0.0
+        version: 5.0.0
       co-body:
         specifier: ^6.2.0
         version: 6.2.0

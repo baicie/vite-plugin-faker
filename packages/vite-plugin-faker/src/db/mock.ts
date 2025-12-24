@@ -41,8 +41,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
 
   findMock<T extends ParmasLike>(params: T): MockConfig | undefined {
     const id = methodLineUrl(params)
-    const mock = this.db.data[id]
-    return mock?.enabled ? mock : undefined
+    return this.db.data[id]
   }
 
   updateMock(id: string, updates: Partial<MockConfig>): boolean {

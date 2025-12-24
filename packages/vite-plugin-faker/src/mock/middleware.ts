@@ -1,5 +1,5 @@
 import type { MockContext, QueryObject } from '@baicie/faker-shared'
-import { sleep } from '@baicie/faker-shared'
+import { extend, sleep } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import qs from 'qs'
 import type { Connect, ViteDevServer } from 'vite'
@@ -57,6 +57,12 @@ export function mockMiddleware(
       // status
       res.statusCode = response.status
 
+      const defaultHeaders = {
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-Mock-Source': response.source ?? 'static',
+        'X-Mock-Id': response.meta?.mockId ?? 'unknown',
+      }
+      response.headers = extend(defaultHeaders)
       // headers
       for (const [k, v] of Object.entries(response.headers)) {
         res.setHeader(k, v)

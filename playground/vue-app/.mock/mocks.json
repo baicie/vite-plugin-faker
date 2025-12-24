@@ -5,13 +5,14 @@
     "statusCode": 200,
     "enabled": true,
     "description": "",
-    "responseType": "static",
+    "type": "static",
     "responseData": {},
     "responseTemplate": "{}",
     "responseCode": "return {\n  message: \"Hello World\"\n};",
     "delay": 0,
     "headers": {
       "Content-Type": "application/json"
-    }
+    },
+    "response": {}
   }
 }

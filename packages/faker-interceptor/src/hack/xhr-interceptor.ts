@@ -9,6 +9,7 @@ import { logger } from '@baicie/logger'
 interface HackXMLHttpRequest extends XMLHttpRequest {
   _url: string
   _method: string
+  _requestHeaders: Record<string, string>
 }
 
 export class XHRInterceptor {
@@ -33,6 +34,7 @@ export class XHRInterceptor {
       private _url: string = ''
       // @ts-expect-error
       private _method: string = 'GET'
+      private _requestHeaders: Record<string, string> = {}
       private _startTime: number = 0
 
       open(
@@ -44,9 +46,15 @@ export class XHRInterceptor {
       ): void {
         this._method = method
         this._url = typeof url === 'string' ? url : url.toString()
+        this._requestHeaders = {}
         this._startTime = Date.now()
 
         return super.open(method, url, async ?? true, username, password)
+      }
+
+      setRequestHeader(header: string, value: string): void {
+        this._requestHeaders[header] = value
+        return super.setRequestHeader(header, value)
       }
 
       send(body?: Document | XMLHttpRequestBodyInit | null): void {
@@ -64,7 +72,6 @@ export class XHRInterceptor {
             const duration = Date.now() - xhr._startTime
             self.recordXHRRequest(
               xhr as unknown as HackXMLHttpRequest,
-              null,
               xhr.responseText,
               duration,
               false,
@@ -81,7 +88,6 @@ export class XHRInterceptor {
 
   private recordXHRRequest(
     xhr: HackXMLHttpRequest,
-    mock: MockConfig | null,
     responseBody: string,
     duration: number,
     isMocked: boolean,
@@ -99,27 +105,48 @@ export class XHRInterceptor {
 
       const url = new URL(xhr._url, window.location.origin)
 
+      // 获取响应头
+      const responseHeaders = this.getResponseHeaders(xhr)
+
       const record: RequestRecord = {
         url: xhr._url,
         method: xhr._method,
-        headers: {},
+        headers: xhr._requestHeaders,
         query: Object.fromEntries(url.searchParams.entries()),
         response: {
           statusCode: xhr.status || 200,
-          headers: {},
+          headers: responseHeaders,
           body,
         },
         duration,
         isMocked,
-        mockId: mock?.id,
         timestamp: Date.now(),
       }
-
-      this.sendRequestRecord(record)
+      if (!responseHeaders['x-mock-source']) {
+        this.sendRequestRecord(record)
+      }
     } catch (error) {
       // 静默失败
       logger.error('记录 XHR 请求失败:', error)
     }
+  }
+
+  /**
+   * 从 XHR 对象中提取响应头
+   */
+  private getResponseHeaders(xhr: XMLHttpRequest): Record<string, string> {
+    const headers: Record<string, string> = {}
+    const headerLines = xhr.getAllResponseHeaders().split('\r\n')
+
+    for (const line of headerLines) {
+      if (!line) continue
+      const [key, ...valueParts] = line.split(':')
+      if (key) {
+        headers[key.toLowerCase()] = valueParts.join(':').trim()
+      }
+    }
+
+    return headers
   }
 
   private sendRequestRecord(record: RequestRecord) {
