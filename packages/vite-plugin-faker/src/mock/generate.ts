@@ -5,9 +5,8 @@ import type {
   ResponseGenerator,
   StatefulMockConfig,
   StaticMockConfig,
-  TemplateMockConfig,
 } from '@baicie/faker-shared'
-// import second from 'http'
+import { resolveFakerValue } from '@baicie/faker-shared'
 
 const generateStaticMockResponse: ResponseGenerator = async mock => {
   if (mock.type !== 'static') {
@@ -46,29 +45,10 @@ export const generateFunctionMockResponse: ResponseGenerator = async (
   }
 }
 
-import { faker } from '@faker-js/faker'
-faker.person.fullName
-
-export const generateTemplateMockResponse: ResponseGenerator = async (
-  mock,
-  ctx,
-) => {
+export const generateTemplateMockResponse: ResponseGenerator = mock => {
   if (mock.type !== 'template') throw new Error('Invalid mock type')
-  const tplMock = mock as TemplateMockConfig
-  const templateFn = Handlebars.compile(tplMock.template)
-  const bodyStr = templateFn({
-    query: ctx.query,
-    body: ctx.body,
-    headers: ctx.headers,
-  })
-  return {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.parse(bodyStr),
-    delay: 0,
-    source: 'template',
-    meta: { mockId: mock.id, timestamp: Date.now() },
-  }
+
+  return resolveFakerValue(mock.schema)
 }
 
 export const generateErrorMockResponse: ResponseGenerator = async mock => {

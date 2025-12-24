@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/shared" },
+    { "path": "./packages/faker-shared" },
     { "path": "./packages/vite-plugin-faker" },
     { "path": "./packages/faker-interceptor" },
     { "path": "./packages/faker-ui" }

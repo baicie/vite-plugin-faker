@@ -123,7 +123,15 @@ export interface FunctionMockConfig<T = any> extends BaseMockConfig {
 
 export interface TemplateMockConfig extends BaseMockConfig {
   type: 'template'
-  template: string
+  schema: Record<
+    string,
+    {
+      module: string
+      method: string
+      args?: Record<string, any>
+    }
+  >
+  count?: number
 }
 
 export interface ErrorMockConfig extends BaseMockConfig {

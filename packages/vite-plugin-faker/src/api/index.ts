@@ -49,10 +49,10 @@ export class WSMessageHandler {
         return this.settingsHandler.handleUpdate(message.data, message.id)
 
       case WSMessageType.SETTINGS_CLEAR_CACHE:
-        return this.settingsHandler.handleClearCache(message.id)
+        return this.settingsHandler.handleClearCache()
 
       case WSMessageType.FAKERAPIS:
-        return this.settingsHandler.han
+        return this.settingsHandler.handleFakerApis()
 
       default:
         logger.warn(`[Faker] 未知消息类型: ${message.type}`)

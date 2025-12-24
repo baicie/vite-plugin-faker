@@ -58,7 +58,7 @@ export class SettingsHandler {
     }
   }
 
-  handleClearCache(id?: string): WSMessage {
+  handleClearCache(): WSMessage {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
       requestsDB.clear()
@@ -69,7 +69,6 @@ export class SettingsHandler {
       return {
         type: WSMessageType.SETTINGS_CLEAR_CACHE,
         data: { success: true },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 清除缓存失败:', error)
@@ -77,7 +76,10 @@ export class SettingsHandler {
     }
   }
 
-  handleFakerApis(): FakerMethodMap {
-    return fakerMethodMap
+  handleFakerApis(): WSMessage<FakerMethodMap> {
+    return {
+      type: WSMessageType.FAKERAPIS,
+      data: fakerMethodMap,
+    }
   }
 }

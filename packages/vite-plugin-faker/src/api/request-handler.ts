@@ -34,9 +34,6 @@ export class RequestHandler {
     }
   }
 
-  /**
-   * 处理请求历史查询
-   */
   handleHistory(data: WithId<DashboardQuery>): WSMessage<Page<RequestRecord>> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()

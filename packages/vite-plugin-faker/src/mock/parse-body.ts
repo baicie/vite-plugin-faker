@@ -6,7 +6,6 @@ import type { ParsedBody } from '@baicie/faker-shared'
 export async function readBody(req: IncomingMessage): Promise<ParsedBody> {
   const method = req.method?.toUpperCase()
 
-  // GET / HEAD 没有 body
   if (!method || ['GET', 'HEAD'].includes(method)) {
     return undefined
   }
@@ -25,7 +24,7 @@ export async function readBody(req: IncomingMessage): Promise<ParsedBody> {
     if (type === 'application/json') {
       return await json(req, {
         limit: '2mb',
-        strict: false, // mock 场景别太严格
+        strict: false,
       })
     }
 
