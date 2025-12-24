@@ -51,14 +51,14 @@ export class WSMessageHandler {
       case WSMessageType.SETTINGS_CLEAR_CACHE:
         return this.settingsHandler.handleClearCache(message.id)
 
+      case WSMessageType.FAKERAPIS:
+        return this.settingsHandler.han
+
       default:
         logger.warn(`[Faker] 未知消息类型: ${message.type}`)
     }
   }
 
-  /**
-   * 获取所有 Mock 配置（用于广播）
-   */
   getAllMockConfigs(): MockConfig[] {
     return this.mockHandler.getAllConfigs()
   }

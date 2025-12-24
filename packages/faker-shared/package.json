@@ -43,6 +43,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.1.0",
     "lodash-es": "^4.17.22"
   }
 }
