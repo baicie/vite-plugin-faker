@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/shared" },
+    { "path": "./packages/faker-shared" },
     { "path": "./packages/vite-plugin-faker" },
     { "path": "./packages/faker-interceptor" },
     { "path": "./packages/faker-ui" }
@@ -15,8 +15,8 @@
       "@zeus-js/vite-plugin-faker/*": ["./packages/vite-plugin-faker/src/*"],
       "@zeus-js/faker-interceptor": ["./packages/faker-interceptor/src"],
       "@zeus-js/faker-interceptor/*": ["./packages/faker-interceptor/src/*"],
-      "@zeus-js/faker-ui": ["./packages/faker-ui/src"],
-      "@zeus-js/faker-ui/*": ["./packages/faker-ui/src/*"]
+      "@zeus-js/faker-ui": ["packages/faker-ui/src"],
+      "@zeus-js/faker-ui/*": ["packages/faker-ui/src/*"]
     }
   }
 }

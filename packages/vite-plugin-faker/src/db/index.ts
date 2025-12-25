@@ -7,10 +7,6 @@ import { MocksDB } from './mock'
 import { RequestsDB } from './request'
 import { SettingsDB } from './setting'
 
-/**
- * 数据库管理器
- * 统一管理所有数据库实例
- */
 export class DBManager {
   private static instance: DBManager
   private config: DBConfig

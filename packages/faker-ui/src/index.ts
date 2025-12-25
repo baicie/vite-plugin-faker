@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App'
 import { type LoggerConfig, initLogger, logger } from '@baicie/logger'
-import { extend, wsPath } from '@baicie/faker-shared'
+import { extend } from '@baicie/faker-shared'
 import { type UIOPtions, appContextKey } from './hooks/use-app-context'
 
 declare const __MOUNT_TARGET__: string
@@ -24,9 +24,7 @@ export async function fakerUI(target: string, wsUrl?: string): Promise<void> {
 }
 
 if (typeof window !== 'undefined') {
-  const wsUrl = wsPort
-    ? `ws://${window.location.hostname}:${wsPort}/${wsPath}`
-    : ''
+  const wsUrl = wsPort ? `ws://${window.location.hostname}:${wsPort}/` : ''
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       fakerUI(mountTarget, wsUrl)

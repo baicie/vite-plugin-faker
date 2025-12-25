@@ -7,10 +7,6 @@ import { RequestHandler } from './request-handler'
 import { SettingsHandler } from './settings-handler'
 import type { EventBus } from './types'
 
-/**
- * WebSocket 消息处理器
- * 统一管理所有消息类型的处理
- */
 export class WSMessageHandler {
   private mockHandler: MockHandler
   private settingsHandler: SettingsHandler
@@ -41,7 +37,7 @@ export class WSMessageHandler {
         return this.mockHandler.handleDelete(message.data, message.id)
 
       case WSMessageType.MOCK_LIST:
-        return this.mockHandler.handleList(message.data, message.id)
+        return this.mockHandler.handleList(message.data)
 
       case WSMessageType.REQUEST_HISTORY:
         return this.requestHandler.handleHistory(message.data)
@@ -53,16 +49,16 @@ export class WSMessageHandler {
         return this.settingsHandler.handleUpdate(message.data, message.id)
 
       case WSMessageType.SETTINGS_CLEAR_CACHE:
-        return this.settingsHandler.handleClearCache(message.id)
+        return this.settingsHandler.handleClearCache()
+
+      case WSMessageType.FAKERAPIS:
+        return this.settingsHandler.handleFakerApis()
 
       default:
         logger.warn(`[Faker] 未知消息类型: ${message.type}`)
     }
   }
 
-  /**
-   * 获取所有 Mock 配置（用于广播）
-   */
   getAllMockConfigs(): MockConfig[] {
     return this.mockHandler.getAllConfigs()
   }

@@ -10,7 +10,7 @@ import {
   NTabPane,
   NTabs,
 } from 'naive-ui'
-import { defineComponent, onMounted, reactive } from 'vue'
+import { Fragment, defineComponent, onMounted, reactive } from 'vue'
 import { useAppContext } from './hooks/use-app-context'
 import { connect } from './hooks/use-ws'
 import MockList from './tabs/mock/mock-list'
@@ -26,7 +26,7 @@ const App = defineComponent({
       activeTab: 'requests',
     })
 
-    const { wsUrl } = useAppContext()
+    const { wsUrl, mode } = useAppContext()
 
     const handleOpen = () => {
       state.open = true
@@ -38,55 +38,53 @@ const App = defineComponent({
 
     connect(wsUrl, logger)
 
+    const TabRender = () => (
+      <NTabs v-model:value={state.activeTab} type="line" animated>
+        <NTabPane name="requests" tab="请求记录" displayDirective="show:lazy">
+          <RequestList />
+        </NTabPane>
+        <NTabPane name="mocks" tab="接口模拟" displayDirective="show:lazy">
+          <MockList />
+        </NTabPane>
+        <NTabPane name="settings" tab="设置" displayDirective="show:lazy">
+          <SettingsPanel />
+        </NTabPane>
+      </NTabs>
+    )
+
     return () => (
       <NConfigProvider hljs={hljs}>
         <NDialogProvider>
           <NMessageProvider>
-            <NButton
-              type="primary"
-              onClick={handleOpen}
-              style={{
-                position: 'fixed',
-                bottom: '24px',
-                right: '24px',
-                zIndex: 1000,
-              }}
-            >
-              open
-            </NButton>
+            {mode === 'button' ? (
+              <Fragment>
+                <NButton
+                  type="primary"
+                  onClick={handleOpen}
+                  style={{
+                    position: 'fixed',
+                    bottom: '24px',
+                    right: '24px',
+                    zIndex: 1000,
+                  }}
+                >
+                  open
+                </NButton>
 
-            <NDrawer
-              v-model:show={state.open}
-              defaultWidth={720}
-              resizable
-              contentStyle={{ padding: '12px' }}
-            >
-              <div class="drawer-content">
-                <NTabs v-model:value={state.activeTab} type="line" animated>
-                  <NTabPane
-                    name="requests"
-                    tab="请求记录"
-                    displayDirective="show:lazy"
-                  >
-                    <RequestList />
-                  </NTabPane>
-                  <NTabPane
-                    name="mocks"
-                    tab="接口模拟"
-                    displayDirective="show:lazy"
-                  >
-                    <MockList />
-                  </NTabPane>
-                  <NTabPane
-                    name="settings"
-                    tab="设置"
-                    displayDirective="show:lazy"
-                  >
-                    <SettingsPanel />
-                  </NTabPane>
-                </NTabs>
-              </div>
-            </NDrawer>
+                <NDrawer
+                  v-model:show={state.open}
+                  defaultWidth={720}
+                  resizable
+                  contentStyle={{ padding: '12px' }}
+                >
+                  <div class="drawer-content">
+                    <TabRender></TabRender>
+                  </div>
+                </NDrawer>
+              </Fragment>
+            ) : (
+              <TabRender />
+            )}
           </NMessageProvider>
         </NDialogProvider>
       </NConfigProvider>

@@ -1,92 +1,6 @@
 import type { ViteHotContext } from 'vite/types/hot.js'
 import type { Logger } from '@baicie/logger'
-
-export interface WSMessage<T = any> {
-  type: WSMessageType
-  data?: T
-  id?: string
-}
-
-/**
- * WebSocket 消息类型枚举
- */
-export enum WSMessageType {
-  // Hack → Node
-  REQUEST_RECORDED = 'faker:request-recorded',
-
-  // UI → Node
-  MOCK_CREATE = 'faker:mock-create',
-  MOCK_UPDATE = 'faker:mock-update',
-  MOCK_DELETE = 'faker:mock-delete',
-  MOCK_LIST = 'faker:mock-list',
-  REQUEST_HISTORY = 'faker:request-history',
-  SETTINGS_GET = 'faker:settings-get',
-  SETTINGS_UPDATE = 'faker:settings-update',
-  SETTINGS_CLEAR_CACHE = 'faker:settings-clear-cache',
-
-  // Node → UI (响应)
-  MOCK_CREATED = 'faker:mock-created',
-  MOCK_UPDATED = 'faker:mock-updated',
-  MOCK_DELETED = 'faker:mock-deleted',
-  ERROR = 'faker:error',
-
-  // Node → Hack/UI (广播)
-  MOCK_CONFIG_UPDATED = 'faker:mock-config-updated',
-}
-
-/**
- * 请求记录接口
- */
-export interface RequestRecord {
-  id?: string
-  url: string
-  method: string
-  headers: Record<string, string>
-  query?: Record<string, string>
-  body?: any
-  response?: {
-    statusCode: number
-    headers: Record<string, string>
-    body: any
-  }
-  duration?: number
-  isMocked?: boolean
-  mockId?: string
-  timestamp: number
-}
-
-/**
- * Mock 配置接口
- */
-export interface MockConfig {
-  id: string
-  url: string
-  method: string
-  enabled: boolean
-  [key: string]: any
-}
-
-/**
- * 事件总线事件类型
- */
-export enum EventBusType {
-  // 数据库变更事件
-  DB_MOCK_CREATED = 'db:mock:created',
-  DB_MOCK_UPDATED = 'db:mock:updated',
-  DB_MOCK_DELETED = 'db:mock:deleted',
-  DB_REQUEST_SAVED = 'db:request:saved',
-  DB_SETTINGS_UPDATED = 'db:settings:updated',
-  DB_CACHE_CLEARED = 'db:cache:cleared',
-}
-
-/**
- * 事件总线事件接口
- */
-export interface EventBusEvent {
-  type: EventBusType
-  data?: any
-  timestamp?: number
-}
+import type { WSMessage, WSMessageType } from './type'
 
 export type FakerWebSocket = ViteHotContext | WebSocket | undefined
 
@@ -106,7 +20,7 @@ export class WSClient {
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectDelay = 1000
-  private handlers: Map<string, Set<Function>> = new Map()
+  private handlers: Map<WSMessageType, Set<Function>> = new Map()
   private isConnecting = false
   private logger: Logger
 

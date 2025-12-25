@@ -39,10 +39,15 @@ async function startWatcher() {
 }
 
 function startViteProcess() {
-  viteProcess = spawn('vite', ['--config', 'vite.config.ts'], {
-    stdio: 'inherit',
-    shell: useShell,
-  })
+  const viteBin = path.resolve('./node_modules/vite/bin/vite.js')
+  viteProcess = spawn(
+    process.execPath,
+    [viteBin, '--config', 'vite.config.ts'],
+    {
+      stdio: 'inherit',
+      shell: useShell,
+    },
+  )
 
   viteProcess.on('exit', code => {
     console.log('viteProcess exit', code)

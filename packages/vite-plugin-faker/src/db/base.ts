@@ -1,13 +1,11 @@
-import path from 'node:path'
-import fs from 'node:fs'
+import type { Pagination } from '@baicie/faker-shared'
+import chokidar from 'chokidar'
+import { clamp, filter, get, map, orderBy, slice } from 'lodash-es'
 import type { LowSync } from 'lowdb'
 import { JSONFileSyncPreset } from 'lowdb/node'
-import { clamp, filter, get, map, orderBy, slice } from 'lodash-es'
-import type { Pagination } from '@baicie/faker-shared'
+import fs from 'node:fs'
+import path from 'node:path'
 
-/**
- * 数据库配置选项
- */
 export interface DBConfig {
   dbDir?: string
   cacheDir: string
@@ -20,6 +18,7 @@ export abstract class BaseDB<T extends object> {
   protected static instances: Map<string, BaseDB<any>> = new Map()
   protected db: LowSync<T>
   protected tableName: string
+  protected dbFilePath: string
 
   protected constructor(tableName: string, defaultData: T, config: DBConfig) {
     this.tableName = tableName
@@ -27,10 +26,26 @@ export abstract class BaseDB<T extends object> {
     const dbDir = config.dbDir || path.resolve(config.cacheDir, 'db')
     fs.mkdirSync(dbDir, { recursive: true })
 
-    const filePath = path.join(dbDir, `${tableName}.json`)
-    this.db = JSONFileSyncPreset<T>(filePath, defaultData)
+    this.dbFilePath = path.join(dbDir, `${tableName}.json`)
+    this.db = JSONFileSyncPreset<T>(this.dbFilePath, defaultData)
     // init write
     this.db.write()
+    this.setupWatcher()
+  }
+
+  private setupWatcher(): void {
+    const watcher = chokidar.watch(this.dbFilePath, {
+      persistent: true,
+      ignoreInitial: true,
+    })
+
+    watcher.on('change', () => {
+      try {
+        this.db.read()
+      } catch (error) {
+        console.error(`Failed to reload DB file ${this.dbFilePath}:`, error)
+      }
+    })
   }
 
   getData(): T {

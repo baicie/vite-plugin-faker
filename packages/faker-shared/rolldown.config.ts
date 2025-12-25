@@ -29,6 +29,7 @@ export default defineConfig([
       },
     ],
     treeshake: true,
+    external: ['@faker-js/faker', 'lodash-es'],
     watch: {
       clearScreen: false,
     },

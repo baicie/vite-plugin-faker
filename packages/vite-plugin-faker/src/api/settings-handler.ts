@@ -1,6 +1,10 @@
 import type { DBManager } from '../db'
-import type { WSMessage } from '@baicie/faker-shared'
-import { EventBusType, WSMessageType } from '@baicie/faker-shared'
+import type { FakerMethodMap, WSMessage } from '@baicie/faker-shared'
+import {
+  EventBusType,
+  WSMessageType,
+  fakerMethodMap,
+} from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { EventBus } from './types'
 
@@ -54,10 +58,7 @@ export class SettingsHandler {
     }
   }
 
-  /**
-   * 处理清除缓存
-   */
-  handleClearCache(id?: string): WSMessage {
+  handleClearCache(): WSMessage {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
       requestsDB.clear()
@@ -68,11 +69,17 @@ export class SettingsHandler {
       return {
         type: WSMessageType.SETTINGS_CLEAR_CACHE,
         data: { success: true },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 清除缓存失败:', error)
       throw error
+    }
+  }
+
+  handleFakerApis(): WSMessage<FakerMethodMap> {
+    return {
+      type: WSMessageType.FAKERAPIS,
+      data: fakerMethodMap,
     }
   }
 }

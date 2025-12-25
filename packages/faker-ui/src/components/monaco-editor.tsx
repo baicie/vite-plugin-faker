@@ -8,7 +8,6 @@ let monacoPromise: Promise<MonacoType> | null = null
 
 const loadMonaco = (): Promise<MonacoType> => {
   if (!monacoPromise) {
-    // 使用 loader 懒加载 Monaco，避免在主 bundle 中直接打入全部编辑器代码
     monacoPromise = loader.init() as Promise<MonacoType>
   }
   return monacoPromise
@@ -96,7 +95,6 @@ const MonacoEditor = defineComponent({
       },
     )
 
-    // 组件销毁前释放资源
     onBeforeUnmount(() => {
       if (editor) {
         editor.dispose()

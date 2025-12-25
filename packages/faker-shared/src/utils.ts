@@ -1,4 +1,4 @@
-import type { RequestRecord } from './ws'
+import type { RequestRecord } from './type'
 
 export function generateUUID(): string {
   const buf = new Uint8Array(16)
@@ -52,4 +52,22 @@ export function safeJsonParse<T>(input: string, fallback: Partial<T>): T {
   } catch {
     return fallback as T
   }
+}
+
+export function isValidJSON(str: unknown): str is string {
+  if (typeof str !== 'string') return false
+  if (str.trim() === '') return false
+
+  try {
+    JSON.parse(str)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function sleep(delay: number): Promise<unknown> {
+  return new Promise(resolve => {
+    setTimeout(resolve, delay)
+  })
 }

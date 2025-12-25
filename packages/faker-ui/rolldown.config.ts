@@ -1,7 +1,7 @@
-import postcss from 'rollup-plugin-postcss'
-import { defineConfig } from 'rolldown'
-import vueJsx from '@vitejs/plugin-vue-jsx'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import { defineConfig } from 'rolldown'
+import postcss from 'rollup-plugin-postcss'
 import { visualizer } from 'rollup-plugin-visualizer'
 
 const needAnalyze = process.env.ANALYZE === 'true'

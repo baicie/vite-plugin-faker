@@ -1,18 +1,18 @@
 {
   "/api/users-GET": {
-    "id": "29f8fde7-7f82-49c3-9829-e2b471b397ed",
     "url": "/api/users",
     "method": "GET",
     "statusCode": 200,
-    "enabled": true,
+    "enabled": false,
     "description": "",
-    "responseType": "static",
+    "type": "static",
     "responseData": {},
     "responseTemplate": "{}",
     "responseCode": "return {\n  message: \"Hello World\"\n};",
     "delay": 0,
     "headers": {
       "Content-Type": "application/json"
-    }
+    },
+    "response": {}
   }
 }

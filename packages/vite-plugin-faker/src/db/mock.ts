@@ -1,6 +1,7 @@
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
+import { type ParmasLike, methodLineUrl } from '../utils'
 
 /**
  * Mock 配置数据库
@@ -21,12 +22,11 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   }
 
   // 添加Mock配置
-  addMock(config: Omit<MockConfig, 'id'>): MockConfig {
-    const id = `${config.url}-${config.method}`
-    const newConfig = { ...config, id } as MockConfig
-    this.db.data[id] = newConfig
+  addMock(config: MockConfig): MockConfig {
+    const id = methodLineUrl(config)
+    this.db.data[id] = config
     this.save()
-    return newConfig
+    return config
   }
 
   // 获取所有Mock配置
@@ -39,13 +39,9 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     return Object.values(this.db.data).filter(mock => mock.enabled)
   }
 
-  findMock(url: string, method: string): MockConfig | undefined {
-    return Object.values(this.db.data).find(
-      mock =>
-        mock.enabled &&
-        mock.url === url &&
-        mock.method.toUpperCase() === method.toUpperCase(),
-    )
+  findMock<T extends ParmasLike>(params: T): MockConfig | undefined {
+    const id = methodLineUrl(params)
+    return this.db.data[id]
   }
 
   updateMock(id: string, updates: Partial<MockConfig>): boolean {

@@ -1,9 +1,6 @@
 import type { WSClient } from '@baicie/faker-shared'
 import type { FetchInterceptor } from './hack/fetch-interceptor'
 import type { XHRInterceptor } from './hack/xhr-interceptor'
-/**
- * 从 shared 模块导出类型，保持向后兼容
- */
 export type { MockConfig, RequestRecord, WSMessage } from '@baicie/faker-shared'
 
 declare global {
@@ -11,8 +8,8 @@ declare global {
     __fakerInterceptorInitialized: boolean
     __fakerInterceptor: {
       wsClient: WSClient
-      fetchInterceptor: FetchInterceptor
       xhrInterceptor: XHRInterceptor
+      fetchInterceptor: FetchInterceptor
     }
   }
 }
