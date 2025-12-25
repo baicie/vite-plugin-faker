@@ -1,5 +1,5 @@
 import { defineComponent, ref, watch } from 'vue'
-import { NInput } from 'naive-ui'
+import MonacoEditor from '../monaco-editor'
 
 interface Props {
   value: string
@@ -38,27 +38,15 @@ const JsonEditor = defineComponent({
       props.onChange(value)
     }
 
-    function handleBlur() {
-      // 尝试格式化 JSON
-      try {
-        const parsed = JSON.parse(textValue.value)
-        textValue.value = JSON.stringify(parsed, null, 2)
-        props.onChange(textValue.value)
-      } catch {
-        // 不是有效 JSON，保持原样
-      }
-    }
-
     return () => (
-      <NInput
-        v-model:value={textValue.value}
-        type="textarea"
-        placeholder={props.placeholder}
-        rows={15}
-        onUpdateValue={handleChange}
-        onBlur={handleBlur}
-        style="font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;"
-      />
+      <div style="height: 400px; border: 1px solid #ddd; border-radius: 4px;">
+        <MonacoEditor
+          value={textValue.value}
+          language="json"
+          onChange={handleChange}
+          height="400px"
+        />
+      </div>
     )
   },
 })

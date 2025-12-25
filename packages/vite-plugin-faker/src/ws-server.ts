@@ -11,10 +11,8 @@ import { WSMessageHandler } from './api'
 import type { DBManager } from './db'
 import { EventBus } from './event-bus'
 import { isValidJSON } from '@baicie/faker-shared'
-/**
- * WebSocket 服务器
- * 支持 Vite HMR WebSocket 或独立 ws 服务器
- */
+import type { ViteFakerConfig } from './config'
+
 export class WSServer {
   private viteServer?: ViteDevServer
   private standaloneServer?: WebSocketServer
@@ -25,16 +23,17 @@ export class WSServer {
 
   constructor(
     dbManager: DBManager,
-    options?: { viteServer?: ViteDevServer; port?: number },
+    server: ViteDevServer,
+    config: ViteFakerConfig,
   ) {
     this.eventBus = new EventBus()
     this.messageHandler = new WSMessageHandler(dbManager, this.eventBus)
 
-    if (options?.port) {
+    if (config.uiOptions && config.uiOptions.wsPort) {
       this.useStandalone = true
-      this.setupStandalone(options.port)
-    } else if (options?.viteServer) {
-      this.viteServer = options.viteServer
+      this.setupStandalone(config.uiOptions.wsPort)
+    } else if (server) {
+      this.viteServer = server
       this.useStandalone = false
       this.setupVite()
     } else {

@@ -22,6 +22,7 @@
     "tree-kill": "^1.2.2",
     "typescript": "~5.9.3",
     "vite": "catalog:",
+    "vite-plugin-inspect": "^11.3.3",
     "vue-tsc": "^3.2.1"
   }
 }

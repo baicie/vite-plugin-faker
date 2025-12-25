@@ -3,7 +3,7 @@
     "url": "/api/users",
     "method": "GET",
     "statusCode": 200,
-    "enabled": true,
+    "enabled": false,
     "description": "",
     "type": "static",
     "responseData": {},

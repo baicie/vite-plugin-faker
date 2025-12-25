@@ -4,8 +4,7 @@ import { logger } from '@baicie/logger'
 import qs from 'qs'
 import type { Connect, ViteDevServer } from 'vite'
 import { dbManager } from '../index'
-import generateResponseMap from './generate'
-import { readBody } from './parse-body'
+import { generateResponseMap, readBody } from '../mock'
 
 export function parseQuery<T extends QueryObject = QueryObject>(
   url: string,

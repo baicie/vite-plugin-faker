@@ -206,3 +206,6 @@ export interface EventBusEvent {
   timestamp?: number
 }
 //#endregion
+//#region vite-plugin-faker
+export type UiOptionsMode = 'button' | 'route'
+//#endregion

@@ -1,4 +1,7 @@
+import { UI_PATH, type UiOptionsMode, cleanUrl } from '@baicie/faker-shared'
+import { type LoggerConfig, logger } from '@baicie/logger'
 import * as path from 'node:path'
+import pc from 'picocolors'
 import {
   type HtmlTagDescriptor,
   type Plugin,
@@ -6,10 +9,7 @@ import {
   mergeAlias,
   normalizePath,
 } from 'vite'
-import { type LoggerConfig, initLogger, logger } from '@baicie/logger'
-import { DBManager } from './db'
-import { WSServer } from './ws-server'
-import { extend } from 'lodash-es'
+import { resolveConfig } from './config'
 import {
   CLIENT_ALIAS,
   CLIENT_INTERCEPTOR_PATH,
@@ -17,8 +17,10 @@ import {
   INTERCEPTOR_PATH,
   UI_ENTRY,
 } from './constants'
-import { cleanUrl } from '@baicie/faker-shared'
-import { mockMiddleware } from './mock'
+import { DBManager } from './db'
+import { mockMiddleware } from './middlewares/mock'
+import { routeMiddleware } from './middlewares/route'
+import { WSServer } from './ws-server'
 
 export interface ViteFakerOptions {
   /**
@@ -46,6 +48,11 @@ export interface ViteFakerOptions {
      * @default 10 * 1000
      */
     timeout?: number
+    /**
+     * @description 模式 默认route
+     * @default 'route'
+     */
+    mode?: UiOptionsMode
   }
 }
 
@@ -58,30 +65,7 @@ const normalizedUIEntry = normalizePath(UI_ENTRY)
 const normalizedInterceptorEntry = normalizePath(INTERCEPTOR_PATH)
 
 export function viteFaker(options: ViteFakerOptions = {}): Plugin {
-  const {
-    mountTarget = '#mock-ui',
-    storeDir = '.mock',
-    loggerOptions,
-    uiOptions = {},
-  } = options
-  const _loggerOptions = extend(
-    {
-      enabled: true,
-      level: 'error',
-      showTimestamp: true,
-      showLevel: true,
-    },
-    loggerOptions,
-  )
-
-  initLogger(
-    extend(
-      {
-        prefix: '[Faker Plugin]',
-      },
-      _loggerOptions,
-    ),
-  )
+  const _config = resolveConfig(options)
 
   return {
     name: 'vite-plugin-faker',
@@ -99,23 +83,49 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
     },
     configResolved(config) {
       cacheDir = path.resolve(config.cacheDir, 'vite-plugin-faker')
-      _baseDir = path.resolve(config.root, storeDir)
+      _baseDir = path.resolve(config.root, _config.storeDir)
       dbManager = DBManager.getInstance(cacheDir, _baseDir)
     },
     configureServer(_server) {
       server = _server
+      const config = _server.config
 
       server.middlewares.use(mockMiddleware(server))
+      server.middlewares.use(routeMiddleware(server, _config))
 
       if (dbManager) {
         try {
-          new WSServer(dbManager, {
-            viteServer: server,
-            port: uiOptions.wsPort,
-          })
+          new WSServer(dbManager, server, _config)
           logger.info('[Faker] WebSocket 服务器已启动')
         } catch (error) {
           logger.error('[Faker] WebSocket 服务器启动失败:', error)
+        }
+      }
+
+      const _print = server.printUrls
+      server.printUrls = () => {
+        let host = `${config.server.https ? 'https' : 'http'}://localhost:${config.server.port || '80'}`
+
+        const url = server?.resolvedUrls?.local[0]
+
+        if (url) {
+          try {
+            const u = new URL(url)
+            host = `${u.protocol}//${u.host}`
+          } catch (error) {
+            config.logger.warn(`Parse resolved url failed: ${error}`)
+          }
+        }
+
+        _print()
+
+        if (!_config.silent) {
+          const colorUrl = (url: string) =>
+            pc.green(url.replace(/:(\d+)\//, (_, port) => `:${pc.bold(port)}`))
+
+          config.logger.info(
+            `  ${pc.green('➜')}  ${pc.bold('FakerUI')}: ${colorUrl(`${host}${config.base}${UI_PATH}/`)}`,
+          )
         }
       }
     },
@@ -152,12 +162,18 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         cleanId === normalizedInterceptorEntry
       ) {
         logger.debug('cleanId', cleanId)
-        logger.debug('mountTarget', mountTarget)
+        logger.debug('mountTarget', _config.mountTarget)
         return code
-          .replace(`__MOUNT_TARGET__`, JSON.stringify(mountTarget))
-          .replace(`__FAKER_WS_PORT__`, JSON.stringify(uiOptions?.wsPort))
-          .replace(`__FAKER_LOGGER_OPTIONS__`, JSON.stringify(_loggerOptions))
-          .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(uiOptions))
+          .replace(`__MOUNT_TARGET__`, JSON.stringify(_config.mountTarget))
+          .replace(
+            `__FAKER_WS_PORT__`,
+            JSON.stringify(_config.uiOptions?.wsPort),
+          )
+          .replace(
+            `__FAKER_LOGGER_OPTIONS__`,
+            JSON.stringify(_config.loggerOptions),
+          )
+          .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(_config.uiOptions))
       }
       return code
     },
