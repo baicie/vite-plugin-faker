@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App'
-import { type LoggerConfig, initLogger, logger } from '@baicie/logger'
+import { type LoggerConfig, initLogger } from '@baicie/logger'
 import { extend } from '@baicie/faker-shared'
 import { type UIOPtions, appContextKey } from './hooks/use-app-context'
 
@@ -17,7 +17,6 @@ const mountTarget: string = __MOUNT_TARGET__
 export async function fakerUI(target: string, wsUrl?: string): Promise<void> {
   const options = extend(loogerOptions, { prefix: '[FakerUI]' })
   initLogger(options)
-  logger.debug('faker ui start')
   const app = createApp(App)
   app.provide(appContextKey, extend(uiOptions, { wsUrl }))
   app.mount(target)

@@ -16,6 +16,7 @@ import { connect } from './hooks/use-ws'
 import MockList from './tabs/mock/mock-list'
 import RequestList from './tabs/request/request-list'
 import SettingsPanel from './tabs/setting/settings-panel'
+import RouteMode from './modes/route'
 
 hljs.registerLanguage('json', json)
 
@@ -83,7 +84,7 @@ const App = defineComponent({
                 </NDrawer>
               </Fragment>
             ) : (
-              <TabRender />
+              <RouteMode />
             )}
           </NMessageProvider>
         </NDialogProvider>

@@ -24,32 +24,33 @@ import { WSServer } from './ws-server'
 
 export interface ViteFakerOptions {
   /**
-   * 挂载UI面板的目标元素选择器
+   * ui target mount element id
    * @default '#mock-ui'
    */
   mountTarget?: string
   /**
-   * 存储目录
+   * mock config directory
    * @default '.mock'
    */
   storeDir?: string
   /**
-   * @description 日志配置
+   * @description logger options
    */
   loggerOptions?: Partial<LoggerConfig>
 
   uiOptions?: {
     /**
-     * @description ws服务器端口 默认复用vite ws server
+     * @description ws server port
+     * @default 3456
      */
     wsPort?: number
     /**
-     * @description 默认请求超时时间 默认10秒
+     * @description default request timeout times
      * @default 10 * 1000
      */
     timeout?: number
     /**
-     * @description 模式 默认route
+     * @description button or route mode
      * @default 'route'
      */
     mode?: UiOptionsMode
@@ -102,30 +103,34 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
         }
       }
 
-      const _print = server.printUrls
-      server.printUrls = () => {
-        let host = `${config.server.https ? 'https' : 'http'}://localhost:${config.server.port || '80'}`
+      if (_config.uiOptions?.mode === 'route') {
+        const _print = server.printUrls
+        server.printUrls = () => {
+          let host = `${config.server.https ? 'https' : 'http'}://localhost:${config.server.port || '80'}`
 
-        const url = server?.resolvedUrls?.local[0]
+          const url = server?.resolvedUrls?.local[0]
 
-        if (url) {
-          try {
-            const u = new URL(url)
-            host = `${u.protocol}//${u.host}`
-          } catch (error) {
-            config.logger.warn(`Parse resolved url failed: ${error}`)
+          if (url) {
+            try {
+              const u = new URL(url)
+              host = `${u.protocol}//${u.host}`
+            } catch (error) {
+              config.logger.warn(`Parse resolved url failed: ${error}`)
+            }
           }
-        }
 
-        _print()
+          _print()
 
-        if (!_config.silent) {
-          const colorUrl = (url: string) =>
-            pc.green(url.replace(/:(\d+)\//, (_, port) => `:${pc.bold(port)}`))
+          if (!_config.silent) {
+            const colorUrl = (url: string) =>
+              pc.green(
+                url.replace(/:(\d+)\//, (_, port) => `:${pc.bold(port)}`),
+              )
 
-          config.logger.info(
-            `  ${pc.green('➜')}  ${pc.bold('FakerUI')}: ${colorUrl(`${host}${config.base}${UI_PATH}/`)}`,
-          )
+            config.logger.info(
+              `  ${pc.green('➜')}  ${pc.bold('FakerUI')}: ${colorUrl(`${host}${config.base}${UI_PATH}/`)}`,
+            )
+          }
         }
       }
     },
@@ -141,18 +146,18 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
           injectTo: 'head',
         }
       })
+      if (_config.uiOptions?.mode === 'button') {
+        tags.push({
+          tag: 'div',
+          attrs: {
+            id: 'mock-ui',
+          },
+          injectTo: 'body',
+        })
+      }
       return {
         html,
-        tags: [
-          ...tags,
-          {
-            tag: 'div',
-            attrs: {
-              id: 'mock-ui',
-            },
-            injectTo: 'body',
-          },
-        ],
+        tags,
       }
     },
     transform(code, id) {
