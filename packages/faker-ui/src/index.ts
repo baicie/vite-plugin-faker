@@ -1,25 +1,51 @@
-import { createApp } from 'vue'
-import App from './App'
+import { mount } from 'svelte'
+import App from './App.svelte'
 import { type LoggerConfig, initLogger } from '@baicie/logger'
 import { extend } from '@baicie/faker-shared'
-import { type UIOPtions, appContextKey } from './hooks/use-app-context'
+import type { UIOptions } from './hooks/use-app-context.js'
+import './index.css'
 
 declare const __MOUNT_TARGET__: string
 declare const __FAKER_WS_PORT__: string
 declare const __FAKER_LOGGER_OPTIONS__: LoggerConfig
-declare const __FAKER_UI_OPTIONS__: UIOPtions
+declare const __FAKER_UI_OPTIONS__: UIOptions
 
 const wsPort = Number(__FAKER_WS_PORT__)
 const loogerOptions: LoggerConfig = __FAKER_LOGGER_OPTIONS__ || {}
-const uiOptions: UIOPtions = __FAKER_UI_OPTIONS__ || {}
+const uiOptions: UIOptions = __FAKER_UI_OPTIONS__ || {}
 const mountTarget: string = __MOUNT_TARGET__
 
-export async function fakerUI(target: string, wsUrl?: string): Promise<void> {
+export async function fakerUI(
+  target: string | Element,
+  wsUrl?: string,
+): Promise<void> {
   const options = extend(loogerOptions, { prefix: '[FakerUI]' })
   initLogger(options)
-  const app = createApp(App)
-  app.provide(appContextKey, extend(uiOptions, { wsUrl }))
-  app.mount(target)
+
+  let targetElement: Element | null = null
+  if (typeof target === 'string') {
+    targetElement = document.querySelector(target)
+    if (!targetElement && target.startsWith('#')) {
+      targetElement = document.getElementById(target.slice(1))
+    }
+    if (!targetElement && target === 'body') {
+      targetElement = document.body
+    }
+  } else {
+    targetElement = target
+  }
+
+  if (!targetElement) {
+    console.error(`[FakerUI] Target element "${target}" not found.`)
+    return
+  }
+
+  mount(App, {
+    target: targetElement,
+    props: {
+      uiOptions: extend(uiOptions, { wsUrl }),
+    },
+  })
 }
 
 if (typeof window !== 'undefined') {

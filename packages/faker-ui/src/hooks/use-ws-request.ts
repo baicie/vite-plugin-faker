@@ -1,7 +1,6 @@
 import type { WSMessage, WSMessageType } from '@baicie/faker-shared'
 import { extend, generateUUID } from '@baicie/faker-shared'
-import { useAppContext } from './use-app-context'
-import { wsClient } from './use-ws'
+import { wsClient, getTimeout } from './use-ws'
 
 interface RequestOptions {}
 
@@ -15,23 +14,34 @@ type WSHandler<T = any> = (data: T, message: WSMessage) => void
 
 export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
   function request(data?: T): Promise<R> {
-    const { timeout } = useAppContext()
+    const timeout = getTimeout()
 
     function send(payload: T): void {
+      if (!wsClient) {
+          console.error('WebSocket client not initialized')
+          return
+      }
       wsClient.send(context.sendType, payload)
     }
 
     function on(handler: WSHandler<T>): void {
+      if (!wsClient) return
       wsClient.on(context.responseType, handler)
     }
 
     function off(handler: WSHandler<T>): void {
+      if (!wsClient) return
       wsClient.off(context.responseType, handler)
     }
 
     const reqId = generateUUID()
 
     return new Promise(function (resolve, reject) {
+      if (!wsClient) {
+          reject(new Error('WebSocket client not initialized'))
+          return
+      }
+      
       let done = false
       function handler(payload: T, message: WSMessage) {
         if (done) {
@@ -46,10 +56,10 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
 
       on(handler)
 
-      let timer: number | undefined
+      let timer: any
 
       if (timeout > 0) {
-        timer = window.setTimeout(function () {
+        timer = setTimeout(function () {
           if (done) {
             return
           }
@@ -70,7 +80,7 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
           done = true
           off(handler)
           if (timer) {
-            window.clearTimeout(timer)
+            clearTimeout(timer)
           }
           reject(error)
         }

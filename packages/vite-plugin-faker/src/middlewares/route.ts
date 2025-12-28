@@ -3,14 +3,15 @@ import { logger } from '@baicie/logger'
 import path from 'node:path'
 import type { Connect, ViteDevServer } from 'vite'
 import type { ViteFakerConfig } from '../config'
-import { CLIENT_UI_PATH } from '../constants'
+import { CLIENT_UI_CSS, CLIENT_UI_PATH } from '../constants'
 
-const createPage = (src: string): string => `
+const createPage = (src: string, cssSrc: string): string => `
   <!doctype html>
   <html>
     <head>
       <meta charset="utf-8" />
       <title>Faker UI</title>
+      <style src=${cssSrc} type="text/css"></style>
       <script type="module" src=${src}></script>
     </head>
     <body>
@@ -28,6 +29,7 @@ export function routeMiddleware(
       if (req.url && UI_PATH_REG.test(req.url)) {
         const page = createPage(
           path.posix.join(server.config.base, CLIENT_UI_PATH),
+          path.posix.join(server.config.base, CLIENT_UI_CSS),
         )
         res.writeHead(200, { 'Content-Type': 'text/html' })
         res.write(page)

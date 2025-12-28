@@ -1,20 +1,13 @@
-import { extend } from '@baicie/faker-shared'
-import { type InjectionKey, inject } from 'vue'
+import { getContext } from 'svelte'
 
-export interface UIOPtions {
-  wsUrl: string
-  timeout: number
-  mode: 'button' | 'route'
+export const appContextKey = Symbol('app-context')
+
+export interface UIOptions {
+  wsUrl?: string
+  timeout?: number
+  mode?: 'hash' | 'history' | 'button'
 }
 
-export const appContextKey = Symbol('app-config') as InjectionKey<UIOPtions>
-
-const defaultOptions: UIOPtions = {
-  wsUrl: '',
-  timeout: 10 * 1000,
-  mode: 'route',
-}
-
-export function useAppContext() {
-  return extend(defaultOptions, inject(appContextKey, defaultOptions))
+export function useAppContext(): UIOptions {
+  return getContext<UIOptions>(appContextKey)
 }
