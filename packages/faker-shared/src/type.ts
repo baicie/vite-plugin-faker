@@ -91,6 +91,8 @@ export type MockType =
 
 export interface BaseMockConfig {
   id?: string // uni use for record / replay / UI
+  url: string
+  method: string
   type: MockType
   enabled: boolean
   name?: string

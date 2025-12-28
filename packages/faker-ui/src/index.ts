@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import App from './App'
+import './index.css'
 import { type LoggerConfig, initLogger } from '@baicie/logger'
 import { extend } from '@baicie/faker-shared'
 import { type UIOPtions, appContextKey } from './hooks/use-app-context'

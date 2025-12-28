@@ -1,14 +1,7 @@
 import { defineComponent, onMounted, reactive, ref } from 'vue'
-import {
-  NButton,
-  NDataTable,
-  NInput,
-  NMessageProvider,
-  NPopconfirm,
-  NSpace,
-  NSwitch,
-  useMessage,
-} from 'naive-ui'
+import { Switch } from '../../components/ui/switch'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
 import MockEditor from './mock-editor'
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import {
@@ -20,101 +13,18 @@ import {
 const MockList = defineComponent({
   name: 'MockList',
   setup() {
-    const message = useMessage()
     const mocks = ref<MockConfig[]>([])
     const loading = ref(false)
     const showEditor = ref(false)
     const currentMock = ref<any>(null)
+    const search = ref('')
 
     const pagination = reactive({
       page: 1,
       pageSize: 10,
       itemCount: 0,
-      showSizePicker: true,
-      pageSizes: [10, 20, 50],
-      onChange: (page: number) => {
-        pagination.page = page
-        loadMocks({ page, pageSize: pagination.pageSize })
-      },
-      onUpdatePageSize: (pageSize: number) => {
-        pagination.pageSize = pageSize
-        pagination.page = 1
-        loadMocks({ page: 1, pageSize })
-      },
+      total: 0,
     })
-
-    const columns = [
-      {
-        title: 'URL',
-        key: 'url',
-        width: 200,
-      },
-      {
-        title: '方法',
-        key: 'method',
-        width: 80,
-      },
-      {
-        title: '状态',
-        key: 'enabled',
-        width: 80,
-        render: (row: any) => (
-          <NSwitch
-            value={row.enabled}
-            onUpdateValue={val => handleToggle(row.id, val)}
-          />
-        ),
-      },
-      {
-        title: '类型',
-        key: 'responseType',
-        width: 100,
-      },
-      {
-        title: '描述',
-        key: 'description',
-        ellipsis: true,
-      },
-      {
-        title: '操作',
-        key: 'actions',
-        width: 150,
-        render: (row: any) => (
-          <NSpace>
-            <NButton size="small" onClick={() => handleEdit(row)}>
-              编辑
-            </NButton>
-            <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-              {{
-                trigger: () => (
-                  <NButton size="small" type="error">
-                    删除
-                  </NButton>
-                ),
-                default: () => '确定要删除这个 Mock 吗？',
-              }}
-            </NPopconfirm>
-          </NSpace>
-        ),
-      },
-    ]
-
-    function handleEdit(mock: any) {
-      currentMock.value = { ...mock }
-      showEditor.value = true
-    }
-
-    function handleCreate() {
-      currentMock.value = {
-        url: '',
-        method: 'GET',
-        enabled: true,
-        statusCode: 200,
-        responseType: 'static',
-        responseData: {},
-      }
-      showEditor.value = true
-    }
 
     async function loadMocks(params?: {
       page?: number
@@ -127,35 +37,55 @@ const MockList = defineComponent({
           page: params && params.page ? params.page : pagination.page,
           pageSize:
             params && params.pageSize ? params.pageSize : pagination.pageSize,
-          search: params ? params.search : undefined,
+          search: params ? params.search : search.value || undefined,
         }
         const result: Page<MockConfig> = await fetchMockList(query)
         mocks.value = result.items
+        pagination.total = result.pagination.total
         pagination.itemCount = result.pagination.total
         pagination.page = result.pagination.page
         pagination.pageSize = result.pagination.pageSize
       } catch (error) {
-        message.error('加载 Mock 列表失败')
+        console.error('Failed to load mocks', error)
       } finally {
         loading.value = false
       }
     }
 
+    function handleEdit(mock: any) {
+      currentMock.value = { ...mock }
+      showEditor.value = true
+    }
+
+    function handleCreate() {
+      currentMock.value = {
+        url: '',
+        method: 'GET',
+        enabled: true,
+        statusCode: 200,
+        type: 'static',
+        responseData: {},
+      }
+      showEditor.value = true
+    }
+
     async function handleDelete(id: string) {
+      if (!confirm('Are you sure you want to delete this Mock?')) return
+
       try {
         await apiDeleteMock({ id })
-        message.success('删除成功')
+        loadMocks()
       } catch (error) {
-        message.error('删除失败')
+        console.error('Failed to delete mock', error)
       }
     }
 
     async function handleToggle(id: string, enabled: boolean) {
       try {
         await updateMock({ id, updates: { enabled } })
-        message.success(enabled ? '已启用' : '已禁用')
+        loadMocks()
       } catch (error) {
-        message.error('操作失败')
+        console.error('Failed to toggle mock', error)
       }
     }
 
@@ -174,43 +104,229 @@ const MockList = defineComponent({
     })
 
     return () => (
-      <NMessageProvider>
-        <div>
-          <div style="margin-bottom: 16px; display: flex; justify-content: space-between;">
-            <NInput
-              placeholder="搜索 Mock..."
-              style="width: 300px;"
-              onUpdateValue={val => {
-                loadMocks({
-                  page: 1,
-                  pageSize: pagination.pageSize,
-                  search: val,
-                })
+      <div>
+        <div class="mb-4 flex justify-between items-center gap-4">
+          <div class="flex-1 max-w-sm">
+            <Input
+              type="text"
+              placeholder="Search mocks..."
+              modelValue={search.value}
+              onUpdate:modelValue={(val: string | number) => {
+                search.value = val as string
+                loadMocks({ page: 1, search: search.value })
               }}
             />
-            <NButton type="primary" onClick={handleCreate}>
-              新建 Mock
-            </NButton>
           </div>
-
-          <NDataTable
-            columns={columns}
-            data={mocks.value}
-            loading={loading.value}
-            pagination={pagination}
-            rowKey={row => row.id}
-          />
-
-          {showEditor.value && (
-            <MockEditor
-              show={showEditor.value}
-              mock={currentMock.value}
-              onSave={handleEditorSave}
-              onCancel={handleEditorCancel}
-            />
-          )}
+          <Button onClick={handleCreate}>Create Mock</Button>
         </div>
-      </NMessageProvider>
+
+        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                >
+                  URL
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                >
+                  Method
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                >
+                  Type
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                >
+                  Description
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
+              {loading.value ? (
+                <tr>
+                  <td
+                    colspan={6}
+                    class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              ) : mocks.value.length === 0 ? (
+                <tr>
+                  <td
+                    colspan={6}
+                    class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    No mocks found
+                  </td>
+                </tr>
+              ) : (
+                mocks.value.map(row => (
+                  <tr
+                    key={row.id}
+                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  >
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                      {row.url}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {row.method}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <Switch
+                        modelValue={row.enabled}
+                        onUpdate:modelValue={(val: boolean) =>
+                          handleToggle(row.id!, val)
+                        }
+                      />
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {row.type}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                      {row.description}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Button
+                        onClick={() => handleEdit(row)}
+                        variant="link"
+                        class="text-indigo-600 dark:text-indigo-400 p-0 mr-4 h-auto"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(row.id!)}
+                        variant="link"
+                        class="text-red-600 dark:text-red-400 p-0 h-auto"
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-900 dark:border-gray-700 mt-2 rounded-lg">
+          {/* Reuse pagination logic from RequestList or extract to component */}
+          <div class="flex flex-1 justify-between sm:hidden">
+            <button
+              onClick={() => loadMocks({ page: pagination.page - 1 })}
+              disabled={pagination.page <= 1}
+              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => loadMocks({ page: pagination.page + 1 })}
+              disabled={
+                pagination.page * pagination.pageSize >= pagination.total
+              }
+              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+            >
+              Next
+            </button>
+          </div>
+          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-400">
+                Showing{' '}
+                <span class="font-medium">
+                  {(pagination.page - 1) * pagination.pageSize + 1}
+                </span>{' '}
+                to{' '}
+                <span class="font-medium">
+                  {Math.min(
+                    pagination.page * pagination.pageSize,
+                    pagination.total,
+                  )}
+                </span>{' '}
+                of <span class="font-medium">{pagination.total}</span> results
+              </p>
+            </div>
+            <div>
+              <nav
+                class="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
+                <button
+                  onClick={() => loadMocks({ page: pagination.page - 1 })}
+                  disabled={pagination.page <= 1}
+                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-800"
+                >
+                  <span class="sr-only">Previous</span>
+                  <svg
+                    class="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => loadMocks({ page: pagination.page + 1 })}
+                  disabled={
+                    pagination.page * pagination.pageSize >= pagination.total
+                  }
+                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-800"
+                >
+                  <span class="sr-only">Next</span>
+                  <svg
+                    class="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        {showEditor.value && (
+          <MockEditor
+            show={showEditor.value}
+            mock={currentMock.value}
+            onSave={handleEditorSave}
+            onCancel={handleEditorCancel}
+          />
+        )}
+      </div>
     )
   },
 })

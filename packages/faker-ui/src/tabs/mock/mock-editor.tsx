@@ -1,23 +1,31 @@
 import {
-  NButton,
-  NDivider,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace,
-  NSwitch,
-  NTabPane,
-  NTabs,
-} from 'naive-ui'
-import type { PropType } from 'vue'
-import { computed, defineComponent, reactive, ref, toRaw, watch } from 'vue'
+  Dialog,
+  DialogPanel,
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+  TransitionChild,
+  TransitionRoot,
+} from '@headlessui/vue'
+import {
+  Fragment,
+  type PropType,
+  defineComponent,
+  reactive,
+  ref,
+  watch,
+} from 'vue'
+import type { MockConfig } from '@baicie/faker-shared'
 import { createMock, updateMock } from '../../api'
 import CodeEditor from '../../components/editors/code-editor'
 import JsonEditor from '../../components/editors/json-editor'
-import VisualEditor from '../../components/editors/visual-editor'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Switch } from '../../components/ui/switch'
+import { Select } from '../../components/ui/select'
+import clsx from 'clsx'
 
 const MockEditor = defineComponent({
   name: 'MockEditor',
@@ -33,18 +41,8 @@ const MockEditor = defineComponent({
   },
   emits: ['save', 'cancel'],
   setup(props, { emit }) {
-    const formRef = ref(null)
-    const activeTab = ref('basic')
+    const activeTab = ref(0) // 0: basic, 1: response, 2: advanced
     const saving = ref(false)
-
-    const _show = computed({
-      get() {
-        return props.show
-      },
-      set(value) {
-        emit('cancel', value)
-      },
-    })
 
     // 表单数据
     const formData = reactive({
@@ -62,7 +60,6 @@ const MockEditor = defineComponent({
       headers: { 'Content-Type': 'application/json' },
     })
 
-    // 选项数据
     const methodOptions = [
       { label: 'GET', value: 'GET' },
       { label: 'POST', value: 'POST' },
@@ -79,7 +76,6 @@ const MockEditor = defineComponent({
       { label: '自定义函数', value: 'function' },
     ]
 
-    // 当mock属性变化时更新表单
     watch(
       () => props.mock,
       newVal => {
@@ -99,45 +95,89 @@ const MockEditor = defineComponent({
             delay: 0,
             headers: { 'Content-Type': 'application/json' },
           })
-          return
+        } else {
+          Object.assign(formData, { ...newVal })
+          // Ensure string format for editors
+          if (typeof formData.responseData === 'object') {
+            formData.responseData = JSON.stringify(
+              formData.responseData,
+              null,
+              2,
+            )
+          }
+          if (typeof formData.responseTemplate === 'object') {
+            formData.responseTemplate = JSON.stringify(
+              formData.responseTemplate,
+              null,
+              2,
+            )
+          }
         }
-
-        Object.keys(formData).forEach(key => {
-          if (key === 'headers' && newVal.headers) {
-            formData.headers = { ...newVal.headers }
-            return
-          }
-
-          if (key === 'responseData' && typeof newVal[key] !== 'string') {
-            formData[key] = JSON.stringify(newVal[key], null, 2)
-            return
-          }
-
-          if (newVal[key] !== undefined) {
-            // @ts-expect-error
-            formData[key] = newVal[key]
-          }
-        })
       },
       { immediate: true },
     )
 
-    // 保存
     async function handleSave() {
-      try {
-        saving.value = true
+      if (!formData.url) {
+        alert('URL is required')
+        return
+      }
 
-        const data: any = {
-          ...toRaw(formData),
+      saving.value = true
+      try {
+        let data: MockConfig
+        const base = {
+          id: formData.id || undefined,
+          url: formData.url,
+          method: formData.method,
+          enabled: formData.enabled,
+          description: formData.description,
         }
 
-        // 处理响应数据
-        if (data.responseType === 'static') {
+        if (formData.responseType === 'static') {
+          let body = formData.responseData
           try {
-            data.responseData = JSON.parse(data.responseData)
+            if (typeof body === 'string') {
+              body = JSON.parse(body)
+            }
           } catch (e) {
-            throw new Error('响应数据格式错误')
+            alert('Response Data is not valid JSON')
+            saving.value = false
+            return
           }
+          data = {
+            ...base,
+            type: 'static',
+            response: {
+              status: formData.statusCode,
+              body,
+              delay: formData.delay,
+              headers: formData.headers,
+            },
+          }
+        } else if (formData.responseType === 'faker') {
+          let schema: any = formData.responseTemplate
+          try {
+            if (typeof schema === 'string') {
+              schema = JSON.parse(schema)
+            }
+          } catch (e) {
+            alert('Response Template is not valid JSON')
+            saving.value = false
+            return
+          }
+          data = {
+            ...base,
+            type: 'template',
+            schema,
+          }
+        } else {
+          // Function type
+          data = {
+            ...base,
+            type: 'function',
+            handler: () => ({ status: 200, body: {} }),
+          } as unknown as MockConfig
         }
 
         if (data.id) {
@@ -145,151 +185,224 @@ const MockEditor = defineComponent({
         } else {
           await createMock(data)
         }
-
         emit('save', data)
       } catch (error) {
-        console.error('保存失败:', error)
-        throw error
+        console.error(error)
+        alert('Failed to save mock')
       } finally {
         saving.value = false
       }
     }
 
-    // 取消
-    function handleCancel() {
+    const close = () => {
       emit('cancel')
     }
 
     return () => (
-      <NModal
-        v-model:show={_show.value}
-        style="width: 90%; max-width: 1000px;"
-        maskClosable={false}
-        preset="card"
-        title={formData.id ? '编辑 Mock' : '新建 Mock'}
-      >
-        <NTabs v-model:value={activeTab.value}>
-          <NTabPane name="basic" tab="基本信息">
-            <NForm ref={formRef} labelPlacement="left" labelWidth="120">
-              <NFormItem label="URL路径" required>
-                <NInput
-                  v-model:value={formData.url}
-                  placeholder="/api/example"
-                />
-              </NFormItem>
+      <TransitionRoot appear show={props.show} as="template">
+        <Dialog as="div" class="relative z-50" onClose={close}>
+          <TransitionChild
+            as="template"
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div class="fixed inset-0 bg-black bg-opacity-25" />
+          </TransitionChild>
 
-              <NFormItem label="请求方法" required>
-                <NSelect
-                  v-model:value={formData.method}
-                  options={methodOptions}
-                />
-              </NFormItem>
+          <div class="fixed inset-0 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+              <TransitionChild
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4"
+                  >
+                    {formData.id ? 'Edit Mock' : 'Create Mock'}
+                  </Dialog.Title>
 
-              <NFormItem label="状态码" required>
-                <NInputNumber
-                  v-model:value={formData.statusCode}
-                  min={100}
-                  max={599}
-                />
-              </NFormItem>
+                  <TabGroup
+                    selectedIndex={activeTab.value}
+                    onChange={index => {
+                      activeTab.value = index
+                    }}
+                  >
+                    <TabList class="flex space-x-1 rounded-xl bg-blue-900/20 p-1 dark:bg-gray-700/50 mb-4">
+                      {['Basic', 'Response', 'Advanced'].map(name => (
+                        <Tab
+                          key={name}
+                          as="template"
+                          v-slots={{
+                            default: ({ selected }: { selected: boolean }) => (
+                              <button
+                                class={clsx(
+                                  'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                                  selected
+                                    ? 'bg-white shadow text-blue-700 dark:bg-gray-800 dark:text-blue-400'
+                                    : 'text-blue-100 hover:bg-white/[0.12] hover:text-white dark:text-gray-300 dark:hover:bg-gray-700',
+                                )}
+                              >
+                                {name}
+                              </button>
+                            ),
+                          }}
+                        />
+                      ))}
+                    </TabList>
+                    <TabPanels>
+                      <TabPanel class="space-y-4">
+                        <div class="grid grid-cols-12 gap-4">
+                          <div class="col-span-8">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              URL
+                            </label>
+                            <Input
+                              modelValue={formData.url}
+                              onUpdate:modelValue={val =>
+                                (formData.url = val as string)
+                              }
+                              placeholder="/api/users"
+                            />
+                          </div>
+                          <div class="col-span-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Method
+                            </label>
+                            <Select
+                              modelValue={formData.method}
+                              onUpdate:modelValue={val =>
+                                (formData.method = val as string)
+                              }
+                              options={methodOptions}
+                            />
+                          </div>
+                        </div>
+                        <div class="grid grid-cols-12 gap-4">
+                          <div class="col-span-8">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Description
+                            </label>
+                            <Input
+                              modelValue={formData.description}
+                              onUpdate:modelValue={val =>
+                                (formData.description = val as string)
+                              }
+                              placeholder="Description of this mock"
+                            />
+                          </div>
+                          <div class="col-span-4 flex items-center pt-6">
+                            <label class="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Enabled
+                            </label>
+                            <Switch
+                              modelValue={formData.enabled}
+                              onUpdate:modelValue={val =>
+                                (formData.enabled = val)
+                              }
+                            />
+                          </div>
+                        </div>
+                      </TabPanel>
+                      <TabPanel class="space-y-4">
+                        <div class="grid grid-cols-12 gap-4">
+                          <div class="col-span-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Status Code
+                            </label>
+                            <Input
+                              type="number"
+                              modelValue={formData.statusCode}
+                              onUpdate:modelValue={val =>
+                                (formData.statusCode = Number(val))
+                              }
+                            />
+                          </div>
+                          <div class="col-span-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Response Type
+                            </label>
+                            <Select
+                              modelValue={formData.responseType}
+                              onUpdate:modelValue={val =>
+                                (formData.responseType = val as string)
+                              }
+                              options={responseTypeOptions}
+                            />
+                          </div>
+                          <div class="col-span-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Delay (ms)
+                            </label>
+                            <Input
+                              type="number"
+                              modelValue={formData.delay}
+                              onUpdate:modelValue={val =>
+                                (formData.delay = Number(val))
+                              }
+                            />
+                          </div>
+                        </div>
 
-              <NFormItem label="启用状态">
-                <NSwitch v-model:value={formData.enabled} />
-              </NFormItem>
+                        <div>
+                          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Response Body
+                          </label>
+                          {formData.responseType === 'static' && (
+                            <JsonEditor
+                              value={formData.responseData as string}
+                              onChange={val => (formData.responseData = val)}
+                            />
+                          )}
+                          {formData.responseType === 'faker' && (
+                            <JsonEditor
+                              value={formData.responseTemplate as string}
+                              onChange={val =>
+                                (formData.responseTemplate = val)
+                              }
+                            />
+                          )}
+                          {formData.responseType === 'function' && (
+                            <CodeEditor
+                              value={formData.responseCode}
+                              onChange={val => (formData.responseCode = val)}
+                            />
+                          )}
+                        </div>
+                      </TabPanel>
+                      <TabPanel>
+                        <p class="text-gray-500">
+                          Advanced settings coming soon...
+                        </p>
+                      </TabPanel>
+                    </TabPanels>
+                  </TabGroup>
 
-              <NFormItem label="描述">
-                <NInput
-                  v-model:value={formData.description}
-                  type="textarea"
-                  placeholder="请输入描述信息"
-                />
-              </NFormItem>
-
-              <NFormItem label="响应延迟(ms)">
-                <NInputNumber
-                  v-model:value={formData.delay}
-                  min={0}
-                  max={60000}
-                />
-              </NFormItem>
-            </NForm>
-          </NTabPane>
-
-          <NTabPane name="response" tab="响应配置">
-            <NForm labelPlacement="left" labelWidth="120">
-              <NFormItem label="响应类型">
-                <NSelect
-                  v-model:value={formData.responseType}
-                  options={responseTypeOptions}
-                />
-              </NFormItem>
-
-              <NDivider>响应内容</NDivider>
-
-              {formData.responseType === 'static' && (
-                <JsonEditor
-                  value={formData.responseData}
-                  onChange={val => {
-                    formData.responseData = val
-                  }}
-                />
-              )}
-
-              {formData.responseType === 'faker' && (
-                <JsonEditor
-                  value={formData.responseTemplate}
-                  onChange={val => {
-                    formData.responseTemplate = val
-                  }}
-                  placeholder='{"name": "{{faker.person.firstName}}"}'
-                />
-              )}
-
-              {formData.responseType === 'function' && (
-                <CodeEditor
-                  value={formData.responseCode}
-                  onChange={val => {
-                    formData.responseCode = val
-                  }}
-                />
-              )}
-            </NForm>
-          </NTabPane>
-
-          <NTabPane name="visual" tab="可视化编辑">
-            <VisualEditor
-              value={
-                formData.responseType === 'static'
-                  ? formData.responseData
-                  : formData.responseType === 'faker'
-                    ? formData.responseTemplate
-                    : null
-              }
-              responseType={
-                formData.responseType as 'static' | 'faker' | 'function'
-              }
-              onChange={val => {
-                if (formData.responseType === 'static') {
-                  formData.responseData = val
-                } else if (formData.responseType === 'faker') {
-                  formData.responseTemplate = val
-                }
-              }}
-            />
-          </NTabPane>
-        </NTabs>
-
-        <NDivider />
-
-        <div style="display: flex; justify-content: flex-end;">
-          <NSpace>
-            <NButton onClick={handleCancel}>取消</NButton>
-            <NButton type="primary" onClick={handleSave} loading={saving.value}>
-              保存
-            </NButton>
-          </NSpace>
-        </div>
-      </NModal>
+                  <div class="mt-6 flex justify-end gap-3">
+                    <Button variant="outline" onClick={close}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSave} disabled={saving.value}>
+                      {saving.value ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                </DialogPanel>
+              </TransitionChild>
+            </div>
+          </div>
+        </Dialog>
+      </TransitionRoot>
     )
   },
 })
