@@ -11,8 +11,8 @@ import {
 } from '@headlessui/vue'
 import {
   Fragment,
-  Transition,
   type PropType,
+  Transition,
   defineComponent,
   reactive,
   ref,

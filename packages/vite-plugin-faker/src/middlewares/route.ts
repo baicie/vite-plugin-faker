@@ -11,7 +11,7 @@ const createPage = (src: string, css: string): string => `
     <head>
       <meta charset="utf-8" />
       <title>Faker UI</title>
-      <style type="text/css" src=${css}></style>
+      <script type="module" src=${css}></script>
       <script type="module" src=${src}></script>
     </head>
     <body>

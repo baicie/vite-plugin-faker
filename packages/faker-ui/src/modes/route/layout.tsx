@@ -1,6 +1,6 @@
 import { type PropType, Transition, defineComponent } from 'vue'
 import { cn } from '../../lib/utils'
-import ThemeToggle from '../../components/ThemeToggle'
+import ThemeToggle from '../../components/theme-toggle'
 
 export default defineComponent({
   name: 'RouteLayout',
@@ -63,7 +63,9 @@ export default defineComponent({
             <main class="flex-1 overflow-auto p-6 bg-secondary">
               <div class="max-w-7xl mx-auto">
                 <Transition name="fade-slide" mode="out-in">
-                  {ActiveComponent && <ActiveComponent key={props.selectedTab} />}
+                  {ActiveComponent && (
+                    <ActiveComponent key={props.selectedTab} />
+                  )}
                 </Transition>
               </div>
             </main>

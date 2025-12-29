@@ -10,9 +10,6 @@ export default defineConfig({
       loggerOptions: {
         level: 'info',
       },
-      uiOptions: {
-        mode: 'button',
-      },
     }),
   ],
   server: {

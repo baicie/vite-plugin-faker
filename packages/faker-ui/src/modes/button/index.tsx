@@ -15,7 +15,7 @@ import { cn } from '../../lib/utils'
 import MockList from '../../tabs/mock/mock-list'
 import RequestList from '../../tabs/request/request-list'
 import SettingsPanel from '../../tabs/setting/settings-panel'
-import ThemeToggle from '../../components/ThemeToggle'
+import ThemeToggle from '../../components/theme-toggle'
 
 export default defineComponent({
   name: 'ButtonMode',
@@ -129,7 +129,9 @@ export default defineComponent({
                                         <button
                                           class={cn(
                                             'py-4 text-sm font-medium leading-5 outline-none transition-colors relative text-foreground',
-                                            selected ? '' : 'text-muted-foreground hover:text-foreground',
+                                            selected
+                                              ? ''
+                                              : 'text-muted-foreground hover:text-foreground',
                                           )}
                                         >
                                           {tab.name}

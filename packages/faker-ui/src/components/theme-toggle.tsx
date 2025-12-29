@@ -2,7 +2,7 @@ import { Switch } from '@headlessui/vue'
 import { defineComponent, onMounted, ref } from 'vue'
 import { MoonIcon, SunIcon } from '@heroicons/vue/24/solid'
 
-export default defineComponent({
+const ThemeToggle = defineComponent({
   name: 'ThemeToggle',
   setup() {
     const isDark = ref(false)
@@ -60,3 +60,5 @@ export default defineComponent({
     )
   },
 })
+
+export default ThemeToggle
