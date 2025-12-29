@@ -224,10 +224,10 @@ const MockEditor = defineComponent({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 text-left align-middle shadow-sm transition-all">
                   <Dialog.Title
                     as="h3"
-                    class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4"
+                    class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-6"
                   >
                     {formData.id ? 'Edit Mock' : 'Create Mock'}
                   </Dialog.Title>
@@ -238,7 +238,7 @@ const MockEditor = defineComponent({
                       activeTab.value = index
                     }}
                   >
-                    <TabList class="flex space-x-1 rounded-xl bg-blue-900/20 p-1 dark:bg-gray-700/50 mb-4">
+                    <TabList class="flex space-x-6 border-b border-gray-200 dark:border-gray-800 mb-6">
                       {['Basic', 'Response', 'Advanced'].map(name => (
                         <Tab
                           key={name}
@@ -247,11 +247,10 @@ const MockEditor = defineComponent({
                             default: ({ selected }: { selected: boolean }) => (
                               <button
                                 class={clsx(
-                                  'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                                  'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                                  'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none',
                                   selected
-                                    ? 'bg-white shadow text-blue-700 dark:bg-gray-800 dark:text-blue-400'
-                                    : 'text-blue-100 hover:bg-white/[0.12] hover:text-white dark:text-gray-300 dark:hover:bg-gray-700',
+                                    ? 'text-gray-900 border-b-2 border-gray-900 dark:text-gray-100 dark:border-gray-100'
+                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
                                 )}
                               >
                                 {name}

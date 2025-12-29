@@ -53,28 +53,28 @@ const RequestList = defineComponent({
     const getMethodColor = (method: string) => {
       switch (method?.toUpperCase()) {
         case 'GET':
-          return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+          return 'text-blue-600 border-blue-200 dark:text-blue-400 dark:border-blue-800'
         case 'POST':
-          return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+          return 'text-green-600 border-green-200 dark:text-green-400 dark:border-green-800'
         case 'PUT':
-          return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+          return 'text-yellow-600 border-yellow-200 dark:text-yellow-400 dark:border-yellow-800'
         case 'DELETE':
-          return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+          return 'text-red-600 border-red-200 dark:text-red-400 dark:border-red-800'
         case 'PATCH':
-          return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300'
+          return 'text-purple-600 border-purple-200 dark:text-purple-400 dark:border-purple-800'
         default:
-          return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+          return 'text-gray-600 border-gray-200 dark:text-gray-400 dark:border-gray-800'
       }
     }
 
     const getStatusColor = (status: number) => {
       if (status >= 200 && status < 300)
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+        return 'text-green-600 border-green-200 dark:text-green-400 dark:border-green-800'
       if (status >= 300 && status < 400)
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+        return 'text-blue-600 border-blue-200 dark:text-blue-400 dark:border-blue-800'
       if (status >= 400)
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+        return 'text-red-600 border-red-200 dark:text-red-400 dark:border-red-800'
+      return 'text-gray-600 border-gray-200 dark:text-gray-400 dark:border-gray-800'
     }
 
     return () => (
@@ -96,9 +96,9 @@ const RequestList = defineComponent({
           </Button>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-800">
+        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead class="bg-gray-50 dark:bg-gray-900/50">
               <tr>
                 <th
                   scope="col"
@@ -144,7 +144,7 @@ const RequestList = defineComponent({
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
+            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-950 dark:divide-gray-800">
               {loading.value ? (
                 <tr>
                   <td
@@ -167,7 +167,7 @@ const RequestList = defineComponent({
                 requests.value.map(row => (
                   <tr
                     key={row.id || row.timestamp}
-                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    class="hover:bg-gray-50 dark:hover:bg-gray-900/50"
                   >
                     <td
                       class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-xs truncate"
@@ -179,7 +179,7 @@ const RequestList = defineComponent({
                       <Badge
                         variant="outline"
                         class={cn(
-                          'rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10 border-0',
+                          'rounded-md px-2 py-1 text-xs font-medium border bg-transparent',
                           getMethodColor(row.method),
                         )}
                       >
@@ -190,7 +190,7 @@ const RequestList = defineComponent({
                       <Badge
                         variant="outline"
                         class={cn(
-                          'rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10 border-0',
+                          'rounded-md px-2 py-1 text-xs font-medium border bg-transparent',
                           getStatusColor(row.response?.statusCode || 0),
                         )}
                       >
@@ -201,10 +201,10 @@ const RequestList = defineComponent({
                       <Badge
                         variant="outline"
                         class={cn(
-                          'rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-500/10 border-0',
+                          'rounded-md px-2 py-1 text-xs font-medium border bg-transparent',
                           row.isMocked
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+                            ? 'text-green-600 border-green-200 dark:text-green-400 dark:border-green-800'
+                            : 'text-gray-600 border-gray-200 dark:text-gray-400 dark:border-gray-800',
                         )}
                       >
                         {row.isMocked ? 'Yes' : 'No'}
@@ -222,7 +222,7 @@ const RequestList = defineComponent({
                           selectedRequest.value = row
                           showDetail.value = true
                         }}
-                        class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        class="text-gray-900 hover:text-gray-700 dark:text-gray-100 dark:hover:text-gray-300 underline underline-offset-4"
                       >
                         Details
                       </button>
@@ -235,19 +235,19 @@ const RequestList = defineComponent({
         </div>
 
         {/* Simple Pagination */}
-        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-900 dark:border-gray-700 mt-2 rounded-lg">
+        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-950 dark:border-gray-800 mt-2 rounded-lg">
           <div class="flex flex-1 justify-between sm:hidden">
             <button
               onClick={() => loadRequests(page.value - 1)}
               disabled={page.value <= 1}
-              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             >
               Previous
             </button>
             <button
               onClick={() => loadRequests(page.value + 1)}
               disabled={page.value * pageSize.value >= total.value}
-              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             >
               Next
             </button>
@@ -274,7 +274,7 @@ const RequestList = defineComponent({
                 <button
                   onClick={() => loadRequests(page.value - 1)}
                   disabled={page.value <= 1}
-                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-800"
+                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
                 >
                   <span class="sr-only">Previous</span>
                   <svg
@@ -293,7 +293,7 @@ const RequestList = defineComponent({
                 <button
                   onClick={() => loadRequests(page.value + 1)}
                   disabled={page.value * pageSize.value >= total.value}
-                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-800"
+                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
                 >
                   <span class="sr-only">Next</span>
                   <svg

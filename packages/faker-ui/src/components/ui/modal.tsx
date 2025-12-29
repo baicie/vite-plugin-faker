@@ -30,7 +30,7 @@ export const Modal = defineComponent({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div class="fixed inset-0 bg-black/25" />
+            <div class="fixed inset-0 bg-black/20 backdrop-blur-sm" />
           </TransitionChild>
 
           <div class="fixed inset-0 overflow-y-auto">

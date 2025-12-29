@@ -120,9 +120,9 @@ const MockList = defineComponent({
           <Button onClick={handleCreate}>Create Mock</Button>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-800">
+        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead class="bg-gray-50 dark:bg-gray-900/50">
               <tr>
                 <th
                   scope="col"
@@ -162,7 +162,7 @@ const MockList = defineComponent({
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
+            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-950 dark:divide-gray-800">
               {loading.value ? (
                 <tr>
                   <td
@@ -185,7 +185,7 @@ const MockList = defineComponent({
                 mocks.value.map(row => (
                   <tr
                     key={row.id}
-                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    class="hover:bg-gray-50 dark:hover:bg-gray-900/50"
                   >
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {row.url}
@@ -211,14 +211,14 @@ const MockList = defineComponent({
                       <Button
                         onClick={() => handleEdit(row)}
                         variant="link"
-                        class="text-indigo-600 dark:text-indigo-400 p-0 mr-4 h-auto"
+                        class="text-gray-900 hover:text-gray-700 dark:text-gray-100 dark:hover:text-gray-300 underline underline-offset-4 p-0 mr-4 h-auto"
                       >
                         Edit
                       </Button>
                       <Button
                         onClick={() => handleDelete(row.id!)}
                         variant="link"
-                        class="text-red-600 dark:text-red-400 p-0 h-auto"
+                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-0 h-auto"
                       >
                         Delete
                       </Button>
@@ -231,13 +231,13 @@ const MockList = defineComponent({
         </div>
 
         {/* Pagination */}
-        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-900 dark:border-gray-700 mt-2 rounded-lg">
+        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-950 dark:border-gray-800 mt-2 rounded-lg">
           {/* Reuse pagination logic from RequestList or extract to component */}
           <div class="flex flex-1 justify-between sm:hidden">
             <button
               onClick={() => loadMocks({ page: pagination.page - 1 })}
               disabled={pagination.page <= 1}
-              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             >
               Previous
             </button>
@@ -246,7 +246,7 @@ const MockList = defineComponent({
               disabled={
                 pagination.page * pagination.pageSize >= pagination.total
               }
-              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300"
+              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             >
               Next
             </button>
@@ -276,7 +276,7 @@ const MockList = defineComponent({
                 <button
                   onClick={() => loadMocks({ page: pagination.page - 1 })}
                   disabled={pagination.page <= 1}
-                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-800"
+                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
                 >
                   <span class="sr-only">Previous</span>
                   <svg
@@ -297,7 +297,7 @@ const MockList = defineComponent({
                   disabled={
                     pagination.page * pagination.pageSize >= pagination.total
                   }
-                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-600 dark:hover:bg-gray-800"
+                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
                 >
                   <span class="sr-only">Next</span>
                   <svg
