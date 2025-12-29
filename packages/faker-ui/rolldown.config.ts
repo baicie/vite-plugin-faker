@@ -21,7 +21,7 @@ export default defineConfig({
     vue(),
     vueJsx(),
     postcss({
-      inject: true,
+      extract: 'index.css',
       minimize: true,
     }),
     needAnalyze && visualizer({ open: true }),
