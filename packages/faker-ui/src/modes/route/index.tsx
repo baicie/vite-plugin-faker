@@ -18,8 +18,8 @@ export default defineComponent({
       <Layout
         tabs={tabs}
         selectedTab={selectedTab.value}
-        onSelect={(index: number) => selectedTab.value = index}
+        onSelect={(index: number) => (selectedTab.value = index)}
       />
     )
-  }
+  },
 })

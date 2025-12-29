@@ -1,4 +1,10 @@
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  TransitionChild,
+  TransitionRoot,
+} from '@headlessui/vue'
 import { Fragment, defineComponent } from 'vue'
 
 export const Modal = defineComponent({
@@ -20,7 +26,7 @@ export const Modal = defineComponent({
   setup(props, { slots }) {
     return () => (
       <TransitionRoot appear show={props.show} as={Fragment}>
-        <Dialog as="div" class="relative z-[100]" onClose={() => props.onClose()}>
+        <Dialog as="div" class="relative z-100" onClose={() => props.onClose()}>
           <TransitionChild
             as={Fragment}
             enter="ease-out duration-300"

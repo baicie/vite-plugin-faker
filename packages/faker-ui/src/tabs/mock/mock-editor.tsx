@@ -249,7 +249,9 @@ const MockEditor = defineComponent({
                               <button
                                 class={clsx(
                                   'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none relative text-foreground',
-                                  selected ? '' : 'text-muted-foreground hover:text-foreground',
+                                  selected
+                                    ? ''
+                                    : 'text-muted-foreground hover:text-foreground',
                                 )}
                               >
                                 {name}
@@ -265,132 +267,132 @@ const MockEditor = defineComponent({
                     <TabPanels>
                       <TabPanel class="space-y-4">
                         <Transition name="fade-slide" mode="out-in">
-                        <div class="grid grid-cols-12 gap-4">
-                          <div class="col-span-8">
-                            <label class="block text-sm font-medium text-foreground mb-1">
-                              URL
-                            </label>
-                            <Input
-                              modelValue={formData.url}
-                              onUpdate:modelValue={val =>
-                                (formData.url = val as string)
-                              }
-                              placeholder="/api/users"
-                            />
+                          <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-8">
+                              <label class="block text-sm font-medium text-foreground mb-1">
+                                URL
+                              </label>
+                              <Input
+                                modelValue={formData.url}
+                                onUpdate:modelValue={val =>
+                                  (formData.url = val as string)
+                                }
+                                placeholder="/api/users"
+                              />
+                            </div>
+                            <div class="col-span-4">
+                              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Method
+                              </label>
+                              <Select
+                                modelValue={formData.method}
+                                onUpdate:modelValue={val =>
+                                  (formData.method = val as string)
+                                }
+                                options={methodOptions}
+                              />
+                            </div>
                           </div>
-                          <div class="col-span-4">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Method
-                            </label>
-                            <Select
-                              modelValue={formData.method}
-                              onUpdate:modelValue={val =>
-                                (formData.method = val as string)
-                              }
-                              options={methodOptions}
-                            />
+                          <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-8">
+                              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Description
+                              </label>
+                              <Input
+                                modelValue={formData.description}
+                                onUpdate:modelValue={val =>
+                                  (formData.description = val as string)
+                                }
+                                placeholder="Description of this mock"
+                              />
+                            </div>
+                            <div class="col-span-4 flex items-center pt-6">
+                              <label class="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Enabled
+                              </label>
+                              <Switch
+                                modelValue={formData.enabled}
+                                onUpdate:modelValue={val =>
+                                  (formData.enabled = val)
+                                }
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4">
-                          <div class="col-span-8">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Description
-                            </label>
-                            <Input
-                              modelValue={formData.description}
-                              onUpdate:modelValue={val =>
-                                (formData.description = val as string)
-                              }
-                              placeholder="Description of this mock"
-                            />
-                          </div>
-                          <div class="col-span-4 flex items-center pt-6">
-                            <label class="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Enabled
-                            </label>
-                            <Switch
-                              modelValue={formData.enabled}
-                              onUpdate:modelValue={val =>
-                                (formData.enabled = val)
-                              }
-                            />
-                          </div>
-                        </div>
                         </Transition>
                       </TabPanel>
                       <TabPanel class="space-y-4">
                         <Transition name="fade-slide" mode="out-in">
-                        <div class="grid grid-cols-12 gap-4">
-                          <div class="col-span-4">
-                            <label class="block text-sm font-medium text-foreground mb-1">
-                              Status Code
-                            </label>
-                            <Input
-                              type="number"
-                              modelValue={formData.statusCode}
-                              onUpdate:modelValue={val =>
-                                (formData.statusCode = Number(val))
-                              }
-                            />
+                          <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-4">
+                              <label class="block text-sm font-medium text-foreground mb-1">
+                                Status Code
+                              </label>
+                              <Input
+                                type="number"
+                                modelValue={formData.statusCode}
+                                onUpdate:modelValue={val =>
+                                  (formData.statusCode = Number(val))
+                                }
+                              />
+                            </div>
+                            <div class="col-span-4">
+                              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Response Type
+                              </label>
+                              <Select
+                                modelValue={formData.responseType}
+                                onUpdate:modelValue={val =>
+                                  (formData.responseType = val as string)
+                                }
+                                options={responseTypeOptions}
+                              />
+                            </div>
+                            <div class="col-span-4">
+                              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Delay (ms)
+                              </label>
+                              <Input
+                                type="number"
+                                modelValue={formData.delay}
+                                onUpdate:modelValue={val =>
+                                  (formData.delay = Number(val))
+                                }
+                              />
+                            </div>
                           </div>
-                          <div class="col-span-4">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Response Type
-                            </label>
-                            <Select
-                              modelValue={formData.responseType}
-                              onUpdate:modelValue={val =>
-                                (formData.responseType = val as string)
-                              }
-                              options={responseTypeOptions}
-                            />
-                          </div>
-                          <div class="col-span-4">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Delay (ms)
-                            </label>
-                            <Input
-                              type="number"
-                              modelValue={formData.delay}
-                              onUpdate:modelValue={val =>
-                                (formData.delay = Number(val))
-                              }
-                            />
-                          </div>
-                        </div>
 
-                        <div>
-                          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Response Body
-                          </label>
-                          {formData.responseType === 'static' && (
-                            <JsonEditor
-                              value={formData.responseData as string}
-                              onChange={val => (formData.responseData = val)}
-                            />
-                          )}
-                          {formData.responseType === 'faker' && (
-                            <JsonEditor
-                              value={formData.responseTemplate as string}
-                              onChange={val =>
-                                (formData.responseTemplate = val)
-                              }
-                            />
-                          )}
-                          {formData.responseType === 'function' && (
-                            <CodeEditor
-                              value={formData.responseCode}
-                              onChange={val => (formData.responseCode = val)}
-                            />
-                          )}
-                        </div>
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Response Body
+                            </label>
+                            {formData.responseType === 'static' && (
+                              <JsonEditor
+                                value={formData.responseData as string}
+                                onChange={val => (formData.responseData = val)}
+                              />
+                            )}
+                            {formData.responseType === 'faker' && (
+                              <JsonEditor
+                                value={formData.responseTemplate as string}
+                                onChange={val =>
+                                  (formData.responseTemplate = val)
+                                }
+                              />
+                            )}
+                            {formData.responseType === 'function' && (
+                              <CodeEditor
+                                value={formData.responseCode}
+                                onChange={val => (formData.responseCode = val)}
+                              />
+                            )}
+                          </div>
                         </Transition>
                       </TabPanel>
                       <TabPanel>
                         <Transition name="fade-slide" mode="out-in">
-                        <p class="text-muted-foreground">
-                          Advanced settings coming soon...
-                        </p>
+                          <p class="text-muted-foreground">
+                            Advanced settings coming soon...
+                          </p>
                         </Transition>
                       </TabPanel>
                     </TabPanels>

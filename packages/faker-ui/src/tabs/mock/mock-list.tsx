@@ -121,7 +121,7 @@ const MockList = defineComponent({
         </div>
 
         <div class="overflow-x-auto rounded-lg border border-border bg-card">
-          <table class="min-w-full divide-y divide-[var(--border)]">
+          <table class="min-w-full divide-y divide-(--border)">
             <thead class="bg-secondary">
               <tr>
                 <th
@@ -162,7 +162,7 @@ const MockList = defineComponent({
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-card divide-y divide-[var(--border)]">
+            <tbody class="bg-card divide-y divide-(--border)">
               {loading.value ? (
                 <tr>
                   <td
@@ -183,10 +183,7 @@ const MockList = defineComponent({
                 </tr>
               ) : (
                 mocks.value.map(row => (
-                  <tr
-                    key={row.id}
-                    class="hover:bg-secondary"
-                  >
+                  <tr key={row.id} class="hover:bg-secondary">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {row.url}
                     </td>
@@ -234,22 +231,23 @@ const MockList = defineComponent({
         <div class="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6 mt-2 rounded-lg">
           {/* Reuse pagination logic from RequestList or extract to component */}
           <div class="flex flex-1 justify-between sm:hidden">
-            <button
+            <Button
+              variant="outline"
               onClick={() => loadMocks({ page: pagination.page - 1 })}
               disabled={pagination.page <= 1}
-              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
             >
               Previous
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => loadMocks({ page: pagination.page + 1 })}
               disabled={
                 pagination.page * pagination.pageSize >= pagination.total
               }
-              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
+              class="ml-3"
             >
               Next
-            </button>
+            </Button>
           </div>
           <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>

@@ -94,7 +94,9 @@ export const Select = defineComponent({
                           {selected ? (
                             <span
                               class={[
-                                active ? 'text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100',
+                                active
+                                  ? 'text-gray-900 dark:text-gray-100'
+                                  : 'text-gray-900 dark:text-gray-100',
                                 'absolute inset-y-0 left-0 flex items-center pl-3',
                               ]}
                             >

@@ -97,7 +97,7 @@ const RequestList = defineComponent({
         </div>
 
         <div class="overflow-x-auto rounded-lg border border-border bg-card">
-          <table class="min-w-full divide-y divide-[var(--border)]">
+          <table class="min-w-full divide-y divide-(--border)">
             <thead class="bg-secondary">
               <tr>
                 <th
@@ -144,7 +144,7 @@ const RequestList = defineComponent({
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-card divide-y divide-[var(--border)]">
+            <tbody class="bg-card divide-y divide-(--border)">
               {loading.value ? (
                 <tr>
                   <td

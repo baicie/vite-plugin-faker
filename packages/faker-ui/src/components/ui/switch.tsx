@@ -21,7 +21,9 @@ export const Switch = defineComponent({
         modelValue={props.modelValue}
         onUpdate:modelValue={(val: boolean) => emit('update:modelValue', val)}
         class={cn(
-          props.modelValue ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-200 dark:bg-gray-700',
+          props.modelValue
+            ? 'bg-gray-900 dark:bg-gray-100'
+            : 'bg-gray-200 dark:bg-gray-700',
           'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 dark:focus:ring-gray-300',
           props.class,
         )}
