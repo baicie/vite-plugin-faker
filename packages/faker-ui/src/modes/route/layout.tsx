@@ -1,4 +1,4 @@
-import { type PropType, defineComponent } from 'vue'
+import { type PropType, Transition, defineComponent } from 'vue'
 import { cn } from '../../lib/utils'
 import ThemeToggle from '../../components/ThemeToggle'
 
@@ -23,11 +23,11 @@ export default defineComponent({
       const ActiveComponent = props.tabs[props.selectedTab]?.component
 
       return (
-        <div class="flex h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans">
+        <div class="flex h-screen w-full overflow-hidden bg-background text-foreground font-sans">
           {/* Sidebar */}
-          <div class="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col">
-            <div class="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-              <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
+          <div class="w-64 flex-shrink-0 border-r border-border bg-card flex flex-col">
+            <div class="p-6 border-b border-border flex items-center justify-between">
+              <h1 class="text-xl font-bold text-foreground tracking-tight">
                 Faker UI
               </h1>
             </div>
@@ -39,30 +39,32 @@ export default defineComponent({
                   class={cn(
                     'w-full flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors',
                     props.selectedTab === index
-                      ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100',
+                      ? 'bg-secondary text-foreground'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                   )}
                 >
                   {tab.name}
                 </button>
               ))}
             </nav>
-            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+            <div class="p-4 border-t border-border">
               {/* Footer area if needed */}
             </div>
           </div>
 
           {/* Main Content */}
           <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="bg-white dark:bg-gray-950 z-10 p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+            <header class="bg-card z-10 p-4 flex items-center justify-between border-b border-border">
               <h2 class="text-lg font-medium tracking-tight">
                 {props.tabs[props.selectedTab]?.name}
               </h2>
               <ThemeToggle />
             </header>
-            <main class="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-950/50">
+            <main class="flex-1 overflow-auto p-6 bg-secondary">
               <div class="max-w-7xl mx-auto">
-                {ActiveComponent && <ActiveComponent />}
+                <Transition name="fade-slide" mode="out-in">
+                  {ActiveComponent && <ActiveComponent key={props.selectedTab} />}
+                </Transition>
               </div>
             </main>
           </div>

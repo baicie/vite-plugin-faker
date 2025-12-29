@@ -120,54 +120,54 @@ const MockList = defineComponent({
           <Button onClick={handleCreate}>Create Mock</Button>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-            <thead class="bg-gray-50 dark:bg-gray-900/50">
+        <div class="overflow-x-auto rounded-lg border border-border bg-card">
+          <table class="min-w-full divide-y divide-[var(--border)]">
+            <thead class="bg-secondary">
               <tr>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   URL
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Method
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Type
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Description
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
+                  class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-950 dark:divide-gray-800">
+            <tbody class="bg-card divide-y divide-[var(--border)]">
               {loading.value ? (
                 <tr>
                   <td
                     colspan={6}
-                    class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                    class="px-6 py-4 text-center text-sm text-muted-foreground"
                   >
                     Loading...
                   </td>
@@ -176,7 +176,7 @@ const MockList = defineComponent({
                 <tr>
                   <td
                     colspan={6}
-                    class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                    class="px-6 py-4 text-center text-sm text-muted-foreground"
                   >
                     No mocks found
                   </td>
@@ -185,12 +185,12 @@ const MockList = defineComponent({
                 mocks.value.map(row => (
                   <tr
                     key={row.id}
-                    class="hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                    class="hover:bg-secondary"
                   >
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       {row.url}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {row.method}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -201,17 +201,17 @@ const MockList = defineComponent({
                         }
                       />
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {row.type}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground max-w-xs truncate">
                       {row.description}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button
                         onClick={() => handleEdit(row)}
                         variant="link"
-                        class="text-gray-900 hover:text-gray-700 dark:text-gray-100 dark:hover:text-gray-300 underline underline-offset-4 p-0 mr-4 h-auto"
+                        class="text-foreground hover:text-foreground underline underline-offset-4 p-0 mr-4 h-auto"
                       >
                         Edit
                       </Button>
@@ -231,7 +231,7 @@ const MockList = defineComponent({
         </div>
 
         {/* Pagination */}
-        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-950 dark:border-gray-800 mt-2 rounded-lg">
+        <div class="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6 mt-2 rounded-lg">
           {/* Reuse pagination logic from RequestList or extract to component */}
           <div class="flex flex-1 justify-between sm:hidden">
             <button

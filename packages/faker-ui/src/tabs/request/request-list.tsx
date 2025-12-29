@@ -96,9 +96,9 @@ const RequestList = defineComponent({
           </Button>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
-            <thead class="bg-gray-50 dark:bg-gray-900/50">
+        <div class="overflow-x-auto rounded-lg border border-border bg-card">
+          <table class="min-w-full divide-y divide-[var(--border)]">
+            <thead class="bg-secondary">
               <tr>
                 <th
                   scope="col"
@@ -144,12 +144,12 @@ const RequestList = defineComponent({
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-950 dark:divide-gray-800">
+            <tbody class="bg-card divide-y divide-[var(--border)]">
               {loading.value ? (
                 <tr>
                   <td
                     colspan={7}
-                    class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                    class="px-6 py-4 text-center text-sm text-muted-foreground"
                   >
                     Loading...
                   </td>
@@ -158,19 +158,16 @@ const RequestList = defineComponent({
                 <tr>
                   <td
                     colspan={7}
-                    class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                    class="px-6 py-4 text-center text-sm text-muted-foreground"
                   >
                     No requests found
                   </td>
                 </tr>
               ) : (
                 requests.value.map(row => (
-                  <tr
-                    key={row.id || row.timestamp}
-                    class="hover:bg-gray-50 dark:hover:bg-gray-900/50"
-                  >
+                  <tr key={row.id || row.timestamp} class="hover:bg-secondary">
                     <td
-                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 max-w-xs truncate"
+                      class="px-6 py-4 whitespace-nowrap text-sm text-foreground max-w-xs truncate"
                       title={row.url}
                     >
                       {row.url}
@@ -204,16 +201,16 @@ const RequestList = defineComponent({
                           'rounded-md px-2 py-1 text-xs font-medium border bg-transparent',
                           row.isMocked
                             ? 'text-green-600 border-green-200 dark:text-green-400 dark:border-green-800'
-                            : 'text-gray-600 border-gray-200 dark:text-gray-400 dark:border-gray-800',
+                            : 'text-muted-foreground border-border',
                         )}
                       >
                         {row.isMocked ? 'Yes' : 'No'}
                       </Badge>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {row.duration || 0}ms
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {new Date(row.timestamp).toLocaleString()}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -222,7 +219,7 @@ const RequestList = defineComponent({
                           selectedRequest.value = row
                           showDetail.value = true
                         }}
-                        class="text-gray-900 hover:text-gray-700 dark:text-gray-100 dark:hover:text-gray-300 underline underline-offset-4"
+                        class="text-foreground hover:text-foreground underline underline-offset-4"
                       >
                         Details
                       </button>
@@ -235,7 +232,7 @@ const RequestList = defineComponent({
         </div>
 
         {/* Simple Pagination */}
-        <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:bg-gray-950 dark:border-gray-800 mt-2 rounded-lg">
+        <div class="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6 mt-2 rounded-lg">
           <div class="flex flex-1 justify-between sm:hidden">
             <button
               onClick={() => loadRequests(page.value - 1)}

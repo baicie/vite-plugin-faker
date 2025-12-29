@@ -1,7 +1,121 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
-    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  :root {
+    --background: #ffffff;
+    --foreground: #0a0a0a;
+    --card: #ffffff;
+    --muted: #f5f5f5;
+    --muted-foreground: #6b7280;
+    --border: #e5e7eb;
+    --input: #e5e7eb;
+    --ring: #93c5fd;
+    --primary: #22c55e;
+    --primary-foreground: #ffffff;
   }
+
+  .dark {
+    --background: #0b0b0b;
+    --foreground: #e5e7eb;
+    --card: #131313;
+    --muted: #1f1f1f;
+    --muted-foreground: #9ca3af;
+    --border: #262626;
+    --input: #262626;
+    --ring: #334155;
+    --primary: #22c55e;
+    --primary-foreground: #0b0b0b;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .bg-background {
+    background-color: var(--background)
+  }
+
+  .text-foreground {
+    color: var(--foreground)
+  }
+
+  .bg-card {
+    background-color: var(--card)
+  }
+
+  .bg-muted,
+  .bg-secondary {
+    background-color: var(--muted)
+  }
+
+  .text-muted-foreground {
+    color: var(--muted-foreground)
+  }
+
+  .border-border {
+    border-color: var(--border)
+  }
+
+  .border-input {
+    border-color: var(--input)
+  }
+
+  .ring-ring {
+    --tw-ring-color: var(--ring)
+  }
+
+  .bg-primary {
+    background-color: var(--primary)
+  }
+
+  .text-primary-foreground {
+    color: var(--primary-foreground)
+  }
+}
+
+/* Tab content fade + slight slide */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.fade-slide-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* Tab underline reveal */
+@keyframes tab-underline {
+  from {
+    transform: scaleX(0);
+    opacity: .6;
+  }
+
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.animate-tab-underline {
+  transform-origin: left;
+  animation: tab-underline 180ms ease-out;
 }

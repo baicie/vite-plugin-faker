@@ -44,11 +44,11 @@ export const Modal = defineComponent({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-card border border-border p-6 text-left align-middle shadow-none transition-all">
                   {props.title && (
                     <DialogTitle
                       as="h3"
-                      class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4"
+                      class="text-lg font-medium leading-6 text-foreground mb-4"
                     >
                       {props.title}
                     </DialogTitle>

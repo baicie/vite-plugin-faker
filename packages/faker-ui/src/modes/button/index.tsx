@@ -1,4 +1,4 @@
-import { Fragment, defineComponent, ref } from 'vue'
+import { Fragment, Transition, defineComponent, ref } from 'vue'
 import {
   Dialog,
   DialogPanel,
@@ -42,7 +42,7 @@ export default defineComponent({
         <div class="fixed bottom-6 right-6 z-[99999] flex flex-col items-end gap-2 font-sans">
           <Button
             onClick={handleOpen}
-            class="h-12 w-12 rounded-full shadow-md border border-gray-200 dark:border-gray-800"
+            class="h-12 w-12 rounded-full border border-border bg-card"
           >
             Faker
           </Button>
@@ -74,12 +74,12 @@ export default defineComponent({
                     leaveFrom="translate-x-0"
                     leaveTo="translate-x-full"
                   >
-                    <DialogPanel class="pointer-events-auto w-screen max-w-2xl border-l border-gray-200 dark:border-gray-800">
-                      <div class="flex h-full flex-col overflow-y-scroll bg-white dark:bg-gray-950 shadow-none">
-                        <div class="px-6 py-6 border-b border-gray-100 dark:border-gray-800">
+                    <DialogPanel class="pointer-events-auto w-screen max-w-2xl border-l border-border bg-card">
+                      <div class="flex h-full flex-col overflow-y-scroll bg-card shadow-none">
+                        <div class="px-6 py-6 border-b border-border">
                           <div class="flex items-start justify-between">
                             <div class="flex items-center gap-4">
-                              <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+                              <h2 class="text-lg font-semibold text-foreground tracking-tight">
                                 Faker UI
                               </h2>
                               <ThemeToggle />
@@ -89,7 +89,7 @@ export default defineComponent({
                                 variant="ghost"
                                 size="icon"
                                 onClick={close}
-                                class="hover:bg-gray-100 dark:hover:bg-gray-800"
+                                class="hover:bg-secondary"
                               >
                                 <span class="sr-only">Close panel</span>
                                 <svg
@@ -114,7 +114,7 @@ export default defineComponent({
                             selectedIndex={selectedTab.value}
                             onChange={index => (selectedTab.value = index)}
                           >
-                            <div class="px-6 border-b border-gray-100 dark:border-gray-800">
+                            <div class="px-6 border-b border-border">
                               <TabList class="flex space-x-8">
                                 {tabs.map(tab => (
                                   <Tab
@@ -128,15 +128,13 @@ export default defineComponent({
                                       }) => (
                                         <button
                                           class={cn(
-                                            'py-4 text-sm font-medium leading-5 outline-none transition-colors relative',
-                                            selected
-                                              ? 'text-gray-900 dark:text-gray-100'
-                                              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+                                            'py-4 text-sm font-medium leading-5 outline-none transition-colors relative text-foreground',
+                                            selected ? '' : 'text-muted-foreground hover:text-foreground',
                                           )}
                                         >
                                           {tab.name}
                                           {selected && (
-                                            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900 dark:bg-gray-100" />
+                                            <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-tab-underline" />
                                           )}
                                         </button>
                                       ),
@@ -145,10 +143,12 @@ export default defineComponent({
                                 ))}
                               </TabList>
                             </div>
-                            <TabPanels class="flex-1 bg-gray-50/50 dark:bg-gray-900/50 p-6">
+                            <TabPanels class="flex-1 bg-secondary p-6">
                               {tabs.map((tab, idx) => (
                                 <TabPanel key={idx} class="h-full outline-none">
-                                  <tab.component />
+                                  <Transition name="fade-slide" mode="out-in">
+                                    <tab.component />
+                                  </Transition>
                                 </TabPanel>
                               ))}
                             </TabPanels>

@@ -1,4 +1,4 @@
-import { type PropType, defineComponent, ref } from 'vue'
+import { type PropType, Transition, defineComponent, ref } from 'vue'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/vue'
 import type { RequestRecord } from '@baicie/faker-shared'
 import clsx from 'clsx'
@@ -49,7 +49,7 @@ const RequestDetail = defineComponent({
              </div>
 
              <TabGroup selectedIndex={selectedTab.value} onChange={(index) => { selectedTab.value = index }}>
-                 <TabList class="flex space-x-6 border-b border-gray-200 dark:border-gray-800 mb-6">
+                <TabList class="flex space-x-6 border-b border-border mb-6">
                      {['Request', 'Response'].map(name => (
                          <Tab
                              key={name}
@@ -58,13 +58,14 @@ const RequestDetail = defineComponent({
                                  default: ({ selected }: { selected: boolean }) => (
                                      <button
                                          class={clsx(
-                                             'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none',
-                                             selected
-                                                 ? 'text-gray-900 border-b-2 border-gray-900 dark:text-gray-100 dark:border-gray-100'
-                                                 : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                                             'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none relative text-foreground',
+                                             selected ? '' : 'text-muted-foreground hover:text-foreground'
                                          )}
                                      >
                                          {name}
+                                         {selected && (
+                                           <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary animate-tab-underline" />
+                                         )}
                                      </button>
                                  )
                              }}
@@ -73,37 +74,41 @@ const RequestDetail = defineComponent({
                  </TabList>
                  <TabPanels>
                      <TabPanel class="space-y-4 focus:outline-none">
+                         <Transition name="fade-slide" mode="out-in">
                          <div>
-                             <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Headers</h4>
-                             <pre class="p-3 bg-gray-50 dark:bg-gray-950 rounded-md text-xs overflow-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 max-h-60">
+                             <h4 class="font-medium text-foreground mb-2">Headers</h4>
+                             <pre class="p-3 bg-card rounded-md text-xs overflow-auto text-foreground border border-border max-h-60">
                                  {formatJson(props.request.headers)}
                              </pre>
                          </div>
                          {props.request.body && (
                              <div>
-                                 <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Body</h4>
-                                 <pre class="p-3 bg-gray-50 dark:bg-gray-950 rounded-md text-xs overflow-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 max-h-96">
+                                 <h4 class="font-medium text-foreground mb-2">Body</h4>
+                                 <pre class="p-3 bg-card rounded-md text-xs overflow-auto text-foreground border border-border max-h-96">
                                      {formatJson(props.request.body)}
                                  </pre>
                              </div>
                          )}
+                         </Transition>
                      </TabPanel>
                      <TabPanel class="space-y-4 focus:outline-none">
-                         <h4 class="font-medium text-gray-700 dark:text-gray-300">Status: {props.request.response?.statusCode}</h4>
-                         <div>
-                             <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Headers</h4>
-                             <pre class="p-3 bg-gray-50 dark:bg-gray-950 rounded-md text-xs overflow-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 max-h-60">
-                                 {formatJson(props.request.response?.headers)}
-                             </pre>
-                         </div>
-                         {props.request.response?.body && (
-                             <div>
-                                 <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Body</h4>
-                                 <pre class="p-3 bg-gray-50 dark:bg-gray-950 rounded-md text-xs overflow-auto text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800 max-h-96">
-                                     {formatJson(props.request.response.body)}
-                                 </pre>
-                             </div>
-                         )}
+                         <Transition name="fade-slide" mode="out-in">
+                           <h4 class="font-medium text-foreground">Status: {props.request.response?.statusCode}</h4>
+                           <div>
+                               <h4 class="font-medium text-foreground mb-2">Headers</h4>
+                               <pre class="p-3 bg-card rounded-md text-xs overflow-auto text-foreground border border-border max-h-60">
+                                   {formatJson(props.request.response?.headers)}
+                               </pre>
+                           </div>
+                           {props.request.response?.body && (
+                               <div>
+                                   <h4 class="font-medium text-foreground mb-2">Body</h4>
+                                   <pre class="p-3 bg-card rounded-md text-xs overflow-auto text-foreground border border-border max-h-96">
+                                       {formatJson(props.request.response.body)}
+                                   </pre>
+                               </div>
+                           )}
+                         </Transition>
                      </TabPanel>
                  </TabPanels>
              </TabGroup>
