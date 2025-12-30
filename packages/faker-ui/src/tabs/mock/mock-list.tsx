@@ -163,16 +163,7 @@ const MockList = defineComponent({
               </tr>
             </thead>
             <tbody class="bg-card divide-y divide-(--border)">
-              {loading.value ? (
-                <tr>
-                  <td
-                    colspan={6}
-                    class="px-6 py-4 text-center text-sm text-muted-foreground"
-                  >
-                    Loading...
-                  </td>
-                </tr>
-              ) : mocks.value.length === 0 ? (
+              {mocks.value.length === 0 && !loading.value ? (
                 <tr>
                   <td
                     colspan={6}
@@ -271,10 +262,12 @@ const MockList = defineComponent({
                 class="isolate inline-flex -space-x-px rounded-md shadow-sm"
                 aria-label="Pagination"
               >
-                <button
+                <Button
                   onClick={() => loadMocks({ page: pagination.page - 1 })}
                   disabled={pagination.page <= 1}
-                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
+                  variant="outline"
+                  size="icon"
+                  class="rounded-l-md rounded-r-none"
                 >
                   <span class="sr-only">Previous</span>
                   <svg
@@ -289,13 +282,15 @@ const MockList = defineComponent({
                       clip-rule="evenodd"
                     />
                   </svg>
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => loadMocks({ page: pagination.page + 1 })}
                   disabled={
                     pagination.page * pagination.pageSize >= pagination.total
                   }
-                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
+                  variant="outline"
+                  size="icon"
+                  class="rounded-l-none rounded-r-md ml-0"
                 >
                   <span class="sr-only">Next</span>
                   <svg
@@ -310,7 +305,7 @@ const MockList = defineComponent({
                       clip-rule="evenodd"
                     />
                   </svg>
-                </button>
+                </Button>
               </nav>
             </div>
           </div>

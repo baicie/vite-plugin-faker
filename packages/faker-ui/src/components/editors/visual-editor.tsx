@@ -1,4 +1,5 @@
 import { defineComponent, ref } from 'vue'
+import { Button } from '../ui/button'
 
 interface Field {
   key: string
@@ -96,13 +97,9 @@ const VisualEditor = defineComponent({
     return () => (
       <div>
         <div class="mb-4">
-          <button
-            onClick={addField}
-            type="button"
-            class="rounded-md bg-gray-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-900 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
-          >
+          <Button onClick={addField}>
             Add Field
-          </button>
+          </Button>
         </div>
 
         <div class="space-y-4">
@@ -176,12 +173,13 @@ const VisualEditor = defineComponent({
               )}
 
               <div class="pt-6">
-                <button
+                <Button
                   onClick={() => removeField(index)}
-                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                  variant="link"
+                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-0 h-auto"
                 >
                   Remove
-                </button>
+                </Button>
               </div>
             </div>
           ))}

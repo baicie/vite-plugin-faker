@@ -31,6 +31,7 @@ const RequestList = defineComponent({
           pageSize: pageSize.value,
           search: search.value || undefined,
         })
+        // 只有在成功获取数据后才更新列表，避免抖动
         requests.value = result.items
         total.value = result.pagination.total
         page.value = result.pagination.page
@@ -145,16 +146,7 @@ const RequestList = defineComponent({
               </tr>
             </thead>
             <tbody class="bg-card divide-y divide-(--border)">
-              {loading.value ? (
-                <tr>
-                  <td
-                    colspan={7}
-                    class="px-6 py-4 text-center text-sm text-muted-foreground"
-                  >
-                    Loading...
-                  </td>
-                </tr>
-              ) : requests.value.length === 0 ? (
+              {requests.value.length === 0 && !loading.value ? (
                 <tr>
                   <td
                     colspan={7}
@@ -214,15 +206,16 @@ const RequestList = defineComponent({
                       {new Date(row.timestamp).toLocaleString()}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
+                      <Button
                         onClick={() => {
                           selectedRequest.value = row
                           showDetail.value = true
                         }}
-                        class="text-foreground hover:text-foreground underline underline-offset-4"
+                        variant="link"
+                        class="p-0 h-auto"
                       >
                         Details
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -234,20 +227,21 @@ const RequestList = defineComponent({
         {/* Simple Pagination */}
         <div class="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6 mt-2 rounded-lg">
           <div class="flex flex-1 justify-between sm:hidden">
-            <button
+            <Button
               onClick={() => loadRequests(page.value - 1)}
               disabled={page.value <= 1}
-              class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
+              variant="outline"
             >
               Previous
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => loadRequests(page.value + 1)}
               disabled={page.value * pageSize.value >= total.value}
-              class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300"
+              variant="outline"
+              class="ml-3"
             >
               Next
-            </button>
+            </Button>
           </div>
           <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
@@ -268,10 +262,12 @@ const RequestList = defineComponent({
                 class="isolate inline-flex -space-x-px rounded-md shadow-sm"
                 aria-label="Pagination"
               >
-                <button
+                <Button
                   onClick={() => loadRequests(page.value - 1)}
                   disabled={page.value <= 1}
-                  class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
+                  variant="outline"
+                  size="icon"
+                  class="rounded-l-md rounded-r-none"
                 >
                   <span class="sr-only">Previous</span>
                   <svg
@@ -286,11 +282,13 @@ const RequestList = defineComponent({
                       clip-rule="evenodd"
                     />
                   </svg>
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => loadRequests(page.value + 1)}
                   disabled={page.value * pageSize.value >= total.value}
-                  class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-gray-700 dark:hover:bg-gray-900"
+                  variant="outline"
+                  size="icon"
+                  class="rounded-l-none rounded-r-md ml-0"
                 >
                   <span class="sr-only">Next</span>
                   <svg
@@ -305,7 +303,7 @@ const RequestList = defineComponent({
                       clip-rule="evenodd"
                     />
                   </svg>
-                </button>
+                </Button>
               </nav>
             </div>
           </div>
