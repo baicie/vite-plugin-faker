@@ -28,10 +28,10 @@
     "@monaco-editor/loader": "^1.7.0",
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
-    "lodash-es": "^4.17.22",
+    "lodash-es": "^4.17.23",
     "monaco-editor": "^0.55.1",
     "tailwind-merge": "^3.4.0",
-    "vue": "^3.5.26"
+    "vue": "^3.5.27"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
@@ -40,12 +40,12 @@
     "@vue/tsconfig": "^0.8.1",
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
-    "rolldown": "1.0.0-beta.60",
+    "rolldown": "1.0.0-rc.1",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-visualizer": "^6.0.5",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "vite": "catalog:",
-    "vue-tsc": "^3.2.2"
+    "vue-tsc": "^3.2.3"
   }
 }
