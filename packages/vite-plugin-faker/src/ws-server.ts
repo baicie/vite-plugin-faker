@@ -1,15 +1,14 @@
-import type { WSMessage } from '@baicie/faker-shared'
-import {
-  EventBusType,
-  FAKER_WEBSOCKET_SYMBOL,
-  WSMessageType,
-} from '@baicie/faker-shared'
+import { type WSMessage, EventBusType } from '@baicie/faker-shared'
+import { FAKER_WEBSOCKET_SYMBOL, WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { ViteDevServer, WebSocketClient } from 'vite'
 import { type WebSocket, WebSocketServer } from 'ws'
-import { WSMessageHandler } from './api'
-import type { DBManager } from './db'
-import { EventBus } from './event-bus'
+import {
+  WSMessageHandler,
+  type EventBus,
+  type DBManager,
+} from '@baicie/faker-core'
+import { EventBus as EventBusImpl } from './event-bus'
 import { isValidJSON } from '@baicie/faker-shared'
 import type { ViteFakerConfig } from './config'
 
@@ -26,7 +25,7 @@ export class WSServer {
     server: ViteDevServer,
     config: ViteFakerConfig,
   ) {
-    this.eventBus = new EventBus()
+    this.eventBus = new EventBusImpl()
     this.messageHandler = new WSMessageHandler(dbManager, this.eventBus)
 
     if (config.uiOptions && config.uiOptions.wsPort) {
@@ -135,25 +134,27 @@ export class WSServer {
    * 设置事件总线监听器
    */
   private setupEventBusListeners(): void {
-    this.eventBus.on(EventBusType.DB_MOCK_CREATED, () => {
-      this.broadcastMockConfigs()
-    })
+    if (this.eventBus.on) {
+      this.eventBus.on(EventBusType.DB_MOCK_CREATED, () => {
+        this.broadcastMockConfigs()
+      })
 
-    this.eventBus.on(EventBusType.DB_MOCK_UPDATED, () => {
-      this.broadcastMockConfigs()
-    })
+      this.eventBus.on(EventBusType.DB_MOCK_UPDATED, () => {
+        this.broadcastMockConfigs()
+      })
 
-    this.eventBus.on(EventBusType.DB_MOCK_DELETED, () => {
-      this.broadcastMockConfigs()
-    })
+      this.eventBus.on(EventBusType.DB_MOCK_DELETED, () => {
+        this.broadcastMockConfigs()
+      })
 
-    this.eventBus.on(EventBusType.DB_SETTINGS_UPDATED, event => {
-      logger.debug('[Faker] 设置已更新:', event.data)
-    })
+      this.eventBus.on(EventBusType.DB_SETTINGS_UPDATED, event => {
+        logger.debug('[Faker] 设置已更新:', event.data)
+      })
 
-    this.eventBus.on(EventBusType.DB_CACHE_CLEARED, () => {
-      logger.debug('[Faker] 缓存已清除')
-    })
+      this.eventBus.on(EventBusType.DB_CACHE_CLEARED, () => {
+        logger.debug('[Faker] 缓存已清除')
+      })
+    }
   }
 
   /**

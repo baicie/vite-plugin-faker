@@ -59,3 +59,22 @@ export const fetchMock = useWsRequest<{ id: string }, MockConfig>({
   sendType: WSMessageType.MOCK_GET,
   responseType: WSMessageType.MOCK_DETAIL,
 })
+
+/**
+ * 导出 Mock
+ */
+export const exportMocks = useWsRequest<void, MockConfig[]>({
+  sendType: WSMessageType.MOCK_EXPORT,
+  responseType: WSMessageType.MOCK_EXPORTED,
+})
+
+/**
+ * 导入 Mock
+ */
+export const importMocks = useWsRequest<
+  MockConfig[],
+  { success: boolean; count: number }
+>({
+  sendType: WSMessageType.MOCK_IMPORT,
+  responseType: WSMessageType.MOCK_IMPORTED,
+})

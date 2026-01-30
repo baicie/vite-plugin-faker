@@ -42,6 +42,12 @@ export class WSMessageHandler {
       case WSMessageType.MOCK_GET:
         return this.mockHandler.handleGet(message.data, message.id)
 
+      case WSMessageType.MOCK_EXPORT:
+        return this.mockHandler.handleExport(message.id)
+
+      case WSMessageType.MOCK_IMPORT:
+        return this.mockHandler.handleImport(message.data, message.id)
+
       case WSMessageType.REQUEST_HISTORY:
         return this.requestHandler.handleHistory(message.data)
 

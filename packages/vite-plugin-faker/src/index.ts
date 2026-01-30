@@ -18,7 +18,7 @@ import {
   INTERCEPTOR_PATH,
   UI_ENTRY,
 } from './constants'
-import { DBManager } from './db'
+import { DBManager } from '@baicie/faker-core'
 import { mockMiddleware } from './middlewares/mock'
 import { routeMiddleware } from './middlewares/route'
 import { WSServer } from './ws-server'

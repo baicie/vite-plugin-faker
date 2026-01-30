@@ -1,7 +1,6 @@
 import { ensureDirSync } from '@baicie/faker-shared/node'
 import fs from 'node:fs'
 import path from 'node:path'
-import { cacheDir } from '../index'
 import type { DBConfig } from './base'
 import { MocksDB } from './mock'
 import { RequestsDB } from './request'
@@ -56,7 +55,7 @@ export class DBManager {
   }
 
   backupDatabase(tableName: string): string {
-    const dbDir = path.resolve(cacheDir!, 'db')
+    const dbDir = this.config.dbDir!
     const sourcePath = path.join(dbDir, `${tableName}.json`)
     const timestamp = new Date().toISOString().replace(/[:.-]/g, '_')
     const backupPath = path.join(
