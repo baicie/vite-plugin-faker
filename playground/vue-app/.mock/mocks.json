@@ -3,7 +3,7 @@
     "name": "/api/users",
     "url": "/api/users",
     "method": "GET",
-    "enabled": false,
+    "enabled": true,
     "description": "",
     "type": "static",
     "response": {

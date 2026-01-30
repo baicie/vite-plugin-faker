@@ -33,12 +33,15 @@ export class RequestHandler {
         if (mock) {
           data.mockId = mock.id
           data.isMocked = true
+          logger.debug(
+            `[Faker] 请求 ${data.url} ${data.method} 关联 Mock ${mock.id}`,
+          )
         }
       }
 
       const id = await createRequestKey(data)
       requestsDB.saveRequest(id, this.toRequestItem(data))
-      logger.debug(`[Faker] 请求已记录id: ${id}`)
+      logger.debug(`[Faker] 请求已记录id: ${data.url}-${data.method}`)
 
       this.eventBus.emit(EventBusType.DB_REQUEST_SAVED, { id, ...data })
     } catch (error) {

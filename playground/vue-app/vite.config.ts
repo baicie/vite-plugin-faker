@@ -8,10 +8,10 @@ export default defineConfig({
     vue(),
     faker({
       loggerOptions: {
-        level: 'info',
+        level: 'debug',
       },
       uiOptions: {
-        mode: 'button',
+        mode: 'route',
       },
     }),
   ],
