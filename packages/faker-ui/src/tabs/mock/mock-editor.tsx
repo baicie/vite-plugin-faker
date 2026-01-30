@@ -11,7 +11,6 @@ import {
   TransitionRoot,
 } from '@headlessui/vue'
 import {
-  Fragment,
   type PropType,
   Transition,
   defineComponent,
@@ -346,7 +345,7 @@ const MockEditor = defineComponent({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-lg bg-card border border-border p-6 text-left align-middle shadow-xl transition-all">
+                <DialogPanel class="w-full max-w-[90vw] transform overflow-hidden rounded-lg bg-card border border-border p-6 text-left align-middle shadow-xl transition-all">
                   <DialogTitle
                     as="h3"
                     class="text-lg font-medium leading-6 text-foreground mb-6"

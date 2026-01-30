@@ -1,7 +1,8 @@
 import { defineComponent, onMounted, ref } from 'vue'
 import RequestDetail from './request-detail'
-import { fetchRequestHistory } from '../../api'
-import type { RequestRecord } from '@baicie/faker-shared'
+import MockEditor from '../mock/mock-editor'
+import { fetchRequestHistory, fetchMock, clearRequestHistory } from '../../api'
+import type { RequestRecord, MockConfig } from '@baicie/faker-shared'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Badge } from '../../components/ui/badge'
@@ -27,6 +28,36 @@ const RequestList = defineComponent({
     const search = ref('')
     const selectedRequest = ref<RequestRecord | null>(null)
     const showDetail = ref(false)
+    const showMockEditor = ref(false)
+    const currentMock = ref<MockConfig | null>(null)
+
+    async function handleMock(row: RequestRecord) {
+      if (row.isMocked && row.mockId) {
+        try {
+          const mock = await fetchMock({ id: row.mockId })
+          currentMock.value = mock
+          showMockEditor.value = true
+        } catch (e) {
+          console.error('Failed to fetch mock', e)
+          alert('Failed to fetch mock details')
+        }
+      } else {
+        // Create new mock from request
+        currentMock.value = {
+          url: row.url,
+          method: row.method,
+          enabled: true,
+          type: 'static',
+          response: {
+            status: row.response?.statusCode || 200,
+            headers: row.response?.headers || {},
+            body: row.response?.body || {},
+            delay: 0,
+          },
+        } as unknown as MockConfig
+        showMockEditor.value = true
+      }
+    }
 
     async function loadRequests(targetPage?: number) {
       if (typeof targetPage === 'number') {
@@ -54,6 +85,27 @@ const RequestList = defineComponent({
 
     function handleRefresh() {
       loadRequests(1)
+    }
+
+    async function handleClear() {
+      if (!confirm('Are you sure you want to clear all requests?')) return
+
+      try {
+        await clearRequestHistory(null)
+        loadRequests(1)
+      } catch (error) {
+        console.error('Failed to clear requests', error)
+      }
+    }
+
+    function handleMockEditorSave() {
+      showMockEditor.value = false
+      loadRequests()
+    }
+
+    function handleMockEditorCancel() {
+      showMockEditor.value = false
+      currentMock.value = null
     }
 
     onMounted(() => {
@@ -101,6 +153,9 @@ const RequestList = defineComponent({
               }}
             />
           </div>
+          <Button onClick={handleClear} variant="outline">
+            Clear
+          </Button>
           <Button onClick={handleRefresh} variant="outline">
             Refresh
           </Button>
@@ -116,7 +171,9 @@ const RequestList = defineComponent({
                 <TableHead class="w-[10%]">Mocked</TableHead>
                 <TableHead class="w-[10%]">Duration</TableHead>
                 <TableHead class="w-[20%]">Time</TableHead>
-                <TableHead class="w-[10%] text-right">Actions</TableHead>
+                <TableHead class="w-[10%] text-right" fixed="right">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -182,7 +239,13 @@ const RequestList = defineComponent({
                     <TableCell class="text-muted-foreground">
                       {new Date(row.timestamp).toLocaleString()}
                     </TableCell>
-                    <TableCell class="text-right">
+                    <TableCell class="text-right" fixed="right">
+                      <button
+                        onClick={() => handleMock(row)}
+                        class="text-primary hover:text-primary/80 underline underline-offset-4 cursor-pointer mr-3"
+                      >
+                        {row.isMocked ? 'Edit Mock' : 'Mock'}
+                      </button>
                       <button
                         onClick={() => {
                           selectedRequest.value = row
@@ -214,6 +277,15 @@ const RequestList = defineComponent({
               showDetail.value = false
               selectedRequest.value = null
             }}
+          />
+        )}
+
+        {showMockEditor.value && (
+          <MockEditor
+            show={showMockEditor.value}
+            mock={currentMock.value}
+            onSave={handleMockEditorSave}
+            onCancel={handleMockEditorCancel}
           />
         )}
       </div>

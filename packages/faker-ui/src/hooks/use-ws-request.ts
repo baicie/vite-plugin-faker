@@ -62,7 +62,7 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
       try {
         const payload =
           data && typeof data === 'object'
-            ? extend(data, { id: reqId })
+            ? extend({ id: reqId }, data)
             : { id: reqId, value: data }
         send(payload as T)
       } catch (error) {

@@ -41,7 +41,7 @@ const RequestDetail = defineComponent({
         onClick={close}
       >
         <div
-          class="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-lg p-6"
+          class="w-full max-w-[90vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-lg p-6"
           onClick={e => e.stopPropagation()}
         >
           <div class="flex justify-between items-center mb-6">

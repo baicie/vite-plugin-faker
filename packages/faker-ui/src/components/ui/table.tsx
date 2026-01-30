@@ -1,4 +1,4 @@
-import { defineComponent } from 'vue'
+import { type PropType, defineComponent } from 'vue'
 import { cn } from '../../lib/utils'
 
 export const Table = defineComponent({
@@ -62,7 +62,7 @@ export const TableRow = defineComponent({
     return () => (
       <tr
         class={cn(
-          'border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted',
+          'border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted group',
           attrs.class as string,
         )}
       >
@@ -74,11 +74,19 @@ export const TableRow = defineComponent({
 
 export const TableHead = defineComponent({
   name: 'TableHead',
-  setup(_, { slots, attrs }) {
+  props: {
+    fixed: {
+      type: String as PropType<'left' | 'right'>,
+      default: undefined,
+    },
+  },
+  setup(props, { slots, attrs }) {
     return () => (
       <th
         class={cn(
           'h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0',
+          props.fixed === 'left' && 'sticky left-0 z-20 bg-muted',
+          props.fixed === 'right' && 'sticky right-0 z-20 bg-muted',
           attrs.class as string,
         )}
       >
@@ -94,12 +102,20 @@ export const TableCell = defineComponent({
     colspan: { type: [String, Number], default: undefined },
     rowspan: { type: [String, Number], default: undefined },
     title: { type: String, default: undefined },
+    fixed: {
+      type: String as PropType<'left' | 'right'>,
+      default: undefined,
+    },
   },
   setup(props, { slots, attrs }) {
     return () => (
       <td
         class={cn(
           'p-4 align-middle [&:has([role=checkbox])]:pr-0',
+          props.fixed === 'left' &&
+            'sticky left-0 z-10 bg-card group-hover:bg-muted group-data-[state=selected]:bg-muted',
+          props.fixed === 'right' &&
+            'sticky right-0 z-10 bg-card group-hover:bg-muted group-data-[state=selected]:bg-muted',
           attrs.class as string,
         )}
         colspan={props.colspan}

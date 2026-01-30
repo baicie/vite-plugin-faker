@@ -18,3 +18,17 @@ export const fetchRequestHistory = useWsRequest<
   sendType: WSMessageType.REQUEST_HISTORY,
   responseType: WSMessageType.REQUEST_HISTORY,
 })
+
+/**
+ * 清空请求历史
+ *
+ * 后端对应：
+ * - 发送类型：WSMessageType.REQUEST_CLEAR
+ * - 响应类型：WSMessageType.REQUEST_CLEARED
+ * - 请求数据：null
+ * - 响应数据：{ success: boolean }
+ */
+export const clearRequestHistory = useWsRequest<null, { success: boolean }>({
+  sendType: WSMessageType.REQUEST_CLEAR,
+  responseType: WSMessageType.REQUEST_CLEARED,
+})

@@ -92,6 +92,25 @@ export class MockHandler {
   }
 
   /**
+   * 处理 Mock 详情查询
+   */
+  handleGet(data: { id: string }, id?: string): WSMessage<MockConfig> {
+    try {
+      const mocksDB = this.dbManager.getMocksDB()
+      const mock = mocksDB.getMock(data.id)
+
+      return {
+        type: WSMessageType.MOCK_DETAIL,
+        data: mock!,
+        id,
+      }
+    } catch (error) {
+      logger.error('[Faker] 获取 Mock 详情失败:', error)
+      throw error
+    }
+  }
+
+  /**
    * 处理 Mock 列表查询
    */
   handleList(data: WithId<DashboardQuery>): WSMessage<Page<MockConfig>> {

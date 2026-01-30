@@ -1,5 +1,5 @@
-import { Switch } from '@headlessui/vue'
 import { defineComponent, onMounted, ref } from 'vue'
+import { Switch } from './ui/switch'
 import { MoonIcon, SunIcon } from '@heroicons/vue/24/solid'
 
 const ThemeToggle = defineComponent({
@@ -34,29 +34,35 @@ const ThemeToggle = defineComponent({
     })
 
     return () => (
-      <Switch
-        modelValue={isDark.value}
-        onUpdate:modelValue={toggleTheme}
-        class={[
-          isDark.value ? 'bg-gray-900' : 'bg-gray-200',
-          'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 dark:focus:ring-gray-100',
-        ]}
+      <div
+        class="relative inline-flex items-center cursor-pointer"
+        onClick={() => toggleTheme(!isDark.value)}
       >
-        <span class="sr-only">Use setting</span>
-        <span
-          aria-hidden="true"
-          class={[
-            isDark.value ? 'translate-x-5' : 'translate-x-0',
-            'pointer-events-none h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out flex items-center justify-center',
-          ]}
-        >
-          {isDark.value ? (
-            <MoonIcon class="h-3 w-3 text-gray-900" />
-          ) : (
-            <SunIcon class="h-3 w-3 text-gray-400" />
-          )}
-        </span>
-      </Switch>
+        <Switch
+          modelValue={isDark.value}
+          onUpdate:modelValue={toggleTheme}
+          class="pointer-events-none"
+          // tabindex={-1}
+        />
+        <div class="absolute inset-0 flex items-center justify-between px-1 pointer-events-none">
+          <span
+            class={[
+              'transition-opacity duration-200',
+              isDark.value ? 'opacity-0' : 'opacity-100',
+            ]}
+          >
+            <SunIcon class="h-3 w-3 text-gray-500" />
+          </span>
+          <span
+            class={[
+              'transition-opacity duration-200',
+              isDark.value ? 'opacity-100' : 'opacity-0',
+            ]}
+          >
+            <MoonIcon class="h-3 w-3 text-gray-100" />
+          </span>
+        </div>
+      </div>
     )
   },
 })

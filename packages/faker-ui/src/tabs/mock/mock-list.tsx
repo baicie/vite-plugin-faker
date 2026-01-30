@@ -133,12 +133,16 @@ const MockList = defineComponent({
           <Table class="min-w-full">
             <TableHeader>
               <TableRow>
-                <TableHead class="w-[20%]">URL</TableHead>
+                <TableHead class="w-[20%]" fixed="left">
+                  URL
+                </TableHead>
                 <TableHead class="w-[10%]">Method</TableHead>
                 <TableHead class="w-[10%]">Status</TableHead>
                 <TableHead class="w-[10%]">Type</TableHead>
                 <TableHead class="w-[30%]">Description</TableHead>
-                <TableHead class="w-[20%] text-right">Actions</TableHead>
+                <TableHead class="w-[20%] text-right" fixed="right">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -154,17 +158,27 @@ const MockList = defineComponent({
               ) : (
                 mocks.value.map(row => (
                   <TableRow key={row.id}>
-                    <TableCell class="font-medium">{row.url}</TableCell>
+                    <TableCell class="font-medium" fixed="left">
+                      {row.url}
+                    </TableCell>
                     <TableCell class="text-muted-foreground">
                       {row.method}
                     </TableCell>
                     <TableCell>
-                      <Switch
-                        modelValue={row.enabled}
-                        onUpdate:modelValue={(val: boolean) =>
-                          handleToggle(row.id!, val)
-                        }
-                      />
+                      <div
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleToggle(row.id!, !row.enabled)
+                        }}
+                      >
+                        <Switch
+                          modelValue={row.enabled}
+                          onUpdate:modelValue={(val: boolean) =>
+                            handleToggle(row.id!, val)
+                          }
+                          class="pointer-events-none"
+                        />
+                      </div>
                     </TableCell>
                     <TableCell class="text-muted-foreground">
                       {row.type}
@@ -172,7 +186,7 @@ const MockList = defineComponent({
                     <TableCell class="text-muted-foreground max-w-xs truncate">
                       {row.description}
                     </TableCell>
-                    <TableCell class="text-right">
+                    <TableCell class="text-right" fixed="right">
                       <Button
                         onClick={() => handleEdit(row)}
                         variant="link"

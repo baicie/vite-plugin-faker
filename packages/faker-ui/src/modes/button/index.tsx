@@ -1,4 +1,4 @@
-import { Fragment, Transition, defineComponent, ref } from 'vue'
+import { Fragment, Transition, defineComponent, onMounted, ref, watch } from 'vue'
 import {
   Dialog,
   DialogPanel,
@@ -17,13 +17,39 @@ import RequestList from '../../tabs/request/request-list'
 import SettingsPanel from '../../tabs/setting/settings-panel'
 import ThemeToggle from '../../components/theme-toggle'
 
-import { BeakerIcon } from '@heroicons/vue/24/solid'
+import { BeakerIcon, ArrowPathIcon } from '@heroicons/vue/24/solid'
 
 export default defineComponent({
   name: 'ButtonMode',
   setup() {
     const open = ref(false)
     const selectedTab = ref(0)
+
+    // Restore state from sessionStorage
+    onMounted(() => {
+      const savedState = sessionStorage.getItem('faker-ui-state')
+      if (savedState) {
+        try {
+          const state = JSON.parse(savedState)
+          if (state.open) open.value = true
+          if (typeof state.selectedTab === 'number')
+            selectedTab.value = state.selectedTab
+        } catch (e) {
+          console.error('Failed to restore Faker UI state', e)
+        }
+      }
+    })
+
+    // Save state when changed
+    watch([open, selectedTab], () => {
+      sessionStorage.setItem(
+        'faker-ui-state',
+        JSON.stringify({
+          open: open.value,
+          selectedTab: selectedTab.value,
+        }),
+      )
+    })
 
     const tabs = [
       { name: 'Requests', component: RequestList },
@@ -37,6 +63,10 @@ export default defineComponent({
 
     const close = () => {
       open.value = false
+    }
+
+    const handleReloadPage = () => {
+      window.location.reload()
     }
 
     return () => (
@@ -85,7 +115,17 @@ export default defineComponent({
                               <h2 class="text-lg font-semibold text-foreground tracking-tight">
                                 Faker UI
                               </h2>
-                              <ThemeToggle />
+                              <div class="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={handleReloadPage}
+                                  class="hover:bg-secondary"
+                                >
+                                  <ArrowPathIcon class="h-5 w-5" />
+                                </Button>
+                                <ThemeToggle />
+                              </div>
                             </div>
                             <div class="ml-3 flex h-7 items-center">
                               <Button

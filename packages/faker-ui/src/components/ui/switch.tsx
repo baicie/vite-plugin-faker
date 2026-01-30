@@ -15,16 +15,18 @@ export const Switch = defineComponent({
     },
   },
   emits: ['update:modelValue'],
-  setup(props, { emit }) {
+  setup(props, { emit, attrs }) {
     return () => (
       <HeadlessSwitch
         modelValue={props.modelValue}
         onUpdate:modelValue={(val: boolean) => emit('update:modelValue', val)}
         class={cn(
           'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+          'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
           props.modelValue ? 'bg-primary' : 'bg-input',
           props.class,
         )}
+        {...attrs}
       >
         <span
           class={cn(

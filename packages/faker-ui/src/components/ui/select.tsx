@@ -4,7 +4,7 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue'
-import { type PropType, Transition, computed, defineComponent } from 'vue'
+import { type PropType, computed, defineComponent } from 'vue'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid'
 import { cn } from '../../lib/utils'
 

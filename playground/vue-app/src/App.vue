@@ -118,16 +118,16 @@ const checkHealth = async () => {
     apiStatus.value = { text: '正常', class: 'status-success' }
     console.log(new Date().toISOString(), 'checkHealth')
     // 检测认证模式
-    try {
-      await api.get('/users')
-      authMode.value = { text: '已禁用', class: 'status-warning' }
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        authMode.value = { text: '已启用', class: 'status-success' }
-      } else {
-        authMode.value = { text: '未知错误', class: 'status-error' }
-      }
-    }
+    // try {
+    //   await api.get('/users')
+    //   authMode.value = { text: '已禁用', class: 'status-warning' }
+    // } catch (error: any) {
+    //   if (error.response?.status === 401) {
+    //     authMode.value = { text: '已启用', class: 'status-success' }
+    //   } else {
+    //     authMode.value = { text: '未知错误', class: 'status-error' }
+    //   }
+    // }
   } catch (error: any) {
     apiStatus.value = { text: '异常', class: 'status-error' }
     showMessage('API连接失败', 'error')

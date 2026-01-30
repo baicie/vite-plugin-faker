@@ -23,6 +23,19 @@ export class RequestHandler {
   async handleRecorded(data: RequestRecord): Promise<void> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
+      const mocksDB = this.dbManager.getMocksDB()
+      // 关联 Mock 配置
+      if (!data.isMocked && !data.mockId) {
+        const mock = mocksDB.findMock({
+          url: data.url,
+          method: data.method,
+        })
+        if (mock) {
+          data.mockId = mock.id
+          data.isMocked = true
+        }
+      }
+
       const id = await createRequestKey(data)
       requestsDB.saveRequest(id, this.toRequestItem(data))
       logger.debug(`[Faker] 请求已记录id: ${id}`)
@@ -54,6 +67,22 @@ export class RequestHandler {
       }
     } catch (error) {
       logger.error('[Faker] 获取请求历史失败:', error)
+      throw error
+    }
+  }
+
+  handleClear(id?: string): WSMessage<{ success: boolean }> {
+    try {
+      const requestsDB = this.dbManager.getRequestsDB()
+      requestsDB.clear()
+
+      return {
+        type: WSMessageType.REQUEST_CLEARED,
+        data: { success: true },
+        id,
+      }
+    } catch (error) {
+      logger.error('[Faker] 清空请求历史失败:', error)
       throw error
     }
   }
