@@ -53,16 +53,24 @@ export function routeMiddleware(
       }
       
       // 2. Serve Assets
-      // Check if URL matches our client paths
-      // We need to match the path relative to publicPath? 
-      // Usually req.url includes the full path.
-      // If publicPath is /, then req.url is /@faker/ui
-      // If publicPath is /app/, then req.url is /app/@faker/ui (maybe)
-      
-      // Let's assume req.url is the path.
-      
       const handleAsset = (filePath: string, contentType: string, replaceContent?: boolean) => {
+        if (!filePath) {
+          logger.error('Asset path is empty. Please check if dependencies are installed correctly.')
+          res.writeHead(404, { 'Content-Type': 'text/plain' })
+          res.write('Asset not found (empty path)')
+          res.end()
+          return
+        }
+
         try {
+          if (!fs.existsSync(filePath)) {
+             logger.error(`Asset not found at path: ${filePath}`)
+             res.writeHead(404, { 'Content-Type': 'text/plain' })
+             res.write('Asset not found')
+             res.end()
+             return
+          }
+
           let content = fs.readFileSync(filePath, 'utf-8')
           
           if (replaceContent) {
@@ -82,10 +90,6 @@ export function routeMiddleware(
         }
       }
 
-      // We need to check if the request URL *ends with* our known paths, 
-      // because of potential publicPath prefixes.
-      // Or we can construct the expected path.
-      
       const normalizeUrl = (url: string) => url.split('?')[0]
       const url = normalizeUrl(req.url)
 

@@ -41,8 +41,15 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
       // We attach to the devServer's http server
       const originalOnListening = devServer.onListening
       devServer.onListening = (devServerApi: any) => {
-        if (!devServerApi) return
+        logger.info('[Faker] onListening called')
+        if (!devServerApi) {
+          logger.warn('[Faker] devServerApi is undefined')
+          return
+        }
         const server = devServerApi.server
+        if (!server) {
+          logger.warn('[Faker] devServerApi.server is undefined')
+        }
         if (server && this.dbManager) {
           try {
             this.wsServer = new WSServer(this.dbManager, server, this.config)
@@ -58,36 +65,53 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
 
       // Setup Middlewares
       // Webpack 5 uses setupMiddlewares
-      if (devServer.setupMiddlewares) {
-        const originalSetupMiddlewares = devServer.setupMiddlewares
-        devServer.setupMiddlewares = (
-          middlewares: any[],
-          devServerApi: any,
-        ) => {
-          if (this.dbManager) {
-            // Add route middleware (for UI assets)
-            middlewares.unshift({
-              name: 'faker-route-middleware',
-              middleware: routeMiddleware(
-                this.config,
-                devServer.devMiddleware?.publicPath || '/',
-              ),
-            })
-            // Add mock middleware (for API mocking)
-            middlewares.unshift({
-              name: 'faker-mock-middleware',
-              middleware: mockMiddleware(this.dbManager),
-            })
+      const originalSetupMiddlewares = devServer.setupMiddlewares
+      devServer.setupMiddlewares = (middlewares: any[], devServerApi: any) => {
+        // Initialize WebSocket Server here
+        if (
+          devServerApi &&
+          devServerApi.server &&
+          this.dbManager &&
+          !this.wsServer
+        ) {
+          try {
+            this.wsServer = new WSServer(
+              this.dbManager,
+              devServerApi.server,
+              this.config,
+            )
+            logger.info(
+              '[Faker] WebSocket Server initialized in setupMiddlewares',
+            )
+          } catch (e) {
+            logger.error('[Faker] WebSocket Server initialization failed', e)
           }
-
-          if (originalSetupMiddlewares) {
-            return originalSetupMiddlewares(middlewares, devServerApi)
-          }
-          return middlewares
         }
+
+        if (this.dbManager) {
+          // Add route middleware (for UI assets)
+          middlewares.unshift({
+            name: 'faker-route-middleware',
+            middleware: routeMiddleware(
+              this.config,
+              devServer.devMiddleware?.publicPath || '/',
+            ),
+          })
+          // Add mock middleware (for API mocking)
+          middlewares.unshift({
+            name: 'faker-mock-middleware',
+            middleware: mockMiddleware(this.dbManager),
+          })
+        }
+
+        if (originalSetupMiddlewares) {
+          return originalSetupMiddlewares(middlewares, devServerApi)
+        }
+        return middlewares
       }
+
       // Webpack 4 uses before/after
-      else if (devServer.before) {
+      if (devServer.before) {
         const originalBefore = devServer.before
         devServer.before = (app: any, server: any, compiler: any) => {
           if (this.dbManager) {

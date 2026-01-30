@@ -11,7 +11,7 @@ export default defineConfig({
         level: 'debug',
       },
       uiOptions: {
-        mode: 'route',
+        mode: 'button',
       },
     }),
   ],

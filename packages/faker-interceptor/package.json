@@ -9,7 +9,8 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./dist/interceptor.js": "./dist/interceptor.js"
   },
   "files": [
     "dist"

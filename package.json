@@ -24,6 +24,7 @@
     "dev-faker-ui": "pnpm --filter ./packages/faker-ui dev",
     "dev-vite-plugin-faker": "pnpm --filter ./packages/vite-plugin-faker dev",
     "dev-vue-app": "pnpm --filter ./playground/vue-app dev",
+    "dev-webpack-app": "pnpm --filter ./playground/webpack-app dev",
     "dev-backend": "pnpm --filter ./playground/api-server dev",
     "# Scrips for build #": "_",
     "build-shared": "pnpm --filter ./packages/shared build",

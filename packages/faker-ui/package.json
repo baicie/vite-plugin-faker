@@ -10,7 +10,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "css": "./dist/index.css"
-    }
+    },
+    "./dist/index.js": "./dist/index.js",
+    "./dist/index.css": "./dist/index.css"
   },
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
