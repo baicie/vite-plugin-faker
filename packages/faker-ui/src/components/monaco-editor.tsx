@@ -36,6 +36,10 @@ const MonacoEditor = defineComponent({
       type: String,
       default: '300px',
     },
+    extraLibs: {
+      type: Array as () => { content: string; filePath?: string }[],
+      default: () => [],
+    },
   },
   emits: ['change'],
   setup(props, { emit }) {
@@ -46,6 +50,13 @@ const MonacoEditor = defineComponent({
       if (!containerRef.value) return
       const monaco = await loadMonaco()
       if (!containerRef.value) return
+
+      // Register extra libs
+      if (props.extraLibs.length > 0) {
+        monaco.languages.typescript.javascriptDefaults.setExtraLibs(
+          props.extraLibs
+        )
+      }
 
       // 创建编辑器实例
       editor = monaco.editor.create(containerRef.value, {
@@ -93,6 +104,29 @@ const MonacoEditor = defineComponent({
           })
         }
       },
+    )
+
+    watch(
+      () => props.theme,
+      newTheme => {
+        if (editor) {
+          loadMonaco().then(monaco => {
+            monaco.editor.setTheme(newTheme)
+          })
+        }
+      },
+    )
+
+    watch(
+      () => props.extraLibs,
+      newLibs => {
+        if (newLibs.length > 0) {
+          loadMonaco().then(monaco => {
+            monaco.languages.typescript.javascriptDefaults.setExtraLibs(newLibs)
+          })
+        }
+      },
+      { deep: true }
     )
 
     onBeforeUnmount(() => {

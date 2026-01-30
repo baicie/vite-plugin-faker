@@ -40,13 +40,13 @@ const RequestList = defineComponent({
           pageSize: pageSize.value,
           search: search.value || undefined,
         })
-        // 只有在成功获取数据后才更新列表，避免抖动
+        // Only update the list after successfully fetching data to avoid jitter
         requests.value = result.items
         total.value = result.pagination.total
         page.value = result.pagination.page
         pageSize.value = result.pagination.pageSize
       } catch (error) {
-        console.error('加载请求列表失败', error)
+        console.error('Failed to load request list', error)
       } finally {
         loading.value = false
       }
@@ -120,16 +120,7 @@ const RequestList = defineComponent({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading.value ? (
-                <TableRow>
-                  <TableCell
-                    colspan={7}
-                    class="text-center text-muted-foreground h-24"
-                  >
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : requests.value.length === 0 ? (
+              {requests.value.length === 0 && !loading.value ? (
                 <TableRow>
                   <TableCell
                     colspan={7}

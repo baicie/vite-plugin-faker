@@ -4,6 +4,8 @@ import MonacoEditor from '../monaco-editor'
 interface Props {
   value: string
   onChange: (value: string) => void
+  theme?: string
+  extraLibs?: { content: string; filePath?: string }[]
 }
 
 const CodeEditor = defineComponent({
@@ -16,6 +18,14 @@ const CodeEditor = defineComponent({
     onChange: {
       type: Function as unknown as () => (value: string) => void,
       required: true,
+    },
+    theme: {
+      type: String,
+      default: 'vs',
+    },
+    extraLibs: {
+      type: Array as () => { content: string; filePath?: string }[],
+      default: () => [],
     },
   },
   setup(props: Props) {
@@ -40,6 +50,8 @@ const CodeEditor = defineComponent({
           language="javascript"
           onChange={handleChange}
           height="400px"
+          theme={props.theme}
+          extraLibs={props.extraLibs}
         />
       </div>
     )

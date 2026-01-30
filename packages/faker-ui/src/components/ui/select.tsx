@@ -4,7 +4,7 @@ import {
   ListboxOption,
   ListboxOptions,
 } from '@headlessui/vue'
-import { type PropType, computed, defineComponent } from 'vue'
+import { type PropType, Transition, computed, defineComponent } from 'vue'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid'
 import { cn } from '../../lib/utils'
 
@@ -56,60 +56,52 @@ export const Select = defineComponent({
               </span>
             </ListboxButton>
 
-            <transition
-              leave-active-class="transition duration-100 ease-in"
-              leave-from-class="opacity-100"
-              leave-to-class="opacity-0"
-            >
-              <ListboxOptions class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-input">
-                {props.options.map(option => (
-                  <ListboxOption
-                    key={option.value}
-                    value={option.value}
-                    as="template"
-                    v-slots={{
-                      default: ({
-                        active,
-                        selected,
-                      }: {
-                        active: boolean
-                        selected: boolean
-                      }) => (
-                        <li
+            <ListboxOptions class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-input">
+              {props.options.map(option => (
+                <ListboxOption
+                  key={option.value}
+                  value={option.value}
+                  as="template"
+                  v-slots={{
+                    default: ({
+                      active,
+                      selected,
+                    }: {
+                      active: boolean
+                      selected: boolean
+                    }) => (
+                      <li
+                        class={[
+                          active
+                            ? 'bg-secondary text-foreground'
+                            : 'text-foreground',
+                          'relative cursor-default select-none py-2 pl-10 pr-4',
+                        ]}
+                      >
+                        <span
                           class={[
-                            active
-                              ? 'bg-secondary text-foreground'
-                              : 'text-foreground',
-                            'relative cursor-default select-none py-2 pl-10 pr-4',
+                            selected ? 'font-medium' : 'font-normal',
+                            'block truncate',
                           ]}
                         >
+                          {option.label}
+                        </span>
+                        {selected ? (
                           <span
                             class={[
-                              selected ? 'font-medium' : 'font-normal',
-                              'block truncate',
+                              active ? 'text-foreground' : 'text-foreground',
+                              'absolute inset-y-0 left-0 flex items-center pl-3',
                             ]}
                           >
-                            {option.label}
+                            <CheckIcon class="h-5 w-5" aria-hidden="true" />
                           </span>
-                          {selected ? (
-                            <span
-                              class={[
-                                active
-                                  ? 'text-foreground'
-                                  : 'text-foreground',
-                                'absolute inset-y-0 left-0 flex items-center pl-3',
-                              ]}
-                            >
-                              <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                            </span>
-                          ) : null}
-                        </li>
-                      ),
-                    }}
-                  />
-                ))}
-              </ListboxOptions>
-            </transition>
+                        ) : null}
+                      </li>
+                    ),
+                  }}
+                />
+              ))}
+            </ListboxOptions>
           </div>
         </Listbox>
       </div>
