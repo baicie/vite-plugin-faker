@@ -248,7 +248,7 @@ const MockEditor = defineComponent({
                             default: ({ selected }: { selected: boolean }) => (
                               <button
                                 class={clsx(
-                                  'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none relative text-foreground',
+                                  'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none relative text-foreground cursor-pointer',
                                   selected
                                     ? ''
                                     : 'text-muted-foreground hover:text-foreground',

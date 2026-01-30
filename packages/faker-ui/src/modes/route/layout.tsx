@@ -37,7 +37,7 @@ export default defineComponent({
                   key={tab.name}
                   onClick={() => props.onSelect(index)}
                   class={cn(
-                    'w-full flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                    'w-full flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer',
                     props.selectedTab === index
                       ? 'bg-secondary text-foreground'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground',

@@ -5,6 +5,15 @@ import type { RequestRecord } from '@baicie/faker-shared'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Badge } from '../../components/ui/badge'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
+import { Pagination } from '../../components/ui/pagination'
 import { cn } from '../../lib/utils'
 
 const RequestList = defineComponent({
@@ -97,74 +106,51 @@ const RequestList = defineComponent({
           </Button>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-border bg-card">
-          <table class="min-w-full divide-y divide-(--border)">
-            <thead class="bg-secondary">
-              <tr>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Path
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Method
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Status
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Mocked
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Duration
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Time
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-card divide-y divide-(--border)">
-              {requests.value.length === 0 && !loading.value ? (
-                <tr>
-                  <td
+        <div class="rounded-lg border border-border bg-card">
+          <Table class="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead class="w-[30%]">Path</TableHead>
+                <TableHead class="w-[10%]">Method</TableHead>
+                <TableHead class="w-[10%]">Status</TableHead>
+                <TableHead class="w-[10%]">Mocked</TableHead>
+                <TableHead class="w-[10%]">Duration</TableHead>
+                <TableHead class="w-[20%]">Time</TableHead>
+                <TableHead class="w-[10%] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading.value ? (
+                <TableRow>
+                  <TableCell
                     colspan={7}
-                    class="px-6 py-4 text-center text-sm text-muted-foreground"
+                    class="text-center text-muted-foreground h-24"
+                  >
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : requests.value.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colspan={7}
+                    class="text-center text-muted-foreground h-24"
                   >
                     No requests found
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 requests.value.map(row => (
-                  <tr key={row.id || row.timestamp} class="hover:bg-secondary">
-                    <td
-                      class="px-6 py-4 whitespace-nowrap text-sm text-foreground max-w-xs truncate"
+                  <TableRow
+                    key={row.id || row.timestamp}
+                    class="hover:bg-muted/50 transition-colors"
+                  >
+                    <TableCell
+                      class="max-w-xs truncate text-foreground"
                       title={row.url}
                     >
                       {row.url}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant="outline"
                         class={cn(
@@ -174,8 +160,8 @@ const RequestList = defineComponent({
                       >
                         {row.method}
                       </Badge>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant="outline"
                         class={cn(
@@ -185,8 +171,8 @@ const RequestList = defineComponent({
                       >
                         {row.response?.statusCode || 0}
                       </Badge>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant="outline"
                         class={cn(
@@ -198,116 +184,37 @@ const RequestList = defineComponent({
                       >
                         {row.isMocked ? 'Yes' : 'No'}
                       </Badge>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    </TableCell>
+                    <TableCell class="text-muted-foreground">
                       {row.duration || 0}ms
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    </TableCell>
+                    <TableCell class="text-muted-foreground">
                       {new Date(row.timestamp).toLocaleString()}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Button
+                    </TableCell>
+                    <TableCell class="text-right">
+                      <button
                         onClick={() => {
                           selectedRequest.value = row
                           showDetail.value = true
                         }}
-                        variant="link"
-                        class="p-0 h-auto"
+                        class="text-gray-900 hover:text-gray-700 dark:text-gray-100 dark:hover:text-gray-300 underline underline-offset-4 cursor-pointer"
                       >
                         Details
-                      </Button>
-                    </td>
-                  </tr>
+                      </button>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        {/* Simple Pagination */}
-        <div class="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6 mt-2 rounded-lg">
-          <div class="flex flex-1 justify-between sm:hidden">
-            <Button
-              onClick={() => loadRequests(page.value - 1)}
-              disabled={page.value <= 1}
-              variant="outline"
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={() => loadRequests(page.value + 1)}
-              disabled={page.value * pageSize.value >= total.value}
-              variant="outline"
-              class="ml-3"
-            >
-              Next
-            </Button>
-          </div>
-          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700 dark:text-gray-400">
-                Showing{' '}
-                <span class="font-medium">
-                  {(page.value - 1) * pageSize.value + 1}
-                </span>{' '}
-                to{' '}
-                <span class="font-medium">
-                  {Math.min(page.value * pageSize.value, total.value)}
-                </span>{' '}
-                of <span class="font-medium">{total.value}</span> results
-              </p>
-            </div>
-            <div>
-              <nav
-                class="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
-                <Button
-                  onClick={() => loadRequests(page.value - 1)}
-                  disabled={page.value <= 1}
-                  variant="outline"
-                  size="icon"
-                  class="rounded-l-md rounded-r-none"
-                >
-                  <span class="sr-only">Previous</span>
-                  <svg
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </Button>
-                <Button
-                  onClick={() => loadRequests(page.value + 1)}
-                  disabled={page.value * pageSize.value >= total.value}
-                  variant="outline"
-                  size="icon"
-                  class="rounded-l-none rounded-r-md ml-0"
-                >
-                  <span class="sr-only">Next</span>
-                  <svg
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </Button>
-              </nav>
-            </div>
-          </div>
-        </div>
+        <Pagination
+          page={page.value}
+          pageSize={pageSize.value}
+          total={total.value}
+          onPageChange={(targetPage: number) => loadRequests(targetPage)}
+        />
 
         {showDetail.value && selectedRequest.value && (
           <RequestDetail

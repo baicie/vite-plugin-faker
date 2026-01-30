@@ -106,10 +106,10 @@ const VisualEditor = defineComponent({
           {fields.value.map((field, index) => (
             <div
               key={index}
-              class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50"
+              class="flex items-center space-x-4 p-4 border border-border rounded-lg bg-card/50"
             >
               <div class="flex-1">
-                <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                <label class="block text-sm font-medium leading-6 text-foreground">
                   Key
                 </label>
                 <div class="mt-1">
@@ -120,13 +120,13 @@ const VisualEditor = defineComponent({
                       field.key = (e.target as HTMLInputElement).value
                       updateOutput()
                     }}
-                    class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-950 sm:text-sm sm:leading-6 dark:bg-gray-950 dark:ring-gray-800 dark:text-gray-100 dark:focus:ring-gray-300"
+                    class="block w-full rounded-md border-0 py-1.5 bg-background text-foreground shadow-sm ring-1 ring-inset ring-input placeholder:text-muted-foreground focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                   />
                 </div>
               </div>
 
               <div class="w-32">
-                <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                <label class="block text-sm font-medium leading-6 text-foreground">
                   Type
                 </label>
                 <div class="mt-1">
@@ -136,7 +136,7 @@ const VisualEditor = defineComponent({
                       field.type = (e.target as HTMLSelectElement).value as any
                       updateOutput()
                     }}
-                    class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-950 sm:text-sm sm:leading-6 dark:bg-gray-950 dark:ring-gray-800 dark:text-gray-100 dark:focus:ring-gray-300"
+                    class="block w-full rounded-md border-0 py-1.5 bg-background text-foreground shadow-sm ring-1 ring-inset ring-input focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                   >
                     {typeOptions.map(opt => (
                       <option key={opt.value} value={opt.value}>
@@ -149,7 +149,7 @@ const VisualEditor = defineComponent({
 
               {props.responseType === 'faker' && (
                 <div class="w-48">
-                  <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+                  <label class="block text-sm font-medium leading-6 text-foreground">
                     Faker
                   </label>
                   <div class="mt-1">
@@ -159,7 +159,7 @@ const VisualEditor = defineComponent({
                         field.faker = (e.target as HTMLSelectElement).value
                         updateOutput()
                       }}
-                      class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-gray-950 sm:text-sm sm:leading-6 dark:bg-gray-950 dark:ring-gray-800 dark:text-gray-100 dark:focus:ring-gray-300"
+                      class="block w-full rounded-md border-0 py-1.5 bg-background text-foreground shadow-sm ring-1 ring-inset ring-input focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6"
                     >
                       <option value="">Select...</option>
                       {fakerOptions.map(opt => (
@@ -176,7 +176,7 @@ const VisualEditor = defineComponent({
                 <Button
                   onClick={() => removeField(index)}
                   variant="link"
-                  class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-0 h-auto"
+                  class="text-red-500 hover:text-red-600 p-0 h-auto"
                 >
                   Remove
                 </Button>

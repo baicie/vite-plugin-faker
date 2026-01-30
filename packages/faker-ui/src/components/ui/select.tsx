@@ -44,13 +44,13 @@ export const Select = defineComponent({
           onUpdate:modelValue={val => emit('update:modelValue', val)}
         >
           <div class="relative mt-1">
-            <ListboxButton class="relative w-full cursor-default rounded-md bg-white dark:bg-gray-950 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-200 dark:ring-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-950 dark:focus:ring-gray-300 sm:text-sm sm:leading-6 text-gray-900 dark:text-gray-100 min-h-[38px]">
+            <ListboxButton class="relative w-full cursor-default rounded-md bg-background py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-input focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm sm:leading-6 text-foreground min-h-[38px]">
               <span class="block truncate">
                 {selectedOption.value?.label ?? props.modelValue}
               </span>
               <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                 <ChevronUpDownIcon
-                  class="h-5 w-5 text-gray-400"
+                  class="h-5 w-5 text-muted-foreground"
                   aria-hidden="true"
                 />
               </span>
@@ -61,7 +61,7 @@ export const Select = defineComponent({
               leave-from-class="opacity-100"
               leave-to-class="opacity-0"
             >
-              <ListboxOptions class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-950 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-gray-100 dark:border-gray-800">
+              <ListboxOptions class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-input">
                 {props.options.map(option => (
                   <ListboxOption
                     key={option.value}
@@ -78,8 +78,8 @@ export const Select = defineComponent({
                         <li
                           class={[
                             active
-                              ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                              : 'text-gray-900 dark:text-gray-100',
+                              ? 'bg-secondary text-foreground'
+                              : 'text-foreground',
                             'relative cursor-default select-none py-2 pl-10 pr-4',
                           ]}
                         >
@@ -95,8 +95,8 @@ export const Select = defineComponent({
                             <span
                               class={[
                                 active
-                                  ? 'text-gray-900 dark:text-gray-100'
-                                  : 'text-gray-900 dark:text-gray-100',
+                                  ? 'text-foreground'
+                                  : 'text-foreground',
                                 'absolute inset-y-0 left-0 flex items-center pl-3',
                               ]}
                             >

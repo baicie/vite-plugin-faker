@@ -64,9 +64,9 @@ const SettingsPanel = defineComponent({
     })
 
     const Section = (props: { title: string }, { slots }: SetupContext) => (
-      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg mb-6">
+      <div class="bg-card border border-border rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100 mb-6">
+          <h3 class="text-base font-semibold leading-6 text-foreground mb-6">
             {props.title}
           </h3>
           <div class="space-y-6 max-w-xl">{slots.default?.()}</div>
@@ -76,7 +76,7 @@ const SettingsPanel = defineComponent({
 
     const FormItem = (props: { label: string }, { slots }: SetupContext) => (
       <div class="flex items-center justify-between">
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
+        <label class="block text-sm font-medium leading-6 text-foreground">
           {props.label}
         </label>
         <div class="ml-4 flex-shrink-0">{slots.default?.()}</div>
@@ -88,7 +88,7 @@ const SettingsPanel = defineComponent({
       { slots }: SetupContext,
     ) => (
       <div>
-        <label class="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100 mb-2">
+        <label class="block text-sm font-medium leading-6 text-foreground mb-2">
           {props.label}
         </label>
         {slots.default?.()}

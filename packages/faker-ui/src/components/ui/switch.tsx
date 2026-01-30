@@ -21,17 +21,15 @@ export const Switch = defineComponent({
         modelValue={props.modelValue}
         onUpdate:modelValue={(val: boolean) => emit('update:modelValue', val)}
         class={cn(
-          props.modelValue
-            ? 'bg-gray-900 dark:bg-gray-100'
-            : 'bg-gray-200 dark:bg-gray-700',
-          'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 dark:focus:ring-gray-300',
+          'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+          props.modelValue ? 'bg-primary' : 'bg-input',
           props.class,
         )}
       >
         <span
           class={cn(
-            props.modelValue ? 'translate-x-6' : 'translate-x-1',
-            'inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-900 transition',
+            'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
+            props.modelValue ? 'translate-x-5' : 'translate-x-0',
           )}
         />
       </HeadlessSwitch>

@@ -50,7 +50,7 @@ const RequestDetail = defineComponent({
             </h3>
             <button
               onClick={close}
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 cursor-pointer"
             >
               <span class="sr-only">Close</span>
               <svg
@@ -84,7 +84,7 @@ const RequestDetail = defineComponent({
                     default: ({ selected }: { selected: boolean }) => (
                       <button
                         class={clsx(
-                          'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none relative text-foreground',
+                          'pb-2 text-sm font-medium leading-5 transition-colors focus:outline-none relative text-foreground cursor-pointer',
                           selected
                             ? ''
                             : 'text-muted-foreground hover:text-foreground',

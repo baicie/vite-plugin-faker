@@ -39,7 +39,7 @@ const JsonEditor = defineComponent({
     }
 
     return () => (
-      <div class="h-[400px] border border-gray-200 rounded-md dark:border-gray-800 overflow-hidden">
+      <div class="h-[400px] border border-input rounded-md overflow-hidden bg-card">
         <MonacoEditor
           value={textValue.value}
           language="json"

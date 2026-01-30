@@ -58,7 +58,7 @@ export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
   ): Page<RequestRecord> {
     const result = this.getPaginatedItems(this.db.data, page, pageSize, {
       searchVal,
-      searchFields: ['req.method', 'req.path'], // 可以指定搜索的特定字段
+      searchFields: ['req.method', 'req.url'], // 可以指定搜索的特定字段
       sortBy,
       sortDesc,
     })

@@ -14,7 +14,7 @@ export default defineConfig({
     entryFileNames: 'index.js',
     format: 'esm',
     sourcemap: true,
-    inlineDynamicImports: true,
+    codeSplitting: true,
     manualChunks: undefined,
   },
   plugins: [
@@ -22,7 +22,7 @@ export default defineConfig({
     vueJsx(),
     postcss({
       extract: 'index.css',
-      minimize: true,
+      minimize: false,
     }),
     needAnalyze && visualizer({ open: true }),
   ],

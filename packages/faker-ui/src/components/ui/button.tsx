@@ -30,16 +30,15 @@ export const Button = defineComponent({
     return () => {
       const variants: Record<string, string> = {
         default:
-          'bg-gray-900 text-white hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200 shadow-sm',
+          'bg-primary text-primary-foreground hover:bg-primary/90 shadow',
         destructive:
           'bg-red-500 text-white hover:bg-red-600 dark:hover:bg-red-600 shadow-sm',
         outline:
-          'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300',
+          'border border-input bg-background shadow-sm hover:bg-secondary hover:text-foreground',
         secondary:
-          'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-700',
-        ghost:
-          'hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50',
-        link: 'text-gray-900 underline-offset-4 hover:underline dark:text-gray-50',
+          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-secondary hover:text-secondary-foreground',
+        link: 'text-primary underline-offset-4 hover:underline',
       }
       const sizes: Record<string, string> = {
         default: 'h-9 px-4 py-2',
@@ -50,7 +49,7 @@ export const Button = defineComponent({
       return (
         <button
           class={cn(
-            'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-gray-300',
+            'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
             variants[props.variant],
             sizes[props.size],
             props.class,

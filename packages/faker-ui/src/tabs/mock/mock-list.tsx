@@ -2,6 +2,15 @@ import { defineComponent, onMounted, reactive, ref } from 'vue'
 import { Switch } from '../../components/ui/switch'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
+import { Pagination } from '../../components/ui/pagination'
 import MockEditor from './mock-editor'
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import {
@@ -109,7 +118,7 @@ const MockList = defineComponent({
           <div class="flex-1 max-w-sm">
             <Input
               type="text"
-              placeholder="Search mocks..."
+              placeholder="Search mocks by url, method, type..."
               modelValue={search.value}
               onUpdate:modelValue={(val: string | number) => {
                 search.value = val as string
@@ -120,82 +129,50 @@ const MockList = defineComponent({
           <Button onClick={handleCreate}>Create Mock</Button>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-border bg-card">
-          <table class="min-w-full divide-y divide-(--border)">
-            <thead class="bg-secondary">
-              <tr>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  URL
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  Method
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  Type
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  Description
-                </th>
-                <th
-                  scope="col"
-                  class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-card divide-y divide-(--border)">
+        <div class="rounded-lg border border-border bg-card">
+          <Table class="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead class="w-[20%]">URL</TableHead>
+                <TableHead class="w-[10%]">Method</TableHead>
+                <TableHead class="w-[10%]">Status</TableHead>
+                <TableHead class="w-[10%]">Type</TableHead>
+                <TableHead class="w-[30%]">Description</TableHead>
+                <TableHead class="w-[20%] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {mocks.value.length === 0 && !loading.value ? (
-                <tr>
-                  <td
+                <TableRow>
+                  <TableCell
                     colspan={6}
-                    class="px-6 py-4 text-center text-sm text-muted-foreground"
+                    class="text-center text-muted-foreground h-24"
                   >
                     No mocks found
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ) : (
                 mocks.value.map(row => (
-                  <tr key={row.id} class="hover:bg-secondary">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      {row.url}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                  <TableRow key={row.id}>
+                    <TableCell class="font-medium">{row.url}</TableCell>
+                    <TableCell class="text-muted-foreground">
                       {row.method}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    </TableCell>
+                    <TableCell>
                       <Switch
                         modelValue={row.enabled}
                         onUpdate:modelValue={(val: boolean) =>
                           handleToggle(row.id!, val)
                         }
                       />
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    </TableCell>
+                    <TableCell class="text-muted-foreground">
                       {row.type}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground max-w-xs truncate">
+                    </TableCell>
+                    <TableCell class="text-muted-foreground max-w-xs truncate">
                       {row.description}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    </TableCell>
+                    <TableCell class="text-right">
                       <Button
                         onClick={() => handleEdit(row)}
                         variant="link"
@@ -210,106 +187,20 @@ const MockList = defineComponent({
                       >
                         Delete
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
-        {/* Pagination */}
-        <div class="flex items-center justify-between border-t border-border bg-card px-4 py-3 sm:px-6 mt-2 rounded-lg">
-          {/* Reuse pagination logic from RequestList or extract to component */}
-          <div class="flex flex-1 justify-between sm:hidden">
-            <Button
-              variant="outline"
-              onClick={() => loadMocks({ page: pagination.page - 1 })}
-              disabled={pagination.page <= 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => loadMocks({ page: pagination.page + 1 })}
-              disabled={
-                pagination.page * pagination.pageSize >= pagination.total
-              }
-              class="ml-3"
-            >
-              Next
-            </Button>
-          </div>
-          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700 dark:text-gray-400">
-                Showing{' '}
-                <span class="font-medium">
-                  {(pagination.page - 1) * pagination.pageSize + 1}
-                </span>{' '}
-                to{' '}
-                <span class="font-medium">
-                  {Math.min(
-                    pagination.page * pagination.pageSize,
-                    pagination.total,
-                  )}
-                </span>{' '}
-                of <span class="font-medium">{pagination.total}</span> results
-              </p>
-            </div>
-            <div>
-              <nav
-                class="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
-                <Button
-                  onClick={() => loadMocks({ page: pagination.page - 1 })}
-                  disabled={pagination.page <= 1}
-                  variant="outline"
-                  size="icon"
-                  class="rounded-l-md rounded-r-none"
-                >
-                  <span class="sr-only">Previous</span>
-                  <svg
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </Button>
-                <Button
-                  onClick={() => loadMocks({ page: pagination.page + 1 })}
-                  disabled={
-                    pagination.page * pagination.pageSize >= pagination.total
-                  }
-                  variant="outline"
-                  size="icon"
-                  class="rounded-l-none rounded-r-md ml-0"
-                >
-                  <span class="sr-only">Next</span>
-                  <svg
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </Button>
-              </nav>
-            </div>
-          </div>
-        </div>
+        <Pagination
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          total={pagination.total}
+          onPageChange={(page: number) => loadMocks({ page })}
+        />
 
         {showEditor.value && (
           <MockEditor

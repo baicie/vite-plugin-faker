@@ -17,6 +17,8 @@ import RequestList from '../../tabs/request/request-list'
 import SettingsPanel from '../../tabs/setting/settings-panel'
 import ThemeToggle from '../../components/theme-toggle'
 
+import { BeakerIcon } from '@heroicons/vue/24/solid'
+
 export default defineComponent({
   name: 'ButtonMode',
   setup() {
@@ -42,9 +44,10 @@ export default defineComponent({
         <div class="fixed bottom-6 right-6 z-[99999] flex flex-col items-end gap-2 font-sans">
           <Button
             onClick={handleOpen}
-            class="h-12 w-12 rounded-full border border-border bg-card"
+            class="h-12 w-12 rounded-full p-0 hover:bg-transparent shadow-none"
+            variant="ghost"
           >
-            Faker
+            <BeakerIcon class="h-10 w-10 text-primary drop-shadow-md hover:scale-110 transition-transform duration-200" />
           </Button>
         </div>
 
@@ -128,7 +131,7 @@ export default defineComponent({
                                       }) => (
                                         <button
                                           class={cn(
-                                            'py-4 text-sm font-medium leading-5 outline-none transition-colors relative text-foreground',
+                                            'py-4 text-sm font-medium leading-5 outline-none transition-colors relative text-foreground cursor-pointer',
                                             selected
                                               ? ''
                                               : 'text-muted-foreground hover:text-foreground',
