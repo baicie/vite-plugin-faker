@@ -46,7 +46,11 @@ export const Pagination = defineComponent({
               <span class="font-medium tabular-nums inline-block min-w-[1rem] text-center">
                 {Math.min(props.page * props.pageSize, props.total)}
               </span>{' '}
-              of <span class="font-medium tabular-nums inline-block min-w-[1rem] text-center">{props.total}</span> results
+              of{' '}
+              <span class="font-medium tabular-nums inline-block min-w-[1rem] text-center">
+                {props.total}
+              </span>{' '}
+              results
             </p>
           </div>
           <div>

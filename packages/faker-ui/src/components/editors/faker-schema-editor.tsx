@@ -2,7 +2,7 @@ import { defineComponent, ref, watch } from 'vue'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Select } from '../ui/select'
-import { TrashIcon, PlusIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { fakerMethodMap } from '@baicie/faker-shared'
 
 interface SchemaItem {

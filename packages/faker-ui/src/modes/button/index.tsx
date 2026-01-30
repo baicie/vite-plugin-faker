@@ -1,4 +1,11 @@
-import { Fragment, Transition, defineComponent, onMounted, ref, watch } from 'vue'
+import {
+  Fragment,
+  Transition,
+  defineComponent,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
 import {
   Dialog,
   DialogPanel,
@@ -17,7 +24,7 @@ import RequestList from '../../tabs/request/request-list'
 import SettingsPanel from '../../tabs/setting/settings-panel'
 import ThemeToggle from '../../components/theme-toggle'
 
-import { BeakerIcon, ArrowPathIcon } from '@heroicons/vue/24/solid'
+import { ArrowPathIcon, BeakerIcon } from '@heroicons/vue/24/solid'
 
 export default defineComponent({
   name: 'ButtonMode',

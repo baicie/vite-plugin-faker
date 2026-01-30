@@ -53,7 +53,7 @@ const MonacoEditor = defineComponent({
 
       // Register extra libs
       if (props.extraLibs.length > 0) {
-        // @ts-ignore - Monaco editor types might be outdated or incomplete
+        // @ts-expect-error - Monaco editor types might be outdated or incomplete
         monaco.languages.typescript.javascriptDefaults.setExtraLibs(
           props.extraLibs,
         )
@@ -123,7 +123,7 @@ const MonacoEditor = defineComponent({
       newLibs => {
         if (newLibs.length > 0) {
           loadMonaco().then(monaco => {
-            // @ts-ignore - Monaco editor types might be outdated or incomplete
+            // @ts-expect-error - Monaco editor types might be outdated or incomplete
             monaco.languages.typescript.javascriptDefaults.setExtraLibs(newLibs)
           })
         }
