@@ -40,7 +40,9 @@ export enum WSMessageType {
   MOCK_UPDATE,
   MOCK_DELETE,
   MOCK_LIST,
+  MOCK_GET,
   REQUEST_HISTORY,
+  REQUEST_CLEAR,
   SETTINGS_GET,
   SETTINGS_UPDATE,
   SETTINGS_CLEAR_CACHE,
@@ -49,6 +51,8 @@ export enum WSMessageType {
   MOCK_CREATED,
   MOCK_UPDATED,
   MOCK_DELETED,
+  MOCK_DETAIL,
+  REQUEST_CLEARED,
   ERROR,
 
   // Node → Hack/UI (广播)
@@ -91,6 +95,8 @@ export type MockType =
 
 export interface BaseMockConfig {
   id?: string // uni use for record / replay / UI
+  url: string
+  method: string
   type: MockType
   enabled: boolean
   name?: string

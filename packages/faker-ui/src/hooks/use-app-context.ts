@@ -1,4 +1,3 @@
-import { extend } from '@baicie/faker-shared'
 import { type InjectionKey, inject } from 'vue'
 
 export interface UIOPtions {
@@ -16,5 +15,9 @@ const defaultOptions: UIOPtions = {
 }
 
 export function useAppContext() {
-  return extend(defaultOptions, inject(appContextKey, defaultOptions))
+  return Object.assign(
+    {},
+    defaultOptions,
+    inject(appContextKey, defaultOptions),
+  )
 }

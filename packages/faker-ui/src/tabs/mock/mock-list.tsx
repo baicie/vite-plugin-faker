@@ -1,14 +1,16 @@
 import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { Switch } from '../../components/ui/switch'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
 import {
-  NButton,
-  NDataTable,
-  NInput,
-  NMessageProvider,
-  NPopconfirm,
-  NSpace,
-  NSwitch,
-  useMessage,
-} from 'naive-ui'
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table'
+import { Pagination } from '../../components/ui/pagination'
 import MockEditor from './mock-editor'
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import {
@@ -20,101 +22,18 @@ import {
 const MockList = defineComponent({
   name: 'MockList',
   setup() {
-    const message = useMessage()
     const mocks = ref<MockConfig[]>([])
     const loading = ref(false)
     const showEditor = ref(false)
     const currentMock = ref<any>(null)
+    const search = ref('')
 
     const pagination = reactive({
       page: 1,
       pageSize: 10,
       itemCount: 0,
-      showSizePicker: true,
-      pageSizes: [10, 20, 50],
-      onChange: (page: number) => {
-        pagination.page = page
-        loadMocks({ page, pageSize: pagination.pageSize })
-      },
-      onUpdatePageSize: (pageSize: number) => {
-        pagination.pageSize = pageSize
-        pagination.page = 1
-        loadMocks({ page: 1, pageSize })
-      },
+      total: 0,
     })
-
-    const columns = [
-      {
-        title: 'URL',
-        key: 'url',
-        width: 200,
-      },
-      {
-        title: '方法',
-        key: 'method',
-        width: 80,
-      },
-      {
-        title: '状态',
-        key: 'enabled',
-        width: 80,
-        render: (row: any) => (
-          <NSwitch
-            value={row.enabled}
-            onUpdateValue={val => handleToggle(row.id, val)}
-          />
-        ),
-      },
-      {
-        title: '类型',
-        key: 'responseType',
-        width: 100,
-      },
-      {
-        title: '描述',
-        key: 'description',
-        ellipsis: true,
-      },
-      {
-        title: '操作',
-        key: 'actions',
-        width: 150,
-        render: (row: any) => (
-          <NSpace>
-            <NButton size="small" onClick={() => handleEdit(row)}>
-              编辑
-            </NButton>
-            <NPopconfirm onPositiveClick={() => handleDelete(row.id)}>
-              {{
-                trigger: () => (
-                  <NButton size="small" type="error">
-                    删除
-                  </NButton>
-                ),
-                default: () => '确定要删除这个 Mock 吗？',
-              }}
-            </NPopconfirm>
-          </NSpace>
-        ),
-      },
-    ]
-
-    function handleEdit(mock: any) {
-      currentMock.value = { ...mock }
-      showEditor.value = true
-    }
-
-    function handleCreate() {
-      currentMock.value = {
-        url: '',
-        method: 'GET',
-        enabled: true,
-        statusCode: 200,
-        responseType: 'static',
-        responseData: {},
-      }
-      showEditor.value = true
-    }
 
     async function loadMocks(params?: {
       page?: number
@@ -127,35 +46,55 @@ const MockList = defineComponent({
           page: params && params.page ? params.page : pagination.page,
           pageSize:
             params && params.pageSize ? params.pageSize : pagination.pageSize,
-          search: params ? params.search : undefined,
+          search: params ? params.search : search.value || undefined,
         }
         const result: Page<MockConfig> = await fetchMockList(query)
         mocks.value = result.items
+        pagination.total = result.pagination.total
         pagination.itemCount = result.pagination.total
         pagination.page = result.pagination.page
         pagination.pageSize = result.pagination.pageSize
       } catch (error) {
-        message.error('加载 Mock 列表失败')
+        console.error('Failed to load mocks', error)
       } finally {
         loading.value = false
       }
     }
 
+    function handleEdit(mock: any) {
+      currentMock.value = { ...mock }
+      showEditor.value = true
+    }
+
+    function handleCreate() {
+      currentMock.value = {
+        url: '',
+        method: 'GET',
+        enabled: true,
+        statusCode: 200,
+        type: 'static',
+        responseData: {},
+      }
+      showEditor.value = true
+    }
+
     async function handleDelete(id: string) {
+      if (!confirm('Are you sure you want to delete this Mock?')) return
+
       try {
         await apiDeleteMock({ id })
-        message.success('删除成功')
+        loadMocks()
       } catch (error) {
-        message.error('删除失败')
+        console.error('Failed to delete mock', error)
       }
     }
 
     async function handleToggle(id: string, enabled: boolean) {
       try {
         await updateMock({ id, updates: { enabled } })
-        message.success(enabled ? '已启用' : '已禁用')
+        loadMocks()
       } catch (error) {
-        message.error('操作失败')
+        console.error('Failed to toggle mock', error)
       }
     }
 
@@ -174,43 +113,118 @@ const MockList = defineComponent({
     })
 
     return () => (
-      <NMessageProvider>
-        <div>
-          <div style="margin-bottom: 16px; display: flex; justify-content: space-between;">
-            <NInput
-              placeholder="搜索 Mock..."
-              style="width: 300px;"
-              onUpdateValue={val => {
-                loadMocks({
-                  page: 1,
-                  pageSize: pagination.pageSize,
-                  search: val,
-                })
+      <div>
+        <div class="mb-4 flex justify-between items-center gap-4">
+          <div class="flex-1 max-w-sm">
+            <Input
+              type="text"
+              placeholder="Search mocks by url, method, type..."
+              modelValue={search.value}
+              onUpdate:modelValue={(val: string | number) => {
+                search.value = val as string
+                loadMocks({ page: 1, search: search.value })
               }}
             />
-            <NButton type="primary" onClick={handleCreate}>
-              新建 Mock
-            </NButton>
           </div>
-
-          <NDataTable
-            columns={columns}
-            data={mocks.value}
-            loading={loading.value}
-            pagination={pagination}
-            rowKey={row => row.id}
-          />
-
-          {showEditor.value && (
-            <MockEditor
-              show={showEditor.value}
-              mock={currentMock.value}
-              onSave={handleEditorSave}
-              onCancel={handleEditorCancel}
-            />
-          )}
+          <Button onClick={handleCreate}>Create Mock</Button>
         </div>
-      </NMessageProvider>
+
+        <div class="rounded-lg border border-border bg-card">
+          <Table class="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead class="w-[20%]" fixed="left">
+                  URL
+                </TableHead>
+                <TableHead class="w-[10%]">Method</TableHead>
+                <TableHead class="w-[10%]">Status</TableHead>
+                <TableHead class="w-[10%]">Type</TableHead>
+                <TableHead class="w-[30%]">Description</TableHead>
+                <TableHead class="w-[20%] text-right" fixed="right">
+                  Actions
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mocks.value.length === 0 && !loading.value ? (
+                <TableRow>
+                  <TableCell
+                    colspan={6}
+                    class="text-center text-muted-foreground h-24"
+                  >
+                    No mocks found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                mocks.value.map(row => (
+                  <TableRow key={row.id}>
+                    <TableCell class="font-medium" fixed="left">
+                      {row.url}
+                    </TableCell>
+                    <TableCell class="text-muted-foreground">
+                      {row.method}
+                    </TableCell>
+                    <TableCell>
+                      <div
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleToggle(row.id!, !row.enabled)
+                        }}
+                      >
+                        <Switch
+                          modelValue={row.enabled}
+                          onUpdate:modelValue={(val: boolean) =>
+                            handleToggle(row.id!, val)
+                          }
+                          class="pointer-events-none"
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell class="text-muted-foreground">
+                      {row.type}
+                    </TableCell>
+                    <TableCell class="text-muted-foreground max-w-xs truncate">
+                      {row.description}
+                    </TableCell>
+                    <TableCell class="text-right" fixed="right">
+                      <Button
+                        onClick={() => handleEdit(row)}
+                        variant="link"
+                        class="text-foreground hover:text-foreground underline underline-offset-4 p-0 mr-4 h-auto"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        onClick={() => handleDelete(row.id!)}
+                        variant="link"
+                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-0 h-auto"
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <Pagination
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          total={pagination.total}
+          onPageChange={(page: number) => loadMocks({ page })}
+        />
+
+        {showEditor.value && (
+          <MockEditor
+            show={showEditor.value}
+            mock={currentMock.value}
+            onSave={handleEditorSave}
+            onCancel={handleEditorCancel}
+          />
+        )}
+      </div>
     )
   },
 })

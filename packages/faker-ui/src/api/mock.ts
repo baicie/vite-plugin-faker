@@ -51,3 +51,11 @@ export const fetchMockList = useWsRequest<DashboardQuery, Page<MockConfig>>({
   sendType: WSMessageType.MOCK_LIST,
   responseType: WSMessageType.MOCK_LIST,
 })
+
+/**
+ * 获取 Mock 详情
+ */
+export const fetchMock = useWsRequest<{ id: string }, MockConfig>({
+  sendType: WSMessageType.MOCK_GET,
+  responseType: WSMessageType.MOCK_DETAIL,
+})

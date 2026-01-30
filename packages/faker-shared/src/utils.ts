@@ -19,11 +19,11 @@ export function generateUUID(): string {
  * 转义替换值，用于字符串替换
  * 返回 JSON 序列化后的字符串，可以直接用于 String.replace()
  */
-export function escapeReplacement(
-  value: string | number | boolean | null,
-): string {
-  return JSON.stringify(value)
-}
+// export function escapeReplacement(
+//   value: string | number | boolean | null,
+// ): string {
+//   return JSON.stringify(value)
+// }
 
 const postfixRE = /[?#].*$/
 export function cleanUrl(url: string): string {

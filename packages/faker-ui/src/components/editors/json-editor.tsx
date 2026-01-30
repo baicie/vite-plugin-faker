@@ -5,6 +5,7 @@ interface Props {
   value: string
   onChange: (value: string) => void
   placeholder?: string
+  theme?: string
 }
 
 const JsonEditor = defineComponent({
@@ -21,6 +22,10 @@ const JsonEditor = defineComponent({
     placeholder: {
       type: String,
       default: '{}',
+    },
+    theme: {
+      type: String,
+      default: 'vs',
     },
   },
   setup(props: Props) {
@@ -39,12 +44,13 @@ const JsonEditor = defineComponent({
     }
 
     return () => (
-      <div style="height: 400px; border: 1px solid #ddd; border-radius: 4px;">
+      <div class="h-[400px] border border-input rounded-md overflow-hidden bg-card">
         <MonacoEditor
           value={textValue.value}
           language="json"
           onChange={handleChange}
           height="400px"
+          theme={props.theme}
         />
       </div>
     )

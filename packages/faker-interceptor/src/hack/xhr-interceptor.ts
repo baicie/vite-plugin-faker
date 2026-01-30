@@ -108,6 +108,27 @@ export class XHRInterceptor {
       // 获取响应头
       const responseHeaders = this.getResponseHeaders(xhr)
 
+      // 检查响应头中的 Mock ID
+      let currentMockId: string | undefined
+      let currentIsMocked = isMocked
+      const headerMockId = responseHeaders['x-mock-id']
+
+      if (headerMockId && headerMockId !== 'unknown') {
+        currentMockId = headerMockId
+        currentIsMocked = true
+      } else {
+        // 尝试在现有的 Mock 配置中查找匹配项
+        const foundMock = this.mocks.find(
+          m =>
+            m.url === url.pathname &&
+            m.method.toUpperCase() === xhr._method.toUpperCase(),
+        )
+        if (foundMock) {
+          currentMockId = foundMock.id
+          currentIsMocked = true
+        }
+      }
+
       const record: RequestRecord = {
         url: xhr._url,
         method: xhr._method,
@@ -119,7 +140,8 @@ export class XHRInterceptor {
           body,
         },
         duration,
-        isMocked,
+        isMocked: currentIsMocked,
+        mockId: currentMockId,
         timestamp: Date.now(),
       }
       if (!responseHeaders['x-mock-source']) {
@@ -157,7 +179,7 @@ export class XHRInterceptor {
    * 更新 Mock 配置
    */
   updateMocks(mocks: MockConfig[]): void {
-    this.mocks = mocks.filter(m => m.enabled)
+    this.mocks = mocks
     logger.info(`XHR Mock 配置已更新: ${this.mocks.length} 个`)
   }
 }

@@ -1,25 +1,18 @@
-import { defineComponent, onMounted, reactive } from 'vue'
 import {
-  NButton,
-  NCard,
-  NDivider,
-  NForm,
-  NFormItem,
-  NInput,
-  NInputNumber,
-  NSpace,
-  NSwitch,
-  useDialog,
-  useMessage,
-} from 'naive-ui'
+  type SetupContext,
+  defineComponent,
+  onMounted,
+  reactive,
+  ref,
+} from 'vue'
 import { clearCache, getSettings, updateSettings } from '../../api'
-import { ref } from 'vue'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Switch } from '../../components/ui/switch'
 
 const SettingsPanel = defineComponent({
   name: 'SettingsPanel',
   setup() {
-    const { warning } = useDialog()
-    const message = useMessage()
     const loading = ref(false)
 
     const formData = reactive({
@@ -34,32 +27,28 @@ const SettingsPanel = defineComponent({
       try {
         loading.value = true
         await updateSettings(formData)
-        message.success('设置已保存')
+        // message.success('设置已保存')
       } catch (error) {
-        message.error('保存设置失败')
+        console.error('保存设置失败', error)
       } finally {
         loading.value = false
       }
     }
 
     async function handleClearCache() {
-      warning({
-        title: '确认清除',
-        content: '确定要清除所有请求记录吗？此操作不可恢复。',
-        positiveText: '确定',
-        negativeText: '取消',
-        onPositiveClick: async () => {
-          try {
-            loading.value = true
-            await clearCache()
-            message.success('缓存已清除')
-          } catch (error) {
-            message.error('清除缓存失败')
-          } finally {
-            loading.value = false
-          }
-        },
-      })
+      if (!confirm('确定要清除所有请求记录吗？此操作不可恢复。')) {
+        return
+      }
+
+      try {
+        loading.value = true
+        await clearCache()
+        // message.success('缓存已清除')
+      } catch (error) {
+        console.error('清除缓存失败', error)
+      } finally {
+        loading.value = false
+      }
     }
 
     onMounted(async () => {
@@ -74,52 +63,103 @@ const SettingsPanel = defineComponent({
       }
     })
 
-    return () => (
+    const Section = (props: { title: string }, { slots }: SetupContext) => (
+      <div class="bg-card border border-border rounded-lg mb-6">
+        <div class="px-4 py-5 sm:p-6">
+          <h3 class="text-base font-semibold leading-6 text-foreground mb-6">
+            {props.title}
+          </h3>
+          <div class="space-y-6 max-w-xl">{slots.default?.()}</div>
+        </div>
+      </div>
+    )
+
+    const FormItem = (props: { label: string }, { slots }: SetupContext) => (
+      <div class="flex items-center justify-between">
+        <label class="block text-sm font-medium leading-6 text-foreground">
+          {props.label}
+        </label>
+        <div class="ml-4 flex-shrink-0">{slots.default?.()}</div>
+      </div>
+    )
+
+    const FormInputItem = (
+      props: { label: string },
+      { slots }: SetupContext,
+    ) => (
       <div>
-        <NCard title="全局设置">
-          <NForm labelPlacement="left" labelWidth="150">
-            <NFormItem label="全局延迟(ms)">
-              <NInputNumber
-                v-model:value={formData.globalDelay}
-                min={0}
-                max={60000}
-              />
-            </NFormItem>
+        <label class="block text-sm font-medium leading-6 text-foreground mb-2">
+          {props.label}
+        </label>
+        {slots.default?.()}
+      </div>
+    )
 
-            <NFormItem label="默认启用所有Mock">
-              <NSwitch v-model:value={formData.enableAllMocks} />
-            </NFormItem>
+    return () => (
+      <div class="p-4 max-w-4xl mx-auto">
+        <Section title="全局设置">
+          <FormItem label="全局延迟(ms)">
+            <Input
+              type="number"
+              modelValue={formData.globalDelay}
+              onUpdate:modelValue={val => (formData.globalDelay = Number(val))}
+              min={0}
+              max={60000}
+              class="w-32 text-right"
+            />
+          </FormItem>
 
-            <NFormItem label="记录请求日志">
-              <NSwitch v-model:value={formData.logRequests} />
-            </NFormItem>
-          </NForm>
-        </NCard>
+          <FormItem label="默认启用所有Mock">
+            <Switch
+              modelValue={formData.enableAllMocks}
+              onUpdate:modelValue={(val: boolean) =>
+                (formData.enableAllMocks = val)
+              }
+            />
+          </FormItem>
 
-        <NDivider />
+          <FormItem label="记录请求日志">
+            <Switch
+              modelValue={formData.logRequests}
+              onUpdate:modelValue={(val: boolean) =>
+                (formData.logRequests = val)
+              }
+            />
+          </FormItem>
+        </Section>
 
-        <NCard title="高级设置">
-          <NForm labelPlacement="left" labelWidth="150">
-            <NFormItem label="启用CORS">
-              <NSwitch v-model:value={formData.corsEnabled} />
-            </NFormItem>
+        <Section title="高级设置">
+          <FormItem label="启用CORS">
+            <Switch
+              modelValue={formData.corsEnabled}
+              onUpdate:modelValue={(val: boolean) =>
+                (formData.corsEnabled = val)
+              }
+            />
+          </FormItem>
 
-            <NFormItem label="CORS允许来源">
-              <NInput v-model:value={formData.corsAllowOrigin} />
-            </NFormItem>
-          </NForm>
-        </NCard>
+          <FormInputItem label="CORS允许来源">
+            <Input
+              modelValue={formData.corsAllowOrigin}
+              onUpdate:modelValue={val =>
+                (formData.corsAllowOrigin = String(val))
+              }
+            />
+          </FormInputItem>
+        </Section>
 
-        <NDivider />
-
-        <NSpace>
-          <NButton type="primary" onClick={handleSave} loading={loading.value}>
-            保存设置
-          </NButton>
-          <NButton onClick={handleClearCache} loading={loading.value}>
-            清除缓存
-          </NButton>
-        </NSpace>
+        <div class="flex items-center gap-4 mt-6">
+          <Button onClick={handleSave} disabled={loading.value}>
+            {loading.value ? '保存中...' : '保存设置'}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleClearCache}
+            disabled={loading.value}
+          >
+            {loading.value ? '处理中...' : '清除缓存'}
+          </Button>
+        </div>
       </div>
     )
   },

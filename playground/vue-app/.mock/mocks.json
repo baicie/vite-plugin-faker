@@ -1,18 +1,67 @@
 {
   "/api/users-GET": {
+    "name": "/api/users",
     "url": "/api/users",
     "method": "GET",
-    "statusCode": 200,
-    "enabled": false,
+    "enabled": true,
     "description": "",
     "type": "static",
-    "responseData": {},
-    "responseTemplate": "{}",
-    "responseCode": "return {\n  message: \"Hello World\"\n};",
-    "delay": 0,
-    "headers": {
-      "Content-Type": "application/json"
-    },
-    "response": {}
+    "response": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "data": {
+          "data": [
+            {
+              "id": 1,
+              "name": "张三",
+              "email": "zhangsan@example.com",
+              "age": 28,
+              "role": "user",
+              "createdAt": "2025-12-01T11:37:38.000Z"
+            }
+          ],
+          "meta": {
+            "total": 3,
+            "page": 1,
+            "limit": 10,
+            "totalPages": 1,
+            "hasPrevious": false,
+            "hasNext": false
+          }
+        },
+        "timestamp": "2026-01-30T09:47:59.907Z"
+      },
+      "delay": 0,
+      "headers": {
+        "access-control-allow-credentials": "true",
+        "connection": "close",
+        "content-length": "514",
+        "content-type": "application/json; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-resource-policy": "same-origin",
+        "date": "Fri, 30 Jan 2026 09:47:59 GMT",
+        "etag": "W/\"202-eny9/BAacftiyZhKX0WthDvzMmA\"",
+        "origin-agent-cluster": "?1",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-dns-prefetch-control": "off",
+        "x-download-options": "noopen",
+        "x-frame-options": "SAMEORIGIN",
+        "x-permitted-cross-domain-policies": "none",
+        "x-ratelimit-limit-long": "1000",
+        "x-ratelimit-limit-medium": "100",
+        "x-ratelimit-limit-short": "10",
+        "x-ratelimit-remaining-long": "902",
+        "x-ratelimit-remaining-medium": "98",
+        "x-ratelimit-remaining-short": "8",
+        "x-ratelimit-reset-long": "1470",
+        "x-ratelimit-reset-medium": "60",
+        "x-ratelimit-reset-short": "1",
+        "x-xss-protection": "0"
+      }
+    }
   }
 }

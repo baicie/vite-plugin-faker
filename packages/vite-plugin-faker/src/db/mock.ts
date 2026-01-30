@@ -44,6 +44,10 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     return this.db.data[id]
   }
 
+  getMock(id: string): MockConfig | undefined {
+    return this.db.data[id]
+  }
+
   updateMock(id: string, updates: Partial<MockConfig>): boolean {
     if (this.db.data[id]) {
       this.db.data[id] = { ...this.db.data[id], ...updates }
