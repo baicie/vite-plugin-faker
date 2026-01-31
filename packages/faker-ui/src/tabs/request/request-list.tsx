@@ -240,21 +240,23 @@ const RequestList = defineComponent({
                       {new Date(row.timestamp).toLocaleString()}
                     </TableCell>
                     <TableCell class="text-right" fixed="right">
-                      <button
+                      <Button
                         onClick={() => handleMock(row)}
-                        class="text-primary hover:text-primary/80 underline underline-offset-4 cursor-pointer mr-3"
+                        variant="text"
+                        size="sm"
                       >
                         {row.isMocked ? 'Edit Mock' : 'Mock'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => {
                           selectedRequest.value = row
                           showDetail.value = true
                         }}
-                        class="text-gray-900 hover:text-gray-700 dark:text-gray-100 dark:hover:text-gray-300 underline underline-offset-4 cursor-pointer"
+                        size="sm"
+                        variant="text"
                       >
                         Details
-                      </button>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

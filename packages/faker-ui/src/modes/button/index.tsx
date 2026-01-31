@@ -81,8 +81,8 @@ export default defineComponent({
         <div class="fixed bottom-6 right-6 z-[99999] flex flex-col items-end gap-2 font-sans">
           <Button
             onClick={handleOpen}
-            class="h-12 w-12 rounded-full p-0 hover:bg-transparent shadow-none"
-            variant="ghost"
+            class="h-12 w-12 rounded-full p-0 shadow-none"
+            variant="text"
           >
             <BeakerIcon class="h-10 w-10 text-primary drop-shadow-md hover:scale-110 transition-transform duration-200" />
           </Button>

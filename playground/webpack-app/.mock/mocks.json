@@ -42,7 +42,7 @@
     "name": "/api/health",
     "url": "/api/health",
     "method": "GET",
-    "enabled": true,
+    "enabled": false,
     "description": "Health check",
     "type": "static",
     "response": {

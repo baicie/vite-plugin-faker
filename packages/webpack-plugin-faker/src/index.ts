@@ -252,11 +252,11 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
       }
 
       if (headTags) {
-        headTags.push(...scripts)
+        headTags.unshift(...scripts)
       }
     } else {
       if (headTags) {
-        headTags.push(...scripts)
+        headTags.unshift(...scripts)
       }
     }
   }
