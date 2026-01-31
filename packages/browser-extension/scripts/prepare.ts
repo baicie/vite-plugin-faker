@@ -8,16 +8,30 @@ import { isDev, log, port, r } from './utils'
  * Stub index.html to use Vite in development
  */
 async function stubIndexHtml() {
-  const views = ['options', 'popup', 'sidepanel']
+  const views = ['popup']
 
   for (const view of views) {
     await fs.ensureDir(r(`extension/dist/${view}`))
     let data = await fs.readFile(r(`src/${view}/index.html`), 'utf-8')
     data = data
       .replace('"./main.ts"', `"http://localhost:${port}/${view}/main.ts"`)
-      .replace('<div id="app"></div>', '<div id="app">Vite server did not start</div>')
+      .replace(
+        '<div id="app"></div>',
+        '<div id="app">Vite server did not start</div>',
+      )
     await fs.writeFile(r(`extension/dist/${view}/index.html`), data, 'utf-8')
     log('PRE', `stub ${view}`)
+  }
+}
+
+async function copyInterceptor() {
+  const source = r('../faker-interceptor/dist/interceptor.js')
+  const dest = r('extension/dist/interceptor.js')
+  if (fs.existsSync(source)) {
+    await fs.copy(source, dest)
+    log('PRE', 'copy interceptor.js')
+  } else {
+    log('PRE', 'interceptor.js not found, skipping copy')
   }
 }
 
@@ -26,15 +40,14 @@ function writeManifest() {
 }
 
 writeManifest()
+copyInterceptor()
 
 if (isDev) {
   stubIndexHtml()
-  chokidar.watch(r('src/**/*.html'))
-    .on('change', () => {
-      stubIndexHtml()
-    })
-  chokidar.watch([r('src/manifest.ts'), r('package.json')])
-    .on('change', () => {
-      writeManifest()
-    })
+  chokidar.watch(r('src/**/*.html')).on('change', () => {
+    stubIndexHtml()
+  })
+  chokidar.watch([r('src/manifest.ts'), r('package.json')]).on('change', () => {
+    writeManifest()
+  })
 }
