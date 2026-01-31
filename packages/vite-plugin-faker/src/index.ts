@@ -136,7 +136,10 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
       }
     },
     transformIndexHtml(html) {
-      const injectArr = [CLIENT_INTERCEPTOR_PATH, CLIENT_UI_CSS, CLIENT_UI_PATH]
+      const injectArr = [CLIENT_INTERCEPTOR_PATH]
+      if (_config.uiOptions?.mode === 'button') {
+        injectArr.push(CLIENT_UI_CSS, CLIENT_UI_PATH)
+      }
       const tags: HtmlTagDescriptor[] = injectArr.map(item => {
         return {
           tag: 'script',

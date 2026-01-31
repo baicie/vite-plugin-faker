@@ -13,6 +13,10 @@ import { WSServer } from './ws-server'
 import { resolveConfig } from './config'
 import type { FakerOptions, FakerConfig } from './types'
 
+type InjectItem =
+  | { kind: 'script'; path: string; module?: boolean }
+  | { kind: 'style'; path: string }
+
 export class WebpackPluginFaker implements WebpackPluginInstance {
   private config: FakerConfig
   private dbManager: DBManager | null = null
@@ -196,15 +200,35 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
     const publicPath = (compiler.options.output?.publicPath as string) || '/'
     const base = publicPath.endsWith('/') ? publicPath : publicPath + '/'
 
-    const injectArr = [CLIENT_INTERCEPTOR_PATH, CLIENT_UI_CSS, CLIENT_UI_PATH]
+    const injectArr: InjectItem[] = [
+      { kind: 'script', path: CLIENT_INTERCEPTOR_PATH, module: true },
+    ]
 
-    const scripts: any[] = injectArr.map(item => {
+    if (this.config.uiOptions?.mode === 'button') {
+      injectArr.push(
+        { kind: 'style', path: CLIENT_UI_CSS },
+        { kind: 'script', path: CLIENT_UI_PATH, module: true },
+      )
+    }
+
+    const scripts = injectArr.map(item => {
+      if (item.kind === 'style') {
+        return {
+          tagName: 'link',
+          voidTag: true,
+          attributes: {
+            rel: 'stylesheet',
+            href: path.posix.join(base, item.path.replace(/^\//, '')),
+          },
+        }
+      }
+
       return {
         tagName: 'script',
         voidTag: false,
         attributes: {
-          type: 'module',
-          src: path.posix.join(base, item.replace(/^\//, '')),
+          type: item.module ? 'module' : 'text/javascript',
+          src: path.posix.join(base, item.path.replace(/^\//, '')),
         },
       }
     })
@@ -227,9 +251,8 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
         bodyTags.push(divTag)
       }
 
-      const scriptTags = scripts.filter(s => s.tagName === 'script')
       if (headTags) {
-        headTags.push(...scriptTags)
+        headTags.push(...scripts)
       }
     } else {
       if (headTags) {

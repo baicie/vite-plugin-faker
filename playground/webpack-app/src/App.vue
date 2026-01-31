@@ -99,94 +99,122 @@ const showMessage = (text: string, type = 'info') => {
   }, 3000)
 }
 
-// 检查API状态
-const checkApiStatus = async () => {
+const formatDate = (dateString: string) => {
+  if (!dateString) return '-'
+  return new Date(dateString).toLocaleString('zh-CN')
+}
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// API调用函数
+const checkHealth = async () => {
   try {
-    const res = await api.get('/health')
-    apiStatus.value = { text: '在线', class: 'status-online' }
-    return true
-  } catch (error) {
-    console.error('API检查失败:', error)
-    apiStatus.value = { text: '离线', class: 'status-offline' }
+    apiStatus.value = { text: '正常', class: 'status-success' }
+    console.log(new Date().toISOString(), 'checkHealth')
+    // 检测认证模式
+    // try {
+    //   await api.get('/users')
+    //   authMode.value = { text: '已禁用', class: 'status-warning' }
+    // } catch (error: any) {
+    //   if (error.response?.status === 401) {
+    //     authMode.value = { text: '已启用', class: 'status-success' }
+    //   } else {
+    //     authMode.value = { text: '未知错误', class: 'status-error' }
+    //   }
+    // }
+  } catch (error: any) {
+    apiStatus.value = { text: '异常', class: 'status-error' }
     showMessage('API连接失败', 'error')
-    return false
   }
 }
 
-// 检查认证模式
-const checkAuthMode = async () => {
+const login = async () => {
   try {
-    // 尝试访问受保护资源
-    await api.get('/users')
-    authMode.value = { text: '公开', class: 'status-public' }
+    loading.value = true
+    loadingText.value = '登录中...'
+
+    const response = await api.post('/auth/login', loginForm)
+    authToken.value = response.data.access_token
+    currentUser.value = response.data.user
+    showLogin.value = false
+    showMessage('登录成功', 'success')
+
+    // 登录后刷新数据
+    await loadAllData()
   } catch (error: any) {
-    if (error.response && error.response.status === 401) {
-      authMode.value = { text: '需要认证', class: 'status-protected' }
-    } else {
-      authMode.value = { text: '未知', class: 'status-unknown' }
+    showMessage(
+      '登录失败: ' + (error.response?.data?.message || error.message),
+      'error',
+    )
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadUsers = async () => {
+  try {
+    console.log(new Date().toISOString(), 'loadUsers')
+    const response = await api.get('/users')
+    console.log('app response', response)
+    users.value =
+      response.data.data?.data || response.data.data || response.data
+  } catch (error: any) {
+    console.error('加载用户失败:', error)
+    if (error.response?.status !== 401 && error.response?.status !== 403) {
+      showMessage('加载用户失败', 'error')
     }
   }
 }
 
-// 登录
-const login = async () => {
-  loading.value = true
-  loadingText.value = '登录中...'
+const loadProducts = async () => {
   try {
-    const res = await api.post('/auth/login', loginForm)
-    authToken.value = res.data.token
-    currentUser.value = res.data.user
-    showMessage('登录成功', 'success')
-    showLogin.value = false
-    await fetchUsers() // 登录后刷新用户列表
+    const response = await api.get('/products')
+    // API返回格式: {success: true, data: {data: [...], meta: {...}}}
+    products.value =
+      response.data.data?.data || response.data.data || response.data
   } catch (error: any) {
-    console.error('登录失败:', error)
-    showMessage(error.response?.data?.message || '登录失败', 'error')
-  } finally {
-    loading.value = false
+    console.error('加载商品失败:', error)
+    if (error.response?.status !== 401 && error.response?.status !== 403) {
+      showMessage('加载商品失败', 'error')
+    }
   }
 }
 
-// 登出
-const logout = async () => {
-  loading.value = true
-  loadingText.value = '登出中...'
+const loadOrders = async () => {
   try {
-    await api.post('/auth/logout')
-    authToken.value = ''
-    currentUser.value = null
-    showMessage('已登出', 'info')
-  } catch (error) {
-    console.error('登出失败:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-// 获取用户列表
-const fetchUsers = async () => {
-  loading.value = true
-  loadingText.value = '获取用户列表...'
-  try {
-    const res = await api.get('/users')
-    users.value = res.data
+    const response = await api.get('/orders')
+    // API返回格式: {success: true, data: {data: [...], meta: {...}}}
+    orders.value =
+      response.data.data?.data || response.data.data || response.data
   } catch (error: any) {
-    console.error('获取用户失败:', error)
-    showMessage('获取用户列表失败: ' + (error.response?.data?.message || error.message), 'error')
-  } finally {
-    loading.value = false
+    console.error('加载订单失败:', error)
+    if (error.response?.status !== 401 && error.response?.status !== 403) {
+      showMessage('加载订单失败', 'error')
+    }
   }
 }
 
-// 保存用户
+const loadAllData = async () => {
+  await Promise.all([loadUsers(), loadProducts(), loadOrders()])
+}
+
+// 用户管理
+const editUser = (user: any) => {
+  Object.assign(userForm, user)
+  showUserForm.value = true
+}
+
 const saveUser = async () => {
-  if (!userForm.name || !userForm.email) {
-    showMessage('请填写必填项', 'error')
-    return
-  }
-
-  loading.value = true
   try {
+    loading.value = true
+    loadingText.value = userForm.id ? '更新用户...' : '创建用户...'
+
     if (userForm.id) {
       await api.put(`/users/${userForm.id}`, userForm)
       showMessage('用户更新成功', 'success')
@@ -194,41 +222,36 @@ const saveUser = async () => {
       await api.post('/users', userForm)
       showMessage('用户创建成功', 'success')
     }
-    showUserForm.value = false
-    await fetchUsers()
+
+    closeUserForm()
+    await loadUsers()
   } catch (error: any) {
-    console.error('保存用户失败:', error)
-    showMessage('保存用户失败: ' + (error.response?.data?.message || error.message), 'error')
+    showMessage(
+      '保存用户失败: ' + (error.response?.data?.message || error.message),
+      'error',
+    )
   } finally {
     loading.value = false
   }
 }
 
-// 删除用户
 const deleteUser = async (id: number) => {
   if (!confirm('确定要删除这个用户吗？')) return
 
-  loading.value = true
   try {
     await api.delete(`/users/${id}`)
     showMessage('用户删除成功', 'success')
-    await fetchUsers()
+    await loadUsers()
   } catch (error: any) {
-    console.error('删除用户失败:', error)
-    showMessage('删除用户失败: ' + (error.response?.data?.message || error.message), 'error')
-  } finally {
-    loading.value = false
+    showMessage(
+      '删除用户失败: ' + (error.response?.data?.message || error.message),
+      'error',
+    )
   }
 }
 
-// 编辑用户
-const editUser = (user: any) => {
-  Object.assign(userForm, user)
-  showUserForm.value = true
-}
-
-// 新增用户
-const addUser = () => {
+const closeUserForm = () => {
+  showUserForm.value = false
   Object.assign(userForm, {
     id: null,
     name: '',
@@ -236,33 +259,19 @@ const addUser = () => {
     age: 18,
     password: '',
   })
-  showUserForm.value = true
 }
 
-// 获取商品列表
-const fetchProducts = async () => {
-  loading.value = true
-  loadingText.value = '获取商品列表...'
-  try {
-    const res = await api.get('/products')
-    products.value = res.data
-  } catch (error: any) {
-    console.error('获取商品失败:', error)
-    showMessage('获取商品列表失败', 'error')
-  } finally {
-    loading.value = false
-  }
+// 商品管理
+const editProduct = (product: any) => {
+  Object.assign(productForm, product)
+  showProductForm.value = true
 }
 
-// 保存商品
 const saveProduct = async () => {
-  if (!productForm.name || !productForm.price) {
-    showMessage('请填写必填项', 'error')
-    return
-  }
-
-  loading.value = true
   try {
+    loading.value = true
+    loadingText.value = productForm.id ? '更新商品...' : '创建商品...'
+
     if (productForm.id) {
       await api.put(`/products/${productForm.id}`, productForm)
       showMessage('商品更新成功', 'success')
@@ -270,41 +279,36 @@ const saveProduct = async () => {
       await api.post('/products', productForm)
       showMessage('商品创建成功', 'success')
     }
-    showProductForm.value = false
-    await fetchProducts()
+
+    closeProductForm()
+    await loadProducts()
   } catch (error: any) {
-    console.error('保存商品失败:', error)
-    showMessage('保存商品失败', 'error')
+    showMessage(
+      '保存商品失败: ' + (error.response?.data?.message || error.message),
+      'error',
+    )
   } finally {
     loading.value = false
   }
 }
 
-// 删除商品
 const deleteProduct = async (id: number) => {
   if (!confirm('确定要删除这个商品吗？')) return
 
-  loading.value = true
   try {
     await api.delete(`/products/${id}`)
     showMessage('商品删除成功', 'success')
-    await fetchProducts()
+    await loadProducts()
   } catch (error: any) {
-    console.error('删除商品失败:', error)
-    showMessage('删除商品失败', 'error')
-  } finally {
-    loading.value = false
+    showMessage(
+      '删除商品失败: ' + (error.response?.data?.message || error.message),
+      'error',
+    )
   }
 }
 
-// 编辑商品
-const editProduct = (product: any) => {
-  Object.assign(productForm, product)
-  showProductForm.value = true
-}
-
-// 新增商品
-const addProduct = () => {
+const closeProductForm = () => {
+  showProductForm.value = false
   Object.assign(productForm, {
     id: null,
     name: '',
@@ -313,718 +317,893 @@ const addProduct = () => {
     stock: 0,
     description: '',
   })
-  showProductForm.value = true
 }
 
-// 获取订单列表
-const fetchOrders = async () => {
-  loading.value = true
-  loadingText.value = '获取订单列表...'
+// 订单管理
+const viewOrderItems = async (order: any) => {
+  showMessage(`订单 ${order.id} 的详细信息`, 'info')
+}
+
+const deleteOrder = async (id: number) => {
+  if (!confirm('确定要删除这个订单吗？')) return
+
   try {
-    const res = await api.get('/orders')
-    orders.value = res.data
+    await api.delete(`/orders/${id}`)
+    showMessage('订单删除成功', 'success')
+    await loadOrders()
   } catch (error: any) {
-    console.error('获取订单失败:', error)
-    showMessage('获取订单列表失败', 'error')
-  } finally {
-    loading.value = false
+    showMessage(
+      '删除订单失败: ' + (error.response?.data?.message || error.message),
+      'error',
+    )
   }
 }
 
-// 处理文件选择
-const handleFileChange = (event: any) => {
-  uploadFiles.value = Array.from(event.target.files)
+// 文件上传
+const handleFileSelect = (event: Event) => {
+  const files = (event.target as HTMLInputElement).files
+  if (files) {
+    uploadFiles.value.push(...Array.from(files))
+  }
 }
 
-// 上传文件
-const uploadFile = async () => {
-  if (uploadFiles.value.length === 0) {
-    showMessage('请先选择文件', 'error')
-    return
+const removeFile = (file: File) => {
+  const index = uploadFiles.value.indexOf(file)
+  if (index > -1) {
+    uploadFiles.value.splice(index, 1)
   }
+}
 
-  loading.value = true
-  loadingText.value = '上传文件中...'
-  
-  const formData = new FormData()
-  uploadFiles.value.forEach(file => {
-    formData.append('file', file)
-  })
-
+const uploadFile = async (file: File) => {
   try {
-    const res = await api.post('/upload', formData, {
+    loading.value = true
+    loadingText.value = `上传 ${file.name}...`
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await api.post('/uploads', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
-    showMessage('文件上传成功', 'success')
-    uploadedFiles.value.push(res.data)
-    uploadFiles.value = []
-    // 重置input
-    const input = document.getElementById('fileInput') as HTMLInputElement
-    if (input) input.value = ''
+
+    uploadedFiles.value.push(response.data)
+    removeFile(file)
+    showMessage(`文件 ${file.name} 上传成功`, 'success')
   } catch (error: any) {
-    console.error('上传失败:', error)
-    showMessage('文件上传失败', 'error')
+    showMessage(
+      `上传 ${file.name} 失败: ` +
+      (error.response?.data?.message || error.message),
+      'error',
+    )
   } finally {
     loading.value = false
   }
 }
 
-// 发送自定义请求
-const sendRequest = async () => {
-  loading.value = true
-  apiTest.response = ''
-  
+// API测试
+const testApi = async () => {
   try {
-    let res
+    loading.value = true
+    loadingText.value = '发送API请求...'
+
+    let response
     const config = {
-      method: apiTest.method,
-      url: apiTest.path,
-      data: apiTest.body ? JSON.parse(apiTest.body) : undefined,
+      method: apiTest.method.toLowerCase(),
+      url: apiTest.path.startsWith('/') ? apiTest.path : `/${apiTest.path}`,
+      data:
+        apiTest.method !== 'GET' && apiTest.body
+          ? JSON.parse(apiTest.body)
+          : undefined,
     }
-    
-    res = await api(config)
-    apiTest.response = JSON.stringify(res.data, null, 2)
-    showMessage('请求成功', 'success')
+
+    response = await api.request(config)
+    apiTest.response = JSON.stringify(response.data, null, 2)
+    showMessage('API请求成功', 'success')
   } catch (error: any) {
-    apiTest.response = JSON.stringify(error.response?.data || error.message, null, 2)
-    showMessage('请求失败', 'error')
+    apiTest.response = JSON.stringify(
+      {
+        error: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      },
+      null,
+      2,
+    )
+    showMessage('API请求失败', 'error')
   } finally {
     loading.value = false
   }
-}
-
-// 格式化日期
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleString()
-}
-
-// 格式化价格
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('zh-CN', {
-    style: 'currency',
-    currency: 'CNY',
-  }).format(price)
 }
 
 // 初始化
 onMounted(async () => {
-  await checkApiStatus()
-  await checkAuthMode()
-  await fetchUsers()
+  console.log('onMounted')
+  await checkHealth()
+  await loadAllData()
 })
 </script>
 
 <template>
-  <div class="container">
-    <header>
-      <h1>🛠️ Faker Playground</h1>
-      <div class="status-bar">
-        <div class="status-item">
-          API状态: <span :class="apiStatus.class">{{ apiStatus.text }}</span>
-        </div>
-        <div class="status-item">
-          认证模式: <span :class="authMode.class">{{ authMode.text }}</span>
-        </div>
-        <div class="user-info" v-if="currentUser">
-          👤 {{ currentUser.name }}
-          <button @click="logout" class="btn-small">登出</button>
-        </div>
-        <button v-else @click="showLogin = true" class="btn-primary">登录</button>
+  <div id="app">
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <div class="status-item">
+        <span>🌐 API状态:</span>
+        <span :class="apiStatus.class">{{ apiStatus.text }}</span>
+        <button @click="checkHealth" class="btn btn-sm">检查</button>
       </div>
-    </header>
+      <div class="status-item">
+        <span>🔐 认证模式:</span>
+        <span :class="authMode.class">{{ authMode.text }}</span>
+      </div>
+    </div>
 
-    <div class="main-content">
-      <nav class="tabs">
-        <button 
-          v-for="tab in tabs" 
-          :key="tab.key"
-          :class="{ active: activeTab === tab.key }"
-          @click="activeTab = tab.key; tab.key === 'users' && fetchUsers(); tab.key === 'products' && fetchProducts(); tab.key === 'orders' && fetchOrders()"
-        >
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+      <!-- 标签页导航 -->
+      <div class="tabs">
+        <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
+          :class="['tab', { active: activeTab === tab.key }]">
           {{ tab.label }}
         </button>
-      </nav>
+      </div>
 
-      <div class="tab-content">
-        <!-- 用户管理 -->
-        <div v-if="activeTab === 'users'" class="panel">
-          <div class="panel-header">
-            <h2>用户列表</h2>
-            <button @click="addUser" class="btn-primary">➕ 新增用户</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>姓名</th>
-                  <th>邮箱</th>
-                  <th>年龄</th>
-                  <th>状态</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="user in users" :key="user.id">
-                  <td>{{ user.id }}</td>
-                  <td>{{ user.name }}</td>
-                  <td>{{ user.email }}</td>
-                  <td>{{ user.age }}</td>
-                  <td>
-                    <span class="badge" :class="user.status === 'active' ? 'success' : 'warning'">
-                      {{ user.status }}
-                    </span>
-                  </td>
-                  <td>
-                    <button @click="editUser(user)" class="btn-icon">✏️</button>
-                    <button @click="deleteUser(user.id)" class="btn-icon delete">🗑️</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <!-- 用户管理 -->
+      <div v-if="activeTab === 'users'" class="tab-content">
+        <div class="section-header">
+          <h2>👥 用户管理</h2>
+          <button @click="showUserForm = true" class="btn btn-primary">
+            添加用户
+          </button>
         </div>
 
-        <!-- 商品管理 -->
-        <div v-if="activeTab === 'products'" class="panel">
-          <div class="panel-header">
-            <h2>商品列表</h2>
-            <button @click="addProduct" class="btn-primary">➕ 新增商品</button>
-          </div>
-          <div class="grid-container">
-            <div v-for="product in products" :key="product.id" class="card">
-              <div class="card-header">
-                <h3>{{ product.name }}</h3>
-                <span class="price">{{ formatPrice(product.price) }}</span>
-              </div>
-              <p class="category">{{ product.category }}</p>
-              <p class="description">{{ product.description }}</p>
-              <div class="card-footer">
-                <span>库存: {{ product.stock }}</span>
-                <div class="actions">
-                  <button @click="editProduct(product)" class="btn-icon">✏️</button>
-                  <button @click="deleteProduct(product.id)" class="btn-icon delete">🗑️</button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>邮箱</th>
+                <th>年龄</th>
+                <th>角色</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in users" :key="user.id">
+                <td>{{ user.id }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.age }}</td>
+                <td>{{ user.role }}</td>
+                <td>{{ formatDate(user.createdAt) }}</td>
+                <td>
+                  <button @click="editUser(user)" class="btn btn-sm btn-secondary">
+                    编辑
+                  </button>
+                  <button @click="deleteUser(user.id)" class="btn btn-sm btn-danger">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 商品管理 -->
+      <div v-if="activeTab === 'products'" class="tab-content">
+        <div class="section-header">
+          <h2>🛍️ 商品管理</h2>
+          <button @click="showProductForm = true" class="btn btn-primary">
+            添加商品
+          </button>
         </div>
 
-        <!-- 订单管理 -->
-        <div v-if="activeTab === 'orders'" class="panel">
-          <div class="panel-header">
-            <h2>订单列表</h2>
-            <button @click="fetchOrders" class="btn-secondary">🔄 刷新</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>订单号</th>
-                  <th>客户</th>
-                  <th>总金额</th>
-                  <th>状态</th>
-                  <th>日期</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="order in orders" :key="order.id">
-                  <td>{{ order.id }}</td>
-                  <td>{{ order.customerName }}</td>
-                  <td>{{ formatPrice(order.total) }}</td>
-                  <td>
-                    <span class="badge" :class="{
-                      'success': order.status === 'completed',
-                      'warning': order.status === 'pending',
-                      'error': order.status === 'cancelled'
-                    }">
-                      {{ order.status }}
-                    </span>
-                  </td>
-                  <td>{{ formatDate(order.createdAt) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>商品名称</th>
+                <th>价格</th>
+                <th>分类</th>
+                <th>库存</th>
+                <th>描述</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="product in products" :key="product.id">
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td>¥{{ product.price }}</td>
+                <td>{{ product.category }}</td>
+                <td>{{ product.stock }}</td>
+                <td>{{ product.description }}</td>
+                <td>
+                  <button @click="editProduct(product)" class="btn btn-sm btn-secondary">
+                    编辑
+                  </button>
+                  <button @click="deleteProduct(product.id)" class="btn btn-sm btn-danger">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 订单管理 -->
+      <div v-if="activeTab === 'orders'" class="tab-content">
+        <div class="section-header">
+          <h2>📦 订单管理</h2>
+          <button @click="showOrderForm = true" class="btn btn-primary">
+            创建订单
+          </button>
         </div>
 
-        <!-- 文件上传 -->
-        <div v-if="activeTab === 'upload'" class="panel">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>订单ID</th>
+                <th>用户ID</th>
+                <th>总金额</th>
+                <th>地址</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in orders" :key="order.id">
+                <td>{{ order.id }}</td>
+                <td>{{ order.userId }}</td>
+                <td>¥{{ order.totalAmount }}</td>
+                <td>{{ order.address }}</td>
+                <td>{{ order.status }}</td>
+                <td>{{ formatDate(order.createdAt) }}</td>
+                <td>
+                  <button @click="viewOrderItems(order)" class="btn btn-sm btn-info">
+                    查看详情
+                  </button>
+                  <button @click="deleteOrder(order.id)" class="btn btn-sm btn-danger">
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 文件上传 -->
+      <div v-if="activeTab === 'upload'" class="tab-content">
+        <div class="section-header">
+          <h2>📁 文件上传</h2>
+        </div>
+
+        <div class="upload-section">
           <div class="upload-area">
-            <h3>文件上传测试</h3>
-            <div class="upload-box">
-              <input type="file" id="fileInput" multiple @change="handleFileChange">
-              <p>拖拽文件到这里或点击上传</p>
-            </div>
-            <button @click="uploadFile" class="btn-primary" :disabled="!uploadFiles.length">
-              ⬆️ 开始上传
-            </button>
+            <p>点击选择文件或拖拽文件到此处</p>
+            <input ref="fileInput" type="file" multiple @change="handleFileSelect" style="display: none" />
           </div>
-          
-          <div class="uploaded-list" v-if="uploadedFiles.length">
+
+          <div v-if="uploadFiles.length > 0" class="file-list">
+            <h3>上传队列</h3>
+            <div v-for="file in uploadFiles" :key="file.name" class="file-item">
+              <span>{{ file.name }} ({{ formatFileSize(file.size) }})</span>
+              <button @click="uploadFile(file)" class="btn btn-sm btn-primary">
+                上传
+              </button>
+              <button @click="removeFile(file)" class="btn btn-sm btn-danger">
+                移除
+              </button>
+            </div>
+          </div>
+
+          <div v-if="uploadedFiles.length > 0" class="uploaded-files">
             <h3>已上传文件</h3>
-            <ul>
-              <li v-for="(file, index) in uploadedFiles" :key="index">
-                📄 {{ file.filename || file.name }} ({{ file.size }} bytes)
-              </li>
-            </ul>
+            <div v-for="file in uploadedFiles" :key="file.filename" class="uploaded-file">
+              <a :href="file.url" target="_blank">{{ file.originalname }}</a>
+              <span>({{ formatFileSize(file.size) }})</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- API测试 -->
-        <div v-if="activeTab === 'api'" class="panel">
-          <div class="api-tester">
+      <!-- API测试 -->
+      <div v-if="activeTab === 'api'" class="tab-content">
+        <div class="section-header">
+          <h2>🔧 API 测试</h2>
+        </div>
+
+        <div class="api-test-section">
+          <div class="test-form">
             <div class="form-group">
+              <label>请求方法:</label>
               <select v-model="apiTest.method">
                 <option value="GET">GET</option>
                 <option value="POST">POST</option>
                 <option value="PUT">PUT</option>
                 <option value="DELETE">DELETE</option>
               </select>
-              <input v-model="apiTest.path" placeholder="/api/path">
-              <button @click="sendRequest" class="btn-primary">发送</button>
             </div>
-            <div class="form-group" v-if="['POST', 'PUT'].includes(apiTest.method)">
-              <textarea v-model="apiTest.body" placeholder="Request Body (JSON)" rows="5"></textarea>
+
+            <div class="form-group">
+              <label>API路径:</label>
+              <input v-model="apiTest.path" placeholder="/api/users" class="form-input" />
             </div>
-            <div class="response-area">
-              <h4>响应结果:</h4>
-              <pre>{{ apiTest.response }}</pre>
+
+            <div class="form-group" v-if="apiTest.method !== 'GET'">
+              <label>请求体 (JSON):</label>
+              <textarea v-model="apiTest.body" placeholder='{"name": "test"}' class="form-textarea"></textarea>
             </div>
+
+            <button @click="testApi" class="btn btn-primary">发送请求</button>
+          </div>
+
+          <div class="test-result">
+            <h3>响应结果:</h3>
+            <pre>{{ apiTest.response }}</pre>
           </div>
         </div>
       </div>
+    </main>
+
+    <!-- 登录弹窗 -->
+    <div v-if="showLogin" class="modal">
+      <div class="modal-content">
+        <h3>用户登录</h3>
+        <form @submit.prevent="login">
+          <div class="form-group">
+            <label>邮箱:</label>
+            <input v-model="loginForm.email" type="email" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>密码:</label>
+            <input v-model="loginForm.password" type="password" required class="form-input" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">登录</button>
+            <button type="button" @click="showLogin = false" class="btn btn-secondary">
+              取消
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <!-- 模态框 -->
-    <div v-if="loading" class="loading-overlay">
+    <!-- 用户表单弹窗 -->
+    <div v-if="showUserForm" class="modal">
+      <div class="modal-content">
+        <h3>{{ userForm.id ? '编辑用户' : '添加用户' }}</h3>
+        <form @submit.prevent="saveUser">
+          <div class="form-group">
+            <label>姓名:</label>
+            <input v-model="userForm.name" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>邮箱:</label>
+            <input v-model="userForm.email" type="email" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>年龄:</label>
+            <input v-model.number="userForm.age" type="number" required class="form-input" />
+          </div>
+          <div class="form-group" v-if="!userForm.id">
+            <label>密码:</label>
+            <input v-model="userForm.password" type="password" required class="form-input" />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="button" @click="closeUserForm" class="btn btn-secondary">
+              取消
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 商品表单弹窗 -->
+    <div v-if="showProductForm" class="modal">
+      <div class="modal-content">
+        <h3>{{ productForm.id ? '编辑商品' : '添加商品' }}</h3>
+        <form @submit.prevent="saveProduct">
+          <div class="form-group">
+            <label>商品名称:</label>
+            <input v-model="productForm.name" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>价格:</label>
+            <input v-model.number="productForm.price" type="number" step="0.01" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>分类:</label>
+            <input v-model="productForm.category" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>库存:</label>
+            <input v-model.number="productForm.stock" type="number" required class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>描述:</label>
+            <textarea v-model="productForm.description" class="form-textarea"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="button" @click="closeProductForm" class="btn btn-secondary">
+              取消
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 加载提示 -->
+    <div v-if="loading" class="loading">
       <div class="spinner"></div>
       <p>{{ loadingText }}</p>
     </div>
 
-    <div v-if="message.show" class="toast" :class="message.type">
+    <!-- 消息提示 -->
+    <div v-if="message.show" :class="['message', message.type]">
       {{ message.text }}
-    </div>
-
-    <!-- 登录弹窗 -->
-    <div v-if="showLogin" class="modal-overlay">
-      <div class="modal">
-        <h3>登录</h3>
-        <div class="form-group">
-          <label>邮箱</label>
-          <input v-model="loginForm.email">
-        </div>
-        <div class="form-group">
-          <label>密码</label>
-          <input type="password" v-model="loginForm.password">
-        </div>
-        <div class="modal-actions">
-          <button @click="showLogin = false" class="btn-secondary">取消</button>
-          <button @click="login" class="btn-primary">登录</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 用户表单 -->
-    <div v-if="showUserForm" class="modal-overlay">
-      <div class="modal">
-        <h3>{{ userForm.id ? '编辑用户' : '新增用户' }}</h3>
-        <div class="form-group">
-          <label>姓名</label>
-          <input v-model="userForm.name">
-        </div>
-        <div class="form-group">
-          <label>邮箱</label>
-          <input v-model="userForm.email">
-        </div>
-        <div class="form-group">
-          <label>年龄</label>
-          <input type="number" v-model="userForm.age">
-        </div>
-        <div class="modal-actions">
-          <button @click="showUserForm = false" class="btn-secondary">取消</button>
-          <button @click="saveUser" class="btn-primary">保存</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 商品表单 -->
-    <div v-if="showProductForm" class="modal-overlay">
-      <div class="modal">
-        <h3>{{ productForm.id ? '编辑商品' : '新增商品' }}</h3>
-        <div class="form-group">
-          <label>名称</label>
-          <input v-model="productForm.name">
-        </div>
-        <div class="form-group">
-          <label>价格</label>
-          <input type="number" v-model="productForm.price">
-        </div>
-        <div class="form-group">
-          <label>分类</label>
-          <input v-model="productForm.category">
-        </div>
-        <div class="form-group">
-          <label>库存</label>
-          <input type="number" v-model="productForm.stock">
-        </div>
-        <div class="form-group">
-          <label>描述</label>
-          <textarea v-model="productForm.description"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button @click="showProductForm = false" class="btn-secondary">取消</button>
-          <button @click="saveProduct" class="btn-primary">保存</button>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
-<style>
-:root {
-  --primary-color: #3b82f6;
-  --secondary-color: #64748b;
-  --success-color: #22c55e;
-  --warning-color: #eab308;
-  --error-color: #ef4444;
-  --bg-color: #f8fafc;
-  --text-color: #1e293b;
-  --border-color: #e2e8f0;
-}
-
+<style scoped>
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  line-height: 1.5;
+#app {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e0e0e0;
+  background-color: #1a1a1a;
+  min-height: 100vh;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-header {
+/* 头部样式 */
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  background: white;
-  padding: 15px 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.status-bar {
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.auth-info {
   display: flex;
-  gap: 15px;
   align-items: center;
+  gap: 1rem;
+}
+
+/* 状态栏样式 */
+.status-bar {
+  background: #2d2d2d;
+  padding: 0.75rem 2rem;
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid #404040;
+  color: #e0e0e0;
 }
 
 .status-item {
-  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }
 
-.status-online { color: var(--success-color); font-weight: bold; }
-.status-offline { color: var(--error-color); font-weight: bold; }
-.status-public { color: var(--success-color); font-weight: bold; }
-.status-protected { color: var(--warning-color); font-weight: bold; }
-.status-unknown { color: var(--secondary-color); font-weight: bold; }
+.status-success {
+  color: #4caf50;
+  font-weight: bold;
+}
 
+.status-warning {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+.status-error {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.status-unknown {
+  color: #888;
+}
+
+/* 主要内容区域 */
+.main-content {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 标签页样式 */
 .tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #404040;
 }
 
-.tabs button {
-  padding: 10px 20px;
+.tab {
+  padding: 0.75rem 1.5rem;
+  background: none;
   border: none;
-  background: white;
-  border-radius: 6px;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  font-size: 1rem;
+  color: #999;
+  transition: all 0.3s ease;
 }
 
-.tabs button.active {
-  background: var(--primary-color);
-  color: white;
+.tab:hover {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
 }
 
-.panel {
-  background: white;
-  padding: 20px;
+.tab.active {
+  color: #8b9aff;
+  border-bottom-color: #8b9aff;
+  background-color: #2a2a3a;
+}
+
+/* 内容区域 */
+.tab-content {
+  background: #2d2d2d;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.panel-header {
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 1.5rem;
 }
 
 /* 表格样式 */
-table {
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
   width: 100%;
   border-collapse: collapse;
+  background: #2d2d2d;
+  color: #e0e0e0;
 }
 
-th, td {
-  padding: 12px;
+.data-table th,
+.data-table td {
   text-align: left;
-  border-bottom: 1px solid var(--border-color);
+  padding: 0.75rem;
+  border-bottom: 1px solid #404040;
 }
 
-th {
-  background-color: #f1f5f9;
+.data-table th {
+  background-color: #1f1f1f;
   font-weight: 600;
+  color: #ccc;
+}
+
+.data-table tr:hover {
+  background-color: #353535;
 }
 
 /* 按钮样式 */
-button {
-  cursor: pointer;
+.btn {
+  padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 0.9em;
-  transition: opacity 0.2s;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn-primary {
-  background-color: var(--primary-color);
+  background-color: #8b9aff;
   color: white;
+}
+
+.btn-primary:hover {
+  background-color: #7a8aef;
 }
 
 .btn-secondary {
-  background-color: var(--secondary-color);
+  background-color: #6c757d;
   color: white;
 }
 
-.btn-small {
-  padding: 4px 8px;
-  font-size: 0.8em;
-  background-color: var(--secondary-color);
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-danger {
+  background-color: #dc3545;
   color: white;
-  margin-left: 10px;
 }
 
-.btn-icon {
-  background: none;
-  padding: 4px;
-  font-size: 1.2em;
+.btn-danger:hover {
+  background-color: #c82333;
 }
 
-/* 徽章样式 */
-.badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
-  font-weight: 500;
-  background: #e2e8f0;
+.btn-info {
+  background-color: #17a2b8;
+  color: white;
 }
 
-.badge.success { background: #dcfce7; color: #166534; }
-.badge.warning { background: #fef9c3; color: #854d0e; }
-.badge.error { background: #fee2e2; color: #991b1b; }
-
-/* 网格布局 */
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+.btn-info:hover {
+  background-color: #138496;
 }
 
-.card {
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 15px;
-  background: white;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.price {
-  font-weight: bold;
-  color: var(--primary-color);
-}
-
-.card-footer {
-  margin-top: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid var(--border-color);
-  padding-top: 10px;
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  margin: 0 0.25rem;
 }
 
 /* 表单样式 */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 0.25rem;
   font-weight: 500;
+  color: #ccc;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form-input,
+.form-textarea,
+select {
   width: 100%;
-  padding: 8px;
-  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+  border: 1px solid #404040;
   border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: #1f1f1f;
+  color: #e0e0e0;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #8b9aff;
+  box-shadow: 0 0 0 2px rgba(139, 154, 255, 0.2);
+}
+
+.form-textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
 }
 
 /* 弹窗样式 */
-.modal-overlay {
+.modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 1000;
 }
 
-.modal {
-  background: white;
-  padding: 25px;
+.modal-content {
+  background: #2d2d2d;
+  padding: 2rem;
   border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #e0e0e0;
 }
 
-.modal h3 {
-  margin-bottom: 20px;
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #e0e0e0;
 }
 
-.modal-actions {
+/* 文件上传样式 */
+.upload-section {
+  max-width: 600px;
+}
+
+.upload-area {
+  border: 2px dashed #555;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #e0e0e0;
+}
+
+.upload-area:hover {
+  border-color: #8b9aff;
+  background-color: #2a2a3a;
+}
+
+.file-list,
+.uploaded-files {
+  margin-top: 1.5rem;
+}
+
+.file-item,
+.uploaded-file {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  background-color: #1f1f1f;
+  color: #e0e0e0;
 }
 
-/* 加载遮罩 */
-.loading-overlay {
+/* API测试样式 */
+.api-test-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.test-result pre {
+  background-color: #1f1f1f;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  max-height: 400px;
+  border: 1px solid #404040;
+  color: #e0e0e0;
+}
+
+/* 加载状态 */
+.loading {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255,255,255,0.8);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 200;
+  z-index: 2000;
+  color: white;
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--primary-color);
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* Toast消息 */
-.toast {
+/* 消息提示 */
+.message {
   position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 20px;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
   border-radius: 4px;
   color: white;
   font-weight: 500;
-  z-index: 300;
-  animation: slideUp 0.3s ease;
+  z-index: 3000;
+  animation: slideIn 0.3s ease;
 }
 
-.toast.info { background: var(--secondary-color); }
-.toast.success { background: var(--success-color); }
-.toast.error { background: var(--error-color); }
-
-@keyframes slideUp {
-  from { transform: translate(-50%, 100%); }
-  to { transform: translate(-50%, 0); }
+.message.info {
+  background-color: #2196f3;
 }
 
-.upload-box {
-  border: 2px dashed var(--border-color);
-  padding: 40px;
-  text-align: center;
-  margin: 20px 0;
-  border-radius: 8px;
-  cursor: pointer;
-  position: relative;
+.message.success {
+  background-color: #4caf50;
 }
 
-.upload-box input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
+.message.error {
+  background-color: #f44336;
 }
 
-.api-tester .form-group {
-  display: flex;
-  gap: 10px;
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 
-.api-tester select {
-  width: 100px;
-}
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-.api-tester pre {
-  background: #1e293b;
-  color: #e2e8f0;
-  padding: 15px;
-  border-radius: 4px;
-  overflow: auto;
-  max-height: 400px;
+  .main-content {
+    padding: 1rem;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    padding: 0.5rem 1rem;
+  }
+
+  .tab-content {
+    padding: 1rem;
+  }
+
+  .api-test-section {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table {
+    font-size: 0.8rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1rem;
+  }
 }
 </style>
