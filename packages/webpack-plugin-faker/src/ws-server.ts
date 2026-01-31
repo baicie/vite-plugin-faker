@@ -64,14 +64,29 @@ export class WSServer {
       path: '/__faker_ws__',
     })
 
-    this.httpServer.on('upgrade', (request, socket, head) => {
+    if (
+      this.httpServer
+        .listeners('upgrade')
+        .some(l => l.name === 'fakerUpgradeHandler')
+    ) {
+      return
+    }
+
+    const fakerUpgradeHandler = (request: any, socket: any, head: any) => {
       const pathname = new URL(request.url ?? '', 'http://localhost').pathname
       if (pathname === '/__faker_ws__') {
         this.server?.handleUpgrade(request, socket, head, ws => {
           this.server?.emit('connection', ws, request)
         })
       }
+    }
+
+    // Assign a name to the function to check it later
+    Object.defineProperty(fakerUpgradeHandler, 'name', {
+      value: 'fakerUpgradeHandler',
     })
+
+    this.httpServer.on('upgrade', fakerUpgradeHandler)
 
     logger.info('[Faker] WebSocket attached to DevServer at /__faker_ws__')
 

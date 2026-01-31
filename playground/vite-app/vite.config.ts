@@ -11,7 +11,7 @@ export default defineConfig({
         level: 'error',
       },
       uiOptions: {
-        mode: 'route',
+        mode: 'button',
       },
     }),
   ],

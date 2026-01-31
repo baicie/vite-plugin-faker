@@ -23,7 +23,16 @@ export async function fakerUI(target: string, wsUrl?: string): Promise<void> {
 }
 
 if (typeof window !== 'undefined') {
-  const wsUrl = wsPort ? `ws://${window.location.hostname}:${wsPort}/` : ''
+  let wsUrl = ''
+  if (wsPort) {
+    wsUrl = `ws://${window.location.hostname}:${wsPort}/`
+  } else {
+    const isVite = !!import.meta.hot
+    if (!isVite) {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      wsUrl = `${protocol}//${window.location.host}/__faker_ws__`
+    }
+  }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       fakerUI(mountTarget, wsUrl)
