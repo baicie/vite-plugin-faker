@@ -21,11 +21,13 @@ export default defineConfig([
         format: 'esm',
         dir: './dist',
         entryFileNames: '[name].js',
+        sourcemap: true,
       },
       {
         format: 'cjs',
         dir: './dist',
         entryFileNames: '[name].cjs',
+        sourcemap: true,
       },
     ],
     treeshake: true,

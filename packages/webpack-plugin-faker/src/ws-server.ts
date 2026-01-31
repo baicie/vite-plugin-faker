@@ -100,13 +100,16 @@ export class WSServer {
       }, 0)
 
       ws.on('message', (data: any) => {
-        try {
-          const message = isValidJSON(data) ? JSON.parse(data) : data
-          this.handleMessage(ws, message)
-        } catch (error) {
-          logger.error('[Faker] 解析消息失败:', error)
-        }
-      })
+      try {
+        const messageStr = data.toString()
+        const message = isValidJSON(messageStr)
+          ? JSON.parse(messageStr)
+          : messageStr
+        this.handleMessage(ws, message)
+      } catch (error) {
+        logger.error('[Faker] 解析消息失败:', error)
+      }
+    })
 
       ws.on('close', () => {
         this.clients.delete(ws)
@@ -135,13 +138,16 @@ export class WSServer {
       }, 0)
 
       ws.on('message', (data: any) => {
-        try {
-          const message = isValidJSON(data) ? JSON.parse(data) : data
-          this.handleMessage(ws, message)
-        } catch (error) {
-          logger.error('[Faker] 解析消息失败:', error)
-        }
-      })
+      try {
+        const messageStr = data.toString()
+        const message = isValidJSON(messageStr)
+          ? JSON.parse(messageStr)
+          : messageStr
+        this.handleMessage(ws, message)
+      } catch (error) {
+        logger.error('[Faker] 解析消息失败:', error)
+      }
+    })
 
       ws.on('close', () => {
         this.clients.delete(ws)
