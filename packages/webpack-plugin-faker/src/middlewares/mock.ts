@@ -2,8 +2,8 @@ import type { MockContext, QueryObject } from '@baicie/faker-shared'
 import { extend, sleep } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import qs from 'qs'
-import type { Connect, ViteDevServer } from 'vite'
-import { dbManager } from '../index'
+import type { IncomingMessage, ServerResponse } from 'node:http'
+import type { DBManager } from '@baicie/faker-core'
 import { generateResponseMap, readBody } from '@baicie/faker-core'
 
 export function parseQuery<T extends QueryObject = QueryObject>(
@@ -20,13 +20,17 @@ export function parseQuery<T extends QueryObject = QueryObject>(
 }
 
 export function mockMiddleware(
-  _server: ViteDevServer,
-): Connect.NextHandleFunction {
-  const mockDB = dbManager?.getMocksDB()
+  dbManager: DBManager,
+): (
+  req: IncomingMessage,
+  res: ServerResponse,
+  next: (err?: any) => void,
+) => void {
+  const mockDB = dbManager.getMocksDB()
 
-  return async function viteMockMiddleware(req, res, next) {
+  return async function (req: any, res: any, next: any) {
     try {
-      const mock = mockDB?.findMock(req)
+      const mock = mockDB.findMock(req)
 
       if (!mock || !mock.enabled) {
         return next()

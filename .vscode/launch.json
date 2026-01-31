@@ -6,9 +6,27 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["--inspect", "../../node_modules/tsx/dist/cli.cjs"],
-      "args": ["vite.script.ts"],
-      "cwd": "${workspaceFolder}/playground/vue-app",
+      "runtimeArgs": ["--inspect", "./node_modules/vite/bin/vite.js"],
+      "args": [],
+      "cwd": "${workspaceFolder}/playground/vite-app",
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug Webpack Plugin (server)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect", "./node_modules/webpack/bin/webpack.js"],
+      "args": [
+        "serve",
+        "--config",
+        "webpack.config.js",
+        "--mode",
+        "development"
+      ],
+      "cwd": "${workspaceFolder}/playground/webpack-app",
       "console": "integratedTerminal",
       "autoAttachChildProcesses": true,
       "skipFiles": ["<node_internals>/**"]

@@ -5,7 +5,13 @@ import {
   reactive,
   ref,
 } from 'vue'
-import { clearCache, getSettings, updateSettings } from '../../api'
+import {
+  clearCache,
+  exportMocks,
+  getSettings,
+  importMocks,
+  updateSettings,
+} from '../../api'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Switch } from '../../components/ui/switch'
@@ -22,6 +28,68 @@ const SettingsPanel = defineComponent({
       corsEnabled: true,
       corsAllowOrigin: '*',
     })
+
+    const fileInput = ref<HTMLInputElement | null>(null)
+
+    async function handleExport() {
+      try {
+        loading.value = true
+        const mocks = await exportMocks()
+        const blob = new Blob([JSON.stringify(mocks, null, 2)], {
+          type: 'application/json',
+        })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `faker-mocks-${new Date().toISOString().slice(0, 10)}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } catch (error) {
+        console.error('导出失败', error)
+        alert('导出失败')
+      } finally {
+        loading.value = false
+      }
+    }
+
+    async function handleImport(event: Event) {
+      const target = event.target as HTMLInputElement
+      const file = target.files?.[0]
+      if (!file) return
+
+      try {
+        loading.value = true
+        const text = await file.text()
+        const mocks = JSON.parse(text)
+        if (!Array.isArray(mocks)) {
+          alert('无效的 Mock 数据格式')
+          return
+        }
+
+        const result = await importMocks(mocks)
+        if (result.success) {
+          alert(`成功导入 ${result.count} 条 Mock 数据`)
+          // 刷新页面或重新获取数据？
+          // 这里可以考虑触发一个全局事件或者重新获取设置（虽然设置没变）
+        } else {
+          alert('导入失败')
+        }
+      } catch (error) {
+        console.error('导入失败', error)
+        alert('导入失败: ' + (error as Error).message)
+      } finally {
+        loading.value = false
+        if (fileInput.value) {
+          fileInput.value.value = ''
+        }
+      }
+    }
+
+    function triggerImport() {
+      fileInput.value?.click()
+    }
 
     async function handleSave() {
       try {
@@ -148,16 +216,42 @@ const SettingsPanel = defineComponent({
           </FormInputItem>
         </Section>
 
+        <Section title="数据管理">
+          <div class="flex flex-wrap gap-4">
+            <Button
+              onClick={handleExport}
+              disabled={loading.value}
+              variant="outline"
+            >
+              导出 Mocks
+            </Button>
+            <Button
+              onClick={triggerImport}
+              disabled={loading.value}
+              variant="outline"
+            >
+              导入 Mocks
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleClearCache}
+              disabled={loading.value}
+            >
+              清除请求记录
+            </Button>
+            <input
+              type="file"
+              ref={fileInput}
+              class="hidden"
+              accept=".json"
+              onChange={handleImport}
+            />
+          </div>
+        </Section>
+
         <div class="flex items-center gap-4 mt-6">
           <Button onClick={handleSave} disabled={loading.value}>
             {loading.value ? '保存中...' : '保存设置'}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleClearCache}
-            disabled={loading.value}
-          >
-            {loading.value ? '处理中...' : '清除缓存'}
           </Button>
         </div>
       </div>

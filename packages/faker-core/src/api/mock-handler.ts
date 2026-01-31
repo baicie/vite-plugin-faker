@@ -138,6 +138,58 @@ export class MockHandler {
   }
 
   /**
+   * 处理 Mock 导出
+   */
+  handleExport(id?: string): WSMessage<MockConfig[]> {
+    try {
+      const mocksDB = this.dbManager.getMocksDB()
+      const mocks = mocksDB.getAllMocks()
+
+      return {
+        type: WSMessageType.MOCK_EXPORTED,
+        data: mocks,
+        id,
+      }
+    } catch (error) {
+      logger.error('[Faker] 导出 Mock 失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 处理 Mock 导入
+   */
+  handleImport(data: MockConfig[], id?: string): WSMessage {
+    try {
+      const mocksDB = this.dbManager.getMocksDB()
+      let successCount = 0
+
+      for (const mock of data) {
+        try {
+          // 确保必要的字段存在
+          if ((mock as any).url && (mock as any).method) {
+            mocksDB.addMock(mock)
+            successCount++
+            // 触发单个 Mock 变更事件，以便通知其他客户端
+            this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
+          }
+        } catch (e) {
+          logger.warn(`[Faker] 导入 Mock 失败: ${(mock as any).url}`, e)
+        }
+      }
+
+      return {
+        type: WSMessageType.MOCK_IMPORTED,
+        data: { success: true, count: successCount },
+        id,
+      }
+    } catch (error) {
+      logger.error('[Faker] 导入 Mock 失败:', error)
+      throw error
+    }
+  }
+
+  /**
    * 获取所有 Mock 配置（用于广播）
    */
   getAllConfigs(): MockConfig[] {
@@ -145,7 +197,7 @@ export class MockHandler {
       const mocksDB = this.dbManager.getMocksDB()
       return mocksDB.getAllMocks()
     } catch (error) {
-      logger.error('[Faker] 获取 Mock 配置失败:', error)
+      logger.error('[Faker] 获取所有 Mock 配置失败:', error)
       return []
     }
   }

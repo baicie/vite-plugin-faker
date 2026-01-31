@@ -6,7 +6,13 @@ export const Button = defineComponent({
   props: {
     variant: {
       type: String as PropType<
-        'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+        | 'default'
+        | 'destructive'
+        | 'outline'
+        | 'secondary'
+        | 'ghost'
+        | 'link'
+        | 'text'
       >,
       default: 'default',
     },
@@ -38,7 +44,8 @@ export const Button = defineComponent({
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:bg-secondary hover:text-secondary-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+        link: 'text-primary hover:text-primary/90',
+        text: 'bg-transparent text-foreground hover:bg-secondary/80',
       }
       const sizes: Record<string, string> = {
         default: 'h-9 px-4 py-2',
@@ -51,7 +58,7 @@ export const Button = defineComponent({
           class={cn(
             'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer',
             variants[props.variant],
-            sizes[props.size],
+            props.variant === 'link' ? 'h-auto p-0' : sizes[props.size],
             props.class,
           )}
           onClick={props.onClick}

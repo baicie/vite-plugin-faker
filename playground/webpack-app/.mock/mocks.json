@@ -1,0 +1,55 @@
+{
+  "/api/users-GET": {
+    "name": "/api/users",
+    "url": "/api/users",
+    "method": "GET",
+    "enabled": true,
+    "description": "",
+    "type": "static",
+    "response": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "data": {
+          "data": [
+            {
+              "id": 1,
+              "name": "张三",
+              "email": "zhangsan@example.com",
+              "age": 28,
+              "role": "user",
+              "createdAt": "2025-12-01T11:37:38.000Z"
+            }
+          ],
+          "meta": {
+            "total": 3,
+            "page": 1,
+            "limit": 10,
+            "totalPages": 1,
+            "hasPrevious": false,
+            "hasNext": false
+          }
+        },
+        "timestamp": "2026-01-30T09:47:59.907Z"
+      },
+      "delay": 0,
+      "headers": {
+        "content-type": "application/json; charset=utf-8"
+      }
+    }
+  },
+  "/api/health-GET": {
+    "name": "/api/health",
+    "url": "/api/health",
+    "method": "GET",
+    "enabled": false,
+    "description": "Health check",
+    "type": "static",
+    "response": {
+      "status": 200,
+      "body": {
+        "status": "ok"
+      }
+    }
+  }
+}

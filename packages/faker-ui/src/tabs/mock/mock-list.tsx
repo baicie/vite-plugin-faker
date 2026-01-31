@@ -189,15 +189,17 @@ const MockList = defineComponent({
                     <TableCell class="text-right" fixed="right">
                       <Button
                         onClick={() => handleEdit(row)}
-                        variant="link"
-                        class="text-foreground hover:text-foreground underline underline-offset-4 p-0 mr-4 h-auto"
+                        variant="text"
+                        size="sm"
+                        class="mr-2"
                       >
                         Edit
                       </Button>
                       <Button
                         onClick={() => handleDelete(row.id!)}
-                        variant="link"
-                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-0 h-auto"
+                        variant="text"
+                        size="sm"
+                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/20"
                       >
                         Delete
                       </Button>

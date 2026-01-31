@@ -9,7 +9,7 @@ export function isViteHot(ws: FakerWebSocket): ws is ViteHotContext {
 }
 
 export function isWebSocket(ws: FakerWebSocket): ws is WebSocket {
-  return !!ws && typeof (ws as WebSocket).onopen === 'function'
+  return !!ws && typeof (ws as WebSocket).readyState === 'number'
 }
 
 export const FAKER_WEBSOCKET_SYMBOL = 'faker-websocket'
@@ -142,7 +142,36 @@ export class WSClient {
     try {
       this.messageGrid()
       const message: WSMessage = { type, data }
-      this.ws?.send(FAKER_WEBSOCKET_SYMBOL, message)
+      if (isViteHot(this.ws)) {
+        this.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      } else {
+        console.log('ws send', message, this.ws)
+        const sendMsg = () => {
+          if (
+            this.ws &&
+            isWebSocket(this.ws) &&
+            this.ws.readyState === WebSocket.OPEN
+          ) {
+            this.ws.send(JSON.stringify(message))
+          } else {
+            // Check if connection is still possible
+            if (
+              !this.ws ||
+              (isWebSocket(this.ws) &&
+                (this.ws.readyState === WebSocket.CLOSED ||
+                  this.ws.readyState === WebSocket.CLOSING))
+            ) {
+              this.logger.warn(
+                'WebSocket connection lost, attempting to reconnect...',
+              )
+              this.connect()
+            }
+            this.logger.warn('WebSocket not ready, queuing message')
+            setTimeout(sendMsg, 1000)
+          }
+        }
+        sendMsg()
+      }
     } catch (error) {
       this.logger.error('message send error:', error)
     }

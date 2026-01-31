@@ -50,7 +50,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
 
   updateMock(id: string, updates: Partial<MockConfig>): boolean {
     if (this.db.data[id]) {
-      this.db.data[id] = { ...this.db.data[id], ...updates }
+      this.db.data[id] = { ...this.db.data[id], ...updates } as MockConfig
       this.save()
       return true
     }
@@ -93,7 +93,18 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
 
   private static toMockConfig(id: string, value: MockConfig): MockConfig {
     if (!value) {
-      return { id, url: '', method: 'GET', enabled: false }
+      return {
+        id,
+        url: '',
+        method: 'GET',
+        enabled: false,
+        type: 'static',
+        response: {
+          status: 200,
+          body: {},
+          headers: {},
+        },
+      }
     }
     return {
       ...value,
