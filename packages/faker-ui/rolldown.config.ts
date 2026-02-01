@@ -10,7 +10,6 @@ const needAnalyze = process.env.ANALYZE === 'true'
 
 export default defineConfig({
   input: 'src/index.ts',
-  external: ['vue', '@baicie/faker-shared', '@baicie/logger'],
   treeshake: true,
   output: {
     dir: 'dist',

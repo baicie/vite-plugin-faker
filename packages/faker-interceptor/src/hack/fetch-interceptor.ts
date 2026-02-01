@@ -28,7 +28,7 @@ export class FetchInterceptor {
       const startTime = Date.now()
 
       try {
-        const response = await self.originalFetch(input, init)
+        const response = await self.originalFetch.apply(window, [input, init])
         const duration = Date.now() - startTime
 
         self

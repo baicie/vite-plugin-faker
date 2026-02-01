@@ -22,9 +22,7 @@ export async function fakerUI(target: string, wsUrl?: string): Promise<void> {
   app.mount(target)
 }
 
-export { App, appContextKey }
-
-if (typeof window !== 'undefined' && typeof __MOUNT_TARGET__ !== 'undefined') {
+if (typeof window !== 'undefined') {
   let wsUrl = ''
   if (wsPort) {
     wsUrl = `ws://${window.location.hostname}:${wsPort}/`
