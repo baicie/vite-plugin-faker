@@ -60,10 +60,17 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
       }
 
       try {
-        const payload =
-          data && typeof data === 'object'
-            ? extend({ id: reqId }, data)
-            : { id: reqId, value: data }
+        let payload: any
+        if (Array.isArray(data)) {
+          // 对于数组，保持数组格式，使用 items 包装
+          payload = { id: reqId, items: data }
+        } else if (data && typeof data === 'object') {
+          // 对于对象，合并 id
+          payload = extend({ id: reqId }, data)
+        } else {
+          // 对于原始值
+          payload = { id: reqId, value: data }
+        }
         send(payload as T)
       } catch (error) {
         if (!done) {

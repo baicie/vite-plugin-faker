@@ -144,9 +144,8 @@ export class XHRInterceptor {
         mockId: currentMockId,
         timestamp: Date.now(),
       }
-      if (!responseHeaders['x-mock-source']) {
-        this.sendRequestRecord(record)
-      }
+      // 总是发送请求记录，无论是否是 Mock 请求
+      this.sendRequestRecord(record)
     } catch (error) {
       // 静默失败
       logger.error('记录 XHR 请求失败:', error)

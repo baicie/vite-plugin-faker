@@ -1,67 +1,697 @@
 {
   "/api/users-GET": {
-    "name": "/api/users",
     "url": "/api/users",
     "method": "GET",
-    "enabled": true,
-    "description": "",
     "type": "static",
+    "enabled": true,
+    "name": "获取用户列表（分页）",
     "response": {
       "status": 200,
       "body": {
-        "success": true,
-        "data": {
-          "data": [
-            {
-              "id": 1,
-              "name": "张三",
-              "email": "zhangsan@example.com",
-              "age": 28,
-              "role": "user",
-              "createdAt": "2025-12-01T11:37:38.000Z"
-            }
-          ],
-          "meta": {
-            "total": 3,
-            "page": 1,
-            "limit": 10,
-            "totalPages": 1,
-            "hasPrevious": false,
-            "hasNext": false
-          }
-        },
-        "timestamp": "2026-01-30T09:47:59.907Z"
+        "data": [
+          "string"
+        ],
+        "meta": null
       },
-      "delay": 0,
       "headers": {
-        "access-control-allow-credentials": "true",
-        "connection": "close",
-        "content-length": "514",
-        "content-type": "application/json; charset=utf-8",
-        "cross-origin-opener-policy": "same-origin",
-        "cross-origin-resource-policy": "same-origin",
-        "date": "Fri, 30 Jan 2026 09:47:59 GMT",
-        "etag": "W/\"202-eny9/BAacftiyZhKX0WthDvzMmA\"",
-        "origin-agent-cluster": "?1",
-        "referrer-policy": "no-referrer",
-        "strict-transport-security": "max-age=31536000; includeSubDomains",
-        "vary": "Origin, Accept-Encoding",
-        "x-content-type-options": "nosniff",
-        "x-dns-prefetch-control": "off",
-        "x-download-options": "noopen",
-        "x-frame-options": "SAMEORIGIN",
-        "x-permitted-cross-domain-policies": "none",
-        "x-ratelimit-limit-long": "1000",
-        "x-ratelimit-limit-medium": "100",
-        "x-ratelimit-limit-short": "10",
-        "x-ratelimit-remaining-long": "902",
-        "x-ratelimit-remaining-medium": "98",
-        "x-ratelimit-remaining-short": "8",
-        "x-ratelimit-reset-long": "1470",
-        "x-ratelimit-reset-medium": "60",
-        "x-ratelimit-reset-short": "1",
-        "x-xss-protection": "0"
-      }
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users-POST": {
+    "url": "/api/users",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "创建用户",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users/search-GET": {
+    "url": "/api/users/search",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "高级用户搜索",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users/:id-GET": {
+    "url": "/api/users/:id",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取用户详情",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users/:id-PATCH": {
+    "url": "/api/users/:id",
+    "method": "PATCH",
+    "type": "static",
+    "enabled": true,
+    "name": "更新用户",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users/:id-DELETE": {
+    "url": "/api/users/:id",
+    "method": "DELETE",
+    "type": "static",
+    "enabled": true,
+    "name": "删除用户（硬删除，已废弃）",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users/:id/soft-delete-PATCH": {
+    "url": "/api/users/:id/soft-delete",
+    "method": "PATCH",
+    "type": "static",
+    "enabled": true,
+    "name": "软删除用户",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/users/statistics/overview-GET": {
+    "url": "/api/users/statistics/overview",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "用户统计概览",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/products-GET": {
+    "url": "/api/products",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取商品列表",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/products-POST": {
+    "url": "/api/products",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "创建商品",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/products/:id-GET": {
+    "url": "/api/products/:id",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取单个商品",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/products/:id-PUT": {
+    "url": "/api/products/:id",
+    "method": "PUT",
+    "type": "static",
+    "enabled": true,
+    "name": "更新商品",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/products/:id-DELETE": {
+    "url": "/api/products/:id",
+    "method": "DELETE",
+    "type": "static",
+    "enabled": true,
+    "name": "删除商品",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/products/upload-POST": {
+    "url": "/api/products/upload",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "上传商品图片",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/orders-GET": {
+    "url": "/api/orders",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取订单列表",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/orders-POST": {
+    "url": "/api/orders",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "创建订单",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/orders/:id-GET": {
+    "url": "/api/orders/:id",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取单个订单",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/orders/:id-DELETE": {
+    "url": "/api/orders/:id",
+    "method": "DELETE",
+    "type": "static",
+    "enabled": true,
+    "name": "取消订单",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/orders/user/:userId-GET": {
+    "url": "/api/orders/user/:userId",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取用户的订单列表",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/orders/:id/status-PUT": {
+    "url": "/api/orders/:id/status",
+    "method": "PUT",
+    "type": "static",
+    "enabled": true,
+    "name": "更新订单状态",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/auth/login-POST": {
+    "url": "/api/auth/login",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "用户登录",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/auth/register-POST": {
+    "url": "/api/auth/register",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "用户注册",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/auth/profile-GET": {
+    "url": "/api/auth/profile",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取当前用户信息",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/uploads/single-POST": {
+    "url": "/api/uploads/single",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "上传单个文件",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/uploads/images-POST": {
+    "url": "/api/uploads/images",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "上传图片",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/uploads/multiple-POST": {
+    "url": "/api/uploads/multiple",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "上传多个文件",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/uploads-GET": {
+    "url": "/api/uploads",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取文件列表",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/uploads/:id-DELETE": {
+    "url": "/api/uploads/:id",
+    "method": "DELETE",
+    "type": "static",
+    "enabled": true,
+    "name": "删除文件",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/health-GET": {
+    "url": "/api/health",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "健康检查",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/health/ready-GET": {
+    "url": "/api/health/ready",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "就绪检查",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/health/live-GET": {
+    "url": "/api/health/live",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "存活检查",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/language/current-GET": {
+    "url": "/api/language/current",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取当前语言",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/language/list-GET": {
+    "url": "/api/language/list",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取支持的语言列表",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/language/switch-POST": {
+    "url": "/api/language/switch",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "切换语言",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/language/welcome-GET": {
+    "url": "/api/language/welcome",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取欢迎信息",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/audit-GET": {
+    "url": "/api/audit",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取审计日志列表",
+    "response": {
+      "status": 200,
+      "body": {
+        "data": [
+          "string"
+        ],
+        "meta": null
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/audit/entity/:entityType/:entityId-GET": {
+    "url": "/api/audit/entity/:entityType/:entityId",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取特定实体的审计日志",
+    "response": {
+      "status": 200,
+      "body": {
+        "data": [
+          "string"
+        ],
+        "meta": null
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/audit/user/:userId-GET": {
+    "url": "/api/audit/user/:userId",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取特定用户的审计日志",
+    "response": {
+      "status": 200,
+      "body": {
+        "data": [
+          "string"
+        ],
+        "meta": null
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/audit/statistics-GET": {
+    "url": "/api/audit/statistics",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取审计统计信息",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/audit/cleanup-GET": {
+    "url": "/api/audit/cleanup",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "清理旧的审计日志",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/database/status-GET": {
+    "url": "/api/database/status",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取数据库状态",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/database/migrations-GET": {
+    "url": "/api/database/migrations",
+    "method": "GET",
+    "type": "static",
+    "enabled": true,
+    "name": "获取数据库迁移列表",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/database/migrations/run-POST": {
+    "url": "/api/database/migrations/run",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "执行待执行的迁移",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/database/migrations/revert-POST": {
+    "url": "/api/database/migrations/revert",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "回滚最后一个迁移",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
+    }
+  },
+  "/api/database/backup-POST": {
+    "url": "/api/database/backup",
+    "method": "POST",
+    "type": "static",
+    "enabled": true,
+    "name": "创建数据库备份",
+    "response": {
+      "status": 200,
+      "body": {},
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "delay": 0
     }
   }
 }

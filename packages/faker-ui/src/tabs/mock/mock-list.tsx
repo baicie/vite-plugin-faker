@@ -73,9 +73,15 @@ const MockList = defineComponent({
         url: '',
         method: 'GET',
         enabled: true,
-        statusCode: 200,
         type: 'static',
-        responseData: {},
+        response: {
+          status: 200,
+          body: {},
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          delay: 0,
+        },
       }
       showEditor.value = true
     }
@@ -111,8 +117,8 @@ const MockList = defineComponent({
     }
 
     function handleImportSuccess() {
-        showSwaggerImport.value = false
-        loadMocks({ page: 1 })
+      showSwaggerImport.value = false
+      loadMocks({ page: 1 })
     }
 
     onMounted(() => {
@@ -134,8 +140,11 @@ const MockList = defineComponent({
             />
           </div>
           <div class="flex gap-2">
-            <Button variant="secondary" onClick={() => showSwaggerImport.value = true}>
-                Import Swagger
+            <Button
+              variant="secondary"
+              onClick={() => (showSwaggerImport.value = true)}
+            >
+              Import Swagger
             </Button>
             <Button onClick={handleCreate}>Create Mock</Button>
           </div>
@@ -239,10 +248,10 @@ const MockList = defineComponent({
           />
         )}
 
-        <SwaggerImport 
-            show={showSwaggerImport.value}
-            onClose={() => showSwaggerImport.value = false}
-            onSuccess={handleImportSuccess}
+        <SwaggerImport
+          show={showSwaggerImport.value}
+          onClose={() => (showSwaggerImport.value = false)}
+          onSuccess={handleImportSuccess}
         />
       </div>
     )

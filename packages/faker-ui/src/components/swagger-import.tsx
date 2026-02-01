@@ -1,4 +1,4 @@
-import { defineComponent, ref, computed } from 'vue'
+import { computed, defineComponent, ref } from 'vue'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { importMocks } from '../api/mock'
@@ -124,9 +124,15 @@ export default defineComponent({
                 method: method.toUpperCase(),
                 type: 'static',
                 enabled: true,
-                statusCode: 200,
-                responseData: responseData,
                 name: op.summary || op.operationId || path,
+                response: {
+                  status: 200,
+                  body: responseData,
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  delay: 0,
+                },
               } as unknown as MockConfig)
             }
           }

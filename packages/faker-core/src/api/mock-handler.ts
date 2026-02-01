@@ -159,12 +159,17 @@ export class MockHandler {
   /**
    * 处理 Mock 导入
    */
-  handleImport(data: MockConfig[], id?: string): WSMessage {
+  handleImport(
+    data: { items: MockConfig[] } | MockConfig[],
+    id?: string,
+  ): WSMessage {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       let successCount = 0
 
-      for (const mock of data) {
+      const items = Array.isArray(data) ? data : data?.items || []
+
+      for (const mock of items) {
         try {
           // 确保必要的字段存在
           if ((mock as any).url && (mock as any).method) {

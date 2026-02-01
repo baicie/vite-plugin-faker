@@ -28,6 +28,10 @@ export const Input = defineComponent({
       type: Number,
       default: undefined,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:modelValue'],
   setup(props, { emit, attrs }) {

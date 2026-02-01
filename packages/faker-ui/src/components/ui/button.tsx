@@ -62,6 +62,7 @@ export const Button = defineComponent({
             props.class,
           )}
           onClick={props.onClick}
+          disabled={props.disabled}
           {...attrs}
         >
           {slots.default?.()}
