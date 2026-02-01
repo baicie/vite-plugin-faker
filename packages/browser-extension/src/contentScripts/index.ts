@@ -6,23 +6,7 @@ import { setupApp } from '~/logic/common-setup'
 
 // Firefox `browser.tabs.executeScript()` requires scripts return a primitive value
 (() => {
-  console.info('[FakerExt] Content script loaded')
-
-  // Inject configuration
-  const configScript = document.createElement('script')
-  configScript.textContent = `
-    window.__FAKER_WS_PORT__ = "3002";
-  `
-  ;(document.head || document.documentElement).appendChild(configScript)
-  configScript.remove()
-
-  // Inject interceptor
-  const script = document.createElement('script')
-  script.src = browser.runtime.getURL('dist/interceptor.js')
-  script.onload = () => {
-    script.remove()
-  }
-  ;(document.head || document.documentElement).appendChild(script)
+  console.info('[vitesse-webext] Hello world from content script')
 
   // communication example: send previous tab title from background page
   onMessage('tab-prev', ({ data }) => {
