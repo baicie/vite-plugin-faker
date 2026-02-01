@@ -12,6 +12,7 @@ import {
 } from '../../components/ui/table'
 import { Pagination } from '../../components/ui/pagination'
 import MockEditor from './mock-editor'
+import SwaggerImport from '../../components/swagger-import'
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import {
   deleteMock as apiDeleteMock,
@@ -25,6 +26,7 @@ const MockList = defineComponent({
     const mocks = ref<MockConfig[]>([])
     const loading = ref(false)
     const showEditor = ref(false)
+    const showSwaggerImport = ref(false)
     const currentMock = ref<any>(null)
     const search = ref('')
 
@@ -108,6 +110,11 @@ const MockList = defineComponent({
       currentMock.value = null
     }
 
+    function handleImportSuccess() {
+        showSwaggerImport.value = false
+        loadMocks({ page: 1 })
+    }
+
     onMounted(() => {
       loadMocks({ page: 1, pageSize: pagination.pageSize })
     })
@@ -126,7 +133,12 @@ const MockList = defineComponent({
               }}
             />
           </div>
-          <Button onClick={handleCreate}>Create Mock</Button>
+          <div class="flex gap-2">
+            <Button variant="secondary" onClick={() => showSwaggerImport.value = true}>
+                Import Swagger
+            </Button>
+            <Button onClick={handleCreate}>Create Mock</Button>
+          </div>
         </div>
 
         <div class="rounded-lg border border-border bg-card">
@@ -226,6 +238,12 @@ const MockList = defineComponent({
             onCancel={handleEditorCancel}
           />
         )}
+
+        <SwaggerImport 
+            show={showSwaggerImport.value}
+            onClose={() => showSwaggerImport.value = false}
+            onSuccess={handleImportSuccess}
+        />
       </div>
     )
   },
