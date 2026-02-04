@@ -66,6 +66,9 @@ module.exports = {
       uiOptions: {
         mode: 'button',
       },
+      loggerOptions: {
+        level: 'info',
+      },
     }),
   ],
 }

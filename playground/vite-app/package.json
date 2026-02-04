@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.17.23",
-    "@vitejs/plugin-vue": "^6.0.3",
+    "@vitejs/plugin-vue": "^6.0.4",
     "@vue/tsconfig": "^0.8.1",
     "chokidar": "^5.0.0",
     "tree-kill": "^1.2.2",

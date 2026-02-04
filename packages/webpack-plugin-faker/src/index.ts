@@ -1,4 +1,4 @@
-import { type Compiler, type WebpackPluginInstance } from 'webpack'
+import type { Compiler, WebpackPluginInstance } from 'webpack'
 import path from 'node:path'
 import { logger } from '@baicie/logger'
 import {
@@ -11,7 +11,7 @@ import { mockMiddleware } from './middlewares/mock'
 import { routeMiddleware } from './middlewares/route'
 import { WSServer } from './ws-server'
 import { resolveConfig } from './config'
-import type { FakerOptions, FakerConfig } from './types'
+import type { FakerConfig, FakerOptions } from './types'
 
 type InjectItem =
   | { kind: 'script'; path: string; module?: boolean }
@@ -20,7 +20,6 @@ type InjectItem =
 export class WebpackPluginFaker implements WebpackPluginInstance {
   private config: FakerConfig
   private dbManager: DBManager | null = null
-  // @ts-ignore
   private wsServer: WSServer | null = null
 
   constructor(options: FakerOptions = {}) {
@@ -28,6 +27,17 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
   }
 
   apply(compiler: Compiler): void {
+    // 判断是否是 serve 模式
+    // serve 模式会有 devServer 配置，build 模式没有
+    const isBuild = !!compiler.options.devServer
+    if (isBuild) {
+      // build 模式下，跳过 faker 插件的所有初始化
+      logger.info('skipping faker plugin initialization')
+      return
+    }
+
+    logger.info('initializing faker plugin')
+
     // 1. Initialize DBManager
     const cacheDir = path.resolve(
       process.cwd(),
@@ -177,6 +187,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
         // Webpack 5 + HtmlWebpackPlugin 5 uses getHooks(compilation).alterAssetTags
         // We can try to require html-webpack-plugin to get getHooks if available
         try {
+          // eslint-disable-next-line no-restricted-globals
           const HtmlWebpackPlugin = require('html-webpack-plugin')
           if (HtmlWebpackPlugin.getHooks) {
             HtmlWebpackPlugin.getHooks(

@@ -116,7 +116,7 @@ export class MockHandler {
   handleList(data: WithId<DashboardQuery>): WSMessage<Page<MockConfig>> {
     try {
       const mocksDB = this.dbManager.getMocksDB()
-      const { page = 1, pageSize = 20, search, id } = data || {}
+      const { page = 1, pageSize = 20, search, group, id } = data || {}
 
       const result = mocksDB.getMocksWithPagination(
         page,
@@ -124,6 +124,7 @@ export class MockHandler {
         search,
         'url',
         false,
+        group,
       )
 
       return {
@@ -204,6 +205,60 @@ export class MockHandler {
     } catch (error) {
       logger.error('[Faker] 获取所有 Mock 配置失败:', error)
       return []
+    }
+  }
+
+  /**
+   * 获取所有分组
+   */
+  handleGetGroups(): WSMessage<string[]> {
+    try {
+      const mocksDB = this.dbManager.getMocksDB()
+      const groups = mocksDB.getAllGroups()
+
+      return {
+        type: WSMessageType.MOCK_LIST,
+        data: groups,
+      }
+    } catch (error) {
+      logger.error('[Faker] 获取分组列表失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取分组统计
+   */
+  handleGetGroupStats(): WSMessage<Record<string, number>> {
+    try {
+      const mocksDB = this.dbManager.getMocksDB()
+      const counts = mocksDB.getMockCountByGroup()
+
+      return {
+        type: WSMessageType.MOCK_LIST,
+        data: counts,
+      }
+    } catch (error) {
+      logger.error('[Faker] 获取分组统计失败:', error)
+      throw error
+    }
+  }
+
+  /**
+   * 获取所有标签
+   */
+  handleGetTags(): WSMessage<string[]> {
+    try {
+      const mocksDB = this.dbManager.getMocksDB()
+      const tags = mocksDB.getAllTags()
+
+      return {
+        type: WSMessageType.MOCK_LIST,
+        data: tags,
+      }
+    } catch (error) {
+      logger.error('[Faker] 获取标签列表失败:', error)
+      throw error
     }
   }
 }
