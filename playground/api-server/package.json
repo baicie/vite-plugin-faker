@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.1.13",
-    "@nestjs/config": "^4.0.2",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.13",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
@@ -50,7 +50,7 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.16",
     "@nestjs/schematics": "^11.0.9",
-    "@nestjs/swagger": "^11.2.5",
+    "@nestjs/swagger": "^11.2.6",
     "@nestjs/testing": "^11.1.13",
     "@types/bcryptjs": "^3.0.0",
     "@types/compression": "^1.8.1",
