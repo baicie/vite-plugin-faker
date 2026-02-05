@@ -1,7 +1,8 @@
-import { defineComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineComponent, onMounted, reactive, ref } from 'vue'
 import { Switch } from '../../components/ui/switch'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
+import { Select } from '../../components/ui/select'
 import {
   Table,
   TableBody,
@@ -12,9 +13,11 @@ import {
 } from '../../components/ui/table'
 import { Pagination } from '../../components/ui/pagination'
 import MockEditor from './mock-editor'
+import SwaggerImport from '../../components/swagger-import'
 import type { MockConfig, Page } from '@baicie/faker-shared'
 import {
   deleteMock as apiDeleteMock,
+  fetchGroups,
   fetchMockList,
   updateMock,
 } from '../../api'
@@ -25,8 +28,11 @@ const MockList = defineComponent({
     const mocks = ref<MockConfig[]>([])
     const loading = ref(false)
     const showEditor = ref(false)
+    const showSwaggerImport = ref(false)
     const currentMock = ref<any>(null)
     const search = ref('')
+    const groups = ref<string[]>([])
+    const selectedGroup = ref<string>('')
 
     const pagination = reactive({
       page: 1,
@@ -35,19 +41,45 @@ const MockList = defineComponent({
       total: 0,
     })
 
+    // 分组选项（包括"全部"和"未分组"）
+    const groupOptions = computed(() => [
+      { label: '全部分组', value: '' },
+      { label: '未分组', value: '__none__' },
+      ...groups.value.map(g => ({ label: g, value: g })),
+    ])
+
+    async function loadGroups() {
+      try {
+        const result: string[] = await fetchGroups()
+        groups.value = result
+      } catch (error) {
+        console.error('Failed to load groups', error)
+      }
+    }
+
     async function loadMocks(params?: {
       page?: number
       pageSize?: number
       search?: string
+      group?: string
     }) {
       loading.value = true
       try {
-        const query = {
+        const query: any = {
           page: params && params.page ? params.page : pagination.page,
           pageSize:
             params && params.pageSize ? params.pageSize : pagination.pageSize,
-          search: params ? params.search : search.value || undefined,
+          search:
+            params && params.search !== undefined
+              ? params.search
+              : search.value || undefined,
         }
+
+        // 如果有 group 参数，添加到查询中
+        if (params && params.group !== undefined) {
+          query.group = params.group
+        }
+
         const result: Page<MockConfig> = await fetchMockList(query)
         mocks.value = result.items
         pagination.total = result.pagination.total
@@ -71,9 +103,15 @@ const MockList = defineComponent({
         url: '',
         method: 'GET',
         enabled: true,
-        statusCode: 200,
         type: 'static',
-        responseData: {},
+        response: {
+          status: 200,
+          body: {},
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          delay: 0,
+        },
       }
       showEditor.value = true
     }
@@ -101,6 +139,7 @@ const MockList = defineComponent({
     function handleEditorSave(_mock: any) {
       showEditor.value = false
       loadMocks({ page: pagination.page, pageSize: pagination.pageSize })
+      loadGroups()
     }
 
     function handleEditorCancel() {
@@ -108,39 +147,80 @@ const MockList = defineComponent({
       currentMock.value = null
     }
 
+    function handleImportSuccess() {
+      showSwaggerImport.value = false
+      loadMocks({ page: 1 })
+      loadGroups()
+    }
+
+    function handleGroupChange(group: string) {
+      selectedGroup.value = group
+      // 通过 search 参数传递分组筛选
+      loadMocks({
+        page: 1,
+        search: search.value || undefined,
+        group: group,
+      })
+    }
+
     onMounted(() => {
       loadMocks({ page: 1, pageSize: pagination.pageSize })
+      loadGroups()
     })
 
     return () => (
       <div>
         <div class="mb-4 flex justify-between items-center gap-4">
-          <div class="flex-1 max-w-sm">
-            <Input
-              type="text"
-              placeholder="Search mocks by url, method, type..."
-              modelValue={search.value}
-              onUpdate:modelValue={(val: string | number) => {
-                search.value = val as string
-                loadMocks({ page: 1, search: search.value })
-              }}
-            />
+          <div class="flex gap-4 flex-1">
+            <div class="flex-1 max-w-xs">
+              <Input
+                type="text"
+                placeholder="Search mocks..."
+                modelValue={search.value}
+                onUpdate:modelValue={(val: string | number) => {
+                  search.value = val as string
+                  loadMocks({
+                    page: 1,
+                    search: search.value,
+                    group: selectedGroup.value,
+                  })
+                }}
+              />
+            </div>
+            <div class="w-48">
+              <Select
+                modelValue={selectedGroup.value}
+                onUpdate:modelValue={handleGroupChange}
+                options={groupOptions.value}
+              />
+            </div>
           </div>
-          <Button onClick={handleCreate}>Create Mock</Button>
+          <div class="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => (showSwaggerImport.value = true)}
+            >
+              Import Swagger
+            </Button>
+            <Button onClick={handleCreate}>Create Mock</Button>
+          </div>
         </div>
 
         <div class="rounded-lg border border-border bg-card">
           <Table class="min-w-full">
             <TableHeader>
               <TableRow>
+                <TableHead class="w-[15%]" fixed="left">
+                  Group
+                </TableHead>
                 <TableHead class="w-[20%]" fixed="left">
                   URL
                 </TableHead>
-                <TableHead class="w-[10%]">Method</TableHead>
-                <TableHead class="w-[10%]">Status</TableHead>
-                <TableHead class="w-[10%]">Type</TableHead>
-                <TableHead class="w-[30%]">Description</TableHead>
-                <TableHead class="w-[20%] text-right" fixed="right">
+                <TableHead class="w-[8%]">Method</TableHead>
+                <TableHead class="w-[8%]">Status</TableHead>
+                <TableHead class="w-[8%]">Type</TableHead>
+                <TableHead class="w-[25%]">Description</TableHead>
+                <TableHead class="w-[16%] text-right" fixed="right">
                   Actions
                 </TableHead>
               </TableRow>
@@ -149,7 +229,7 @@ const MockList = defineComponent({
               {mocks.value.length === 0 && !loading.value ? (
                 <TableRow>
                   <TableCell
-                    colspan={6}
+                    colspan={7}
                     class="text-center text-muted-foreground h-24"
                   >
                     No mocks found
@@ -158,6 +238,17 @@ const MockList = defineComponent({
               ) : (
                 mocks.value.map(row => (
                   <TableRow key={row.id}>
+                    <TableCell class="font-medium" fixed="left">
+                      <span
+                        class={
+                          row.group
+                            ? 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary'
+                            : 'text-muted-foreground text-sm'
+                        }
+                      >
+                        {row.group || '—'}
+                      </span>
+                    </TableCell>
                     <TableCell class="font-medium" fixed="left">
                       {row.url}
                     </TableCell>
@@ -226,6 +317,12 @@ const MockList = defineComponent({
             onCancel={handleEditorCancel}
           />
         )}
+
+        <SwaggerImport
+          show={showSwaggerImport.value}
+          onClose={() => (showSwaggerImport.value = false)}
+          onSuccess={handleImportSuccess}
+        />
       </div>
     )
   },

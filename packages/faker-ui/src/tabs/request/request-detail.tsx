@@ -37,11 +37,11 @@ const RequestDetail = defineComponent({
 
     return () => (
       <div
-        class="fixed inset-0 z-60 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm p-4"
         onClick={close}
       >
         <div
-          class="w-full max-w-[90vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-lg p-6"
+          class="w-full max-w-[90vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-lg p-6 z-[10000]"
           onClick={e => e.stopPropagation()}
         >
           <div class="flex justify-between items-center mb-6">

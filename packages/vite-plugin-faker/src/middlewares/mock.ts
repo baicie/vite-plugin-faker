@@ -26,7 +26,19 @@ export function mockMiddleware(
 
   return async function viteMockMiddleware(req, res, next) {
     try {
-      const mock = mockDB?.findMock(req)
+      // 优先使用精确匹配
+      let mock = mockDB?.findMock(req)
+
+      // 如果精确匹配不到，尝试高级匹配
+      if (!mock) {
+        mock = mockDB?.findMockAdvanced({
+          url: req.url!,
+          method: req.method || 'GET',
+          headers: req.headers as Record<string, string>,
+          query: parseQuery(req.url!),
+          body: await readBody(req),
+        })
+      }
 
       if (!mock || !mock.enabled) {
         return next()

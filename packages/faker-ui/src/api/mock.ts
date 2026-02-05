@@ -78,3 +78,27 @@ export const importMocks = useWsRequest<
   sendType: WSMessageType.MOCK_IMPORT,
   responseType: WSMessageType.MOCK_IMPORTED,
 })
+
+/**
+ * 获取所有分组
+ */
+export const fetchGroups = useWsRequest<void, string[]>({
+  sendType: WSMessageType.MOCK_GROUPS_GET,
+  responseType: WSMessageType.MOCK_LIST,
+})
+
+/**
+ * 获取分组统计
+ */
+export const fetchGroupStats = useWsRequest<void, Record<string, number>>({
+  sendType: WSMessageType.MOCK_GROUPS_STATS_GET,
+  responseType: WSMessageType.MOCK_LIST,
+})
+
+/**
+ * 获取所有标签
+ */
+export const fetchTags = useWsRequest<void, string[]>({
+  sendType: WSMessageType.MOCK_TAGS_GET,
+  responseType: WSMessageType.MOCK_LIST,
+})

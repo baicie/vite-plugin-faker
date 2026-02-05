@@ -18,7 +18,7 @@ import {
   ref,
   watch,
 } from 'vue'
-import type { MockConfig } from '@baicie/faker-shared'
+import type { MatchRule, MockConfig, UrlMatchType } from '@baicie/faker-shared'
 import { createMock, updateMock } from '../../api'
 import CodeEditor from '../../components/editors/code-editor'
 import JsonEditor from '../../components/editors/json-editor'
@@ -94,6 +94,17 @@ const MockEditor = defineComponent({
       responseCode: '',
       delay: 0,
       headers: JSON.stringify({ 'Content-Type': 'application/json' }, null, 2),
+      // Proxy 代理配置
+      proxyTarget: '',
+      proxyTimeout: 30000,
+      proxyRewriteHeaders: true,
+      // 高级匹配规则
+      urlPattern: '',
+      urlMatchType: 'exact' as UrlMatchType,
+      priority: 0,
+      // 分组和标签
+      group: '',
+      tags: '',
     })
 
     const methodOptions = [
@@ -108,10 +119,18 @@ const MockEditor = defineComponent({
 
     const responseTypeOptions = [
       { label: '静态数据', value: 'static' },
+      { label: '代理转发', value: 'proxy' },
       { label: 'Faker模板', value: 'faker' },
       { label: '自定义函数', value: 'function' },
       { label: '错误响应', value: 'error' },
       { label: '状态机', value: 'stateful' },
+    ]
+
+    const urlMatchTypeOptions = [
+      { label: '精确匹配', value: 'exact' },
+      { label: '通配符', value: 'wildcard' },
+      { label: '正则表达式', value: 'regex' },
+      { label: '前缀匹配', value: 'prefix' },
     ]
 
     watch(
@@ -137,6 +156,15 @@ const MockEditor = defineComponent({
               null,
               2,
             ),
+            // 新增字段
+            proxyTarget: '',
+            proxyTimeout: 30000,
+            proxyRewriteHeaders: true,
+            urlPattern: '',
+            urlMatchType: 'exact',
+            priority: 0,
+            group: '',
+            tags: '',
           })
         } else {
           // Map MockConfig to formData
@@ -146,6 +174,19 @@ const MockEditor = defineComponent({
           formData.method = newVal.method
           formData.enabled = newVal.enabled
           formData.description = newVal.description || ''
+          formData.priority = newVal.priority || 0
+          formData.group = newVal.group || ''
+          formData.tags = (newVal.tags || []).join(', ')
+
+          // 匹配规则
+          if (newVal.matchRule) {
+            const rule = newVal.matchRule
+            formData.urlPattern = rule.url?.pattern || ''
+            formData.urlMatchType = rule.url?.type || 'exact'
+          } else {
+            formData.urlPattern = ''
+            formData.urlMatchType = 'exact'
+          }
 
           if (newVal.type === 'static') {
             formData.responseType = 'static'
@@ -160,6 +201,12 @@ const MockEditor = defineComponent({
             formData.delay = response.delay || 0
             formData.headers = JSON.stringify(response.headers || {}, null, 2)
             formData.responseData = JSON.stringify(response.body || {}, null, 2)
+          } else if (newVal.type === 'proxy') {
+            formData.responseType = 'proxy'
+            formData.proxyTarget = (newVal as any).target || ''
+            formData.proxyTimeout = (newVal as any).timeout || 30000
+            formData.proxyRewriteHeaders =
+              (newVal as any).rewriteHeaders !== false
           } else if (newVal.type === 'template') {
             formData.responseType = 'faker'
             formData.responseTemplate = JSON.stringify(
@@ -207,7 +254,23 @@ const MockEditor = defineComponent({
           url: formData.url,
           method: formData.method,
           enabled: formData.enabled,
-          description: formData.description,
+          description: formData.description || undefined,
+          priority: formData.priority || undefined,
+          group: formData.group || undefined,
+          tags:
+            formData.tags
+              ?.split(',')
+              .map(t => t.trim())
+              .filter(Boolean) || undefined,
+        }
+
+        // 构建匹配规则
+        const matchRule: MatchRule = {}
+        if (formData.urlPattern) {
+          matchRule.url = {
+            pattern: formData.urlPattern,
+            type: formData.urlMatchType,
+          }
         }
 
         let headers = {}
@@ -217,6 +280,11 @@ const MockEditor = defineComponent({
           alert('Headers is not valid JSON')
           saving.value = false
           return
+        }
+
+        // 如果有匹配规则，添加到 base 中
+        if (Object.keys(matchRule).length > 0) {
+          ;(base as any).matchRule = matchRule
         }
 
         if (formData.responseType === 'static') {
@@ -240,6 +308,20 @@ const MockEditor = defineComponent({
               headers: headers as Record<string, string>,
             },
           }
+        } else if (formData.responseType === 'proxy') {
+          // 代理类型
+          if (!formData.proxyTarget) {
+            alert('代理目标 URL 不能为空')
+            saving.value = false
+            return
+          }
+          data = {
+            ...base,
+            type: 'proxy',
+            target: formData.proxyTarget,
+            timeout: formData.proxyTimeout,
+            rewriteHeaders: formData.proxyRewriteHeaders,
+          } as any
         } else if (formData.responseType === 'faker') {
           let schema: any = formData.responseTemplate
           try {
@@ -415,7 +497,7 @@ const MockEditor = defineComponent({
                               </div>
                             </div>
                             <div class="grid grid-cols-12 gap-4">
-                              <div class="col-span-6">
+                              <div class="col-span-4">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                   Method
                                 </label>
@@ -427,7 +509,7 @@ const MockEditor = defineComponent({
                                   options={methodOptions}
                                 />
                               </div>
-                              <div class="col-span-6 flex items-center pt-6">
+                              <div class="col-span-4 flex items-center pt-6">
                                 <label class="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Enabled
                                 </label>
@@ -438,10 +520,23 @@ const MockEditor = defineComponent({
                                   }
                                 />
                               </div>
+                              <div class="col-span-4">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                  Priority
+                                </label>
+                                <Input
+                                  type="number"
+                                  modelValue={formData.priority}
+                                  onUpdate:modelValue={val =>
+                                    (formData.priority = Number(val))
+                                  }
+                                  placeholder="0"
+                                />
+                              </div>
                             </div>
                             <div class="grid grid-cols-12 gap-4">
-                              <div class="col-span-12">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              <div class="col-span-6">
+                                <label class="block text-sm font-medium text-foreground mb-1">
                                   Description
                                 </label>
                                 <Input
@@ -450,6 +545,32 @@ const MockEditor = defineComponent({
                                     (formData.description = val as string)
                                   }
                                   placeholder="Description of this mock"
+                                />
+                              </div>
+                              <div class="col-span-6">
+                                <label class="block text-sm font-medium text-foreground mb-1">
+                                  Group
+                                </label>
+                                <Input
+                                  modelValue={formData.group}
+                                  onUpdate:modelValue={val =>
+                                    (formData.group = val as string)
+                                  }
+                                  placeholder="e.g., users, orders"
+                                />
+                              </div>
+                            </div>
+                            <div class="grid grid-cols-12 gap-4">
+                              <div class="col-span-12">
+                                <label class="block text-sm font-medium text-foreground mb-1">
+                                  Tags (逗号分隔)
+                                </label>
+                                <Input
+                                  modelValue={formData.tags}
+                                  onUpdate:modelValue={val =>
+                                    (formData.tags = val as string)
+                                  }
+                                  placeholder="e.g., v1, deprecated, test"
                                 />
                               </div>
                             </div>
@@ -517,6 +638,53 @@ const MockEditor = defineComponent({
                               </div>
                             )}
 
+                            {formData.responseType === 'proxy' && (
+                              <div class="space-y-4">
+                                <div class="grid grid-cols-12 gap-4">
+                                  <div class="col-span-12">
+                                    <label class="block text-sm font-medium text-foreground mb-1">
+                                      代理目标 URL
+                                    </label>
+                                    <Input
+                                      modelValue={formData.proxyTarget}
+                                      onUpdate:modelValue={val =>
+                                        (formData.proxyTarget = val as string)
+                                      }
+                                      placeholder="http://localhost:3000/api/users"
+                                    />
+                                    <p class="text-xs text-muted-foreground mt-1">
+                                      请求将被转发到该目标地址
+                                    </p>
+                                  </div>
+                                </div>
+                                <div class="grid grid-cols-12 gap-4">
+                                  <div class="col-span-6">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                      超时时间 (ms)
+                                    </label>
+                                    <Input
+                                      type="number"
+                                      modelValue={formData.proxyTimeout}
+                                      onUpdate:modelValue={val =>
+                                        (formData.proxyTimeout = Number(val))
+                                      }
+                                    />
+                                  </div>
+                                  <div class="col-span-6 flex items-center pt-6">
+                                    <label class="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                      透传 Headers
+                                    </label>
+                                    <Switch
+                                      modelValue={formData.proxyRewriteHeaders}
+                                      onUpdate:modelValue={val =>
+                                        (formData.proxyRewriteHeaders = val)
+                                      }
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {formData.responseType === 'faker' && (
                               <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -567,15 +735,56 @@ const MockEditor = defineComponent({
                       </TabPanel>
                       <TabPanel>
                         <Transition name="fade-slide" mode="out-in">
-                          <div key="advanced-tab">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Response Headers
-                            </label>
-                            <JsonEditor
-                              value={formData.headers}
-                              onChange={val => (formData.headers = val)}
-                              theme={isDark.value ? 'vs-dark' : 'vs'}
-                            />
+                          <div key="advanced-tab" class="space-y-6">
+                            {/* URL 匹配规则 */}
+                            <div class="bg-card border border-border rounded-lg p-4">
+                              <h4 class="text-sm font-medium text-foreground mb-4">
+                                URL 匹配规则
+                              </h4>
+                              <div class="grid grid-cols-12 gap-4">
+                                <div class="col-span-6">
+                                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    匹配模式
+                                  </label>
+                                  <Input
+                                    modelValue={formData.urlPattern}
+                                    onUpdate:modelValue={val =>
+                                      (formData.urlPattern = val as string)
+                                    }
+                                    placeholder="/api/users/*"
+                                  />
+                                </div>
+                                <div class="col-span-6">
+                                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    匹配类型
+                                  </label>
+                                  <Select
+                                    modelValue={formData.urlMatchType}
+                                    onUpdate:modelValue={val =>
+                                      (formData.urlMatchType =
+                                        val as UrlMatchType)
+                                    }
+                                    options={urlMatchTypeOptions}
+                                  />
+                                </div>
+                              </div>
+                              <p class="text-xs text-muted-foreground mt-2">
+                                当 Basic 中的 URL
+                                无法精确匹配时，使用此规则进行高级匹配
+                              </p>
+                            </div>
+
+                            {/* Response Headers */}
+                            <div class="bg-card border border-border rounded-lg p-4">
+                              <h4 class="text-sm font-medium text-foreground mb-4">
+                                Response Headers
+                              </h4>
+                              <JsonEditor
+                                value={formData.headers}
+                                onChange={val => (formData.headers = val)}
+                                theme={isDark.value ? 'vs-dark' : 'vs'}
+                              />
+                            </div>
                           </div>
                         </Transition>
                       </TabPanel>

@@ -35,8 +35,8 @@
     "@faker-js/faker": "^10.2.0",
     "@types/lodash-es": "^4.17.12",
     "lodash-es": "^4.17.23",
-    "rolldown": "1.0.0-rc.2",
-    "rolldown-plugin-dts": "^0.21.8",
+    "rolldown": "1.0.0-rc.3",
+    "rolldown-plugin-dts": "^0.22.1",
     "typescript": "^5.9.3",
     "vite": "catalog:"
   },
