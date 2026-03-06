@@ -14,13 +14,13 @@
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
     "vue-loader": "^17.4.2",
-    "webpack": "^5.105.2",
+    "webpack": "^5.105.4",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.3",
     "webpack-plugin-faker": "workspace:*"
   },
   "dependencies": {
-    "axios": "^1.13.5",
+    "axios": "^1.13.6",
     "vue": "^3.5.29"
   }
 }
