@@ -9,14 +9,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@zeus-js/shared": ["./packages/shared/src"],
-      "@zeus-js/shared/*": ["./packages/shared/src/*"],
-      "@zeus-js/vite-plugin-faker": ["./packages/vite-plugin-faker/src"],
-      "@zeus-js/vite-plugin-faker/*": ["./packages/vite-plugin-faker/src/*"],
-      "@zeus-js/faker-interceptor": ["./packages/faker-interceptor/src"],
-      "@zeus-js/faker-interceptor/*": ["./packages/faker-interceptor/src/*"],
-      "@zeus-js/faker-ui": ["packages/faker-ui/src"],
-      "@zeus-js/faker-ui/*": ["packages/faker-ui/src/*"]
+      "@baicie/faker-shared": ["./packages/faker-shared/src"],
+      "@baicie/faker-shared/*": ["./packages/faker-shared/src/*"],
+      "@baicie/vite-plugin-faker": ["./packages/vite-plugin-faker/src"],
+      "@baicie/vite-plugin-faker/*": ["./packages/vite-plugin-faker/src/*"],
+      "@baicie/faker-interceptor": ["./packages/faker-interceptor/src"],
+      "@baicie/faker-interceptor/*": ["./packages/faker-interceptor/src/*"],
+      "@baicie/faker-ui": ["./packages/faker-ui/src"],
+      "@baicie/faker-ui/*": ["./packages/faker-ui/src/*"]
     }
   }
 }

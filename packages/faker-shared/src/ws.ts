@@ -18,10 +18,12 @@ export class WSClient {
   private ws: FakerWebSocket
   private wsUrl: string
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
+  private maxReconnectAttempts = 10
+  private baseReconnectDelay = 1000
+  private maxReconnectDelay = 30000
   private handlers: Map<WSMessageType, Set<Function>> = new Map()
   private isConnecting = false
+  private destroyed = false
   private logger: Logger
 
   constructor(wsUrl: string, logger: Logger) {
@@ -99,16 +101,22 @@ export class WSClient {
   }
 
   private attemptReconnect(): void {
+    if (this.destroyed) {
+      return
+    }
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.logger.warn('WebSocket 重连次数已达上限')
+      this.logger.warn('WebSocket 重连次数已达上限，停止重连')
       return
     }
 
     this.reconnectAttempts++
-    const delay = this.reconnectDelay * this.reconnectAttempts
+    const jitter = Math.random() * 500
+    const exponentialDelay = this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
+    const delay = Math.min(exponentialDelay + jitter, this.maxReconnectDelay)
 
     this.logger.info(
-      `${delay}ms 后尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
+      `${Math.round(delay)}ms 后尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
     )
 
     setTimeout(() => {
@@ -145,7 +153,7 @@ export class WSClient {
       if (isViteHot(this.ws)) {
         this.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
       } else {
-        console.log('ws send', message, this.ws)
+        this.logger.debug('ws send', message)
         const sendMsg = () => {
           if (
             this.ws &&
@@ -198,9 +206,10 @@ export class WSClient {
   }
 
   /**
-   * 关闭连接
+   * 关闭连接并禁止自动重连
    */
   close(): void {
+    this.destroyed = true
     if (this.ws && isWebSocket(this.ws)) {
       this.ws.close()
       this.ws = undefined

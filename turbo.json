@@ -2,12 +2,22 @@
   "$schema": "https://turborepo.com/schema.json",
   "tasks": {
     "build": {
+      "inputs": ["src/**", "rolldown.config.*", "tsconfig*.json", "package.json"],
       "outputs": ["dist/**"],
       "dependsOn": ["^build"]
     },
     "dev": {
+      "inputs": ["src/**", "rolldown.config.*", "tsconfig*.json", "package.json"],
       "outputs": ["dist/**"],
       "persistent": true
+    },
+    "typecheck": {
+      "inputs": ["src/**", "tsconfig*.json"],
+      "outputs": []
+    },
+    "test": {
+      "inputs": ["src/**", "__tests__/**", "*.test.ts", "*.spec.ts", "vitest.config.*"],
+      "outputs": ["coverage/**"]
     }
   }
 }

@@ -19,6 +19,8 @@ export abstract class BaseDB<T extends object> {
   protected db: LowSync<T>
   protected tableName: string
   protected dbFilePath: string
+  private writeQueue: Array<() => void> = []
+  private writing = false
 
   protected constructor(tableName: string, defaultData: T, config: DBConfig) {
     this.tableName = tableName
@@ -48,12 +50,31 @@ export abstract class BaseDB<T extends object> {
     })
   }
 
+  private flushWriteQueue(): void {
+    if (this.writing || this.writeQueue.length === 0) {
+      return
+    }
+    this.writing = true
+    const next = this.writeQueue.shift()
+    try {
+      if (next) {
+        next()
+      }
+    } finally {
+      this.writing = false
+      this.flushWriteQueue()
+    }
+  }
+
   getData(): T {
     return this.db.data
   }
 
   save(): void {
-    this.db.write()
+    this.writeQueue.push(() => {
+      this.db.write()
+    })
+    this.flushWriteQueue()
   }
 
   reset(defaultData: T): void {

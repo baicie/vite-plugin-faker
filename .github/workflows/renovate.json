@@ -8,7 +8,7 @@
   "packageRules": [
     {
       "matchPackageNames": ["pnpm"],
-      "allowedVersions": "10.23.0"
+      "allowedVersions": "10.30.3"
     }
   ]
 }

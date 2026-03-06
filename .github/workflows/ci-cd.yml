@@ -29,18 +29,18 @@ jobs:
         with:
           filters: |
             shared:
-              - 'packages/shared/**'
+              - 'packages/faker-shared/**'
               - 'pnpm-lock.yaml'
               - 'package.json'
             vite-plugin-faker:
               - 'packages/vite-plugin-faker/**'
-              - 'packages/shared/**'
+              - 'packages/faker-shared/**'
             faker-interceptor:
               - 'packages/faker-interceptor/**'
-              - 'packages/shared/**'
+              - 'packages/faker-shared/**'
             faker-ui:
               - 'packages/faker-ui/**'
-              - 'packages/shared/**'
+              - 'packages/faker-shared/**'
             api-server:
               - 'playground/api-server/**'
             vue-app:
@@ -75,12 +75,12 @@ jobs:
       - uses: oxc-project/setup-node@141eb77546de6702f92d320926403fe3f9f6a6f2 # v1.0.5
 
       - name: Build shared
-        run: pnpm --filter ./packages/shared build
+        run: pnpm --filter @baicie/faker-shared build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: shared-dist
-          path: packages/shared/dist
+          path: packages/faker-shared/dist
           retention-days: 1
 
   # 构建 vite-plugin-faker
@@ -99,7 +99,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: shared-dist
-          path: packages/shared/dist
+          path: packages/faker-shared/dist
       - name: Build vite-plugin-faker
         run: pnpm --filter ./packages/vite-plugin-faker build
       - name: Upload artifacts
@@ -123,7 +123,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: shared-dist
-          path: packages/shared/dist
+          path: packages/faker-shared/dist
       - name: Build faker-interceptor
         run: pnpm --filter ./packages/faker-interceptor build
 
@@ -142,7 +142,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: shared-dist
-          path: packages/shared/dist
+          path: packages/faker-shared/dist
       - name: Build faker-ui
         run: pnpm --filter ./packages/faker-ui build
 
@@ -158,7 +158,7 @@ jobs:
       - name: Run tests
         run: pnpm test
       - name: Generate coverage report
-        run: pnpm test-coverage || true
+        run: pnpm test-coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         if: always()
