@@ -121,7 +121,13 @@ export interface HeaderMatchCondition {
 export interface QueryMatchCondition {
   key: string
   value: string | string[]
-  operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex' | 'exists'
+  operator:
+    | 'equals'
+    | 'contains'
+    | 'startsWith'
+    | 'endsWith'
+    | 'regex'
+    | 'exists'
 }
 
 /**
@@ -262,15 +268,23 @@ export type ResponseGenerator = (
 ) => Promise<GeneratedResponse>
 //#endregion
 //#region query&body
-type QueryPrimitive = string | number | boolean | null
+export type QueryPrimitive = string | number | boolean | null
 
-type QueryValue = QueryPrimitive | QueryPrimitive[] | QueryObject
+export type QueryValue = QueryPrimitive | QueryPrimitive[] | QueryObject
 
 export interface QueryObject {
   [key: string]: QueryValue
 }
 
-export type ParsedBody = undefined | string | Record<string, any> | any[]
+export type ParsedBody = null | undefined | string | Record<string, any> | any[]
+
+export interface MockRequestMatchParams {
+  url: string
+  method: string
+  headers?: IncomingHttpHeaders
+  query?: QueryObject
+  body?: ParsedBody
+}
 //#endregion
 //#region event
 export enum EventBusType {

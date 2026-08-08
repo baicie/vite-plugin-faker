@@ -1,4 +1,12 @@
-import type { MockConfig, Page, UrlMatchType } from '@baicie/faker-shared'
+import type {
+  HeaderMatchCondition,
+  MockConfig,
+  MockRequestMatchParams,
+  Page,
+  QueryMatchCondition,
+  UrlMatchType,
+} from '@baicie/faker-shared'
+import { get } from 'lodash-es'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
 import { type ParmasLike, methodLineUrl } from '../utils'
@@ -20,6 +28,7 @@ const matchers = {
   wildcard(pattern: string, url: string): boolean {
     // 将通配符模式转换为正则表达式
     const regexPattern = pattern
+      .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
       .replace(/\*\*/g, '___WILDCARD_DOUBLE___')
       .replace(/\*/g, '___WILDCARD_SINGLE___')
       .replace(/___WILDCARD_DOUBLE___/g, '.*')
@@ -110,13 +119,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   /**
    * 高级匹配：支持正则、通配符、前缀匹配
    */
-  findMockAdvanced(params: {
-    url: string
-    method: string
-    headers?: Record<string, string>
-    query?: Record<string, string>
-    body?: any
-  }): MockConfig | undefined {
+  findMockAdvanced(params: MockRequestMatchParams): MockConfig | undefined {
     const mocks = this.getActiveMocks()
 
     // 按优先级排序（优先级高的先匹配）
@@ -158,13 +161,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
    */
   private matchWithRule(
     mock: MockConfig,
-    params: {
-      url: string
-      method: string
-      headers?: Record<string, string>
-      query?: Record<string, string>
-      body?: any
-    },
+    params: MockRequestMatchParams,
   ): boolean {
     const rule = mock.matchRule
     if (!rule) return false
@@ -185,8 +182,11 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     // 请求头匹配
     if (rule.headers && rule.headers.length > 0) {
       for (const headerCondition of rule.headers) {
-        const headerValue = params.headers?.[headerCondition.key]
-        if (!headerValue) return false
+        const headerValue = this.getHeaderValue(
+          params.headers,
+          headerCondition.key,
+        )
+        if (headerValue === undefined) return false
 
         const matchResult = this.matchHeader(headerCondition, headerValue)
         if (!matchResult) return false
@@ -196,107 +196,111 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     // 查询参数匹配
     if (rule.query && rule.query.length > 0) {
       for (const queryCondition of rule.query) {
-        const queryValue = params.query?.[queryCondition.key]
-        if (!queryValue) return false
+        const queryValue = get(params.query, queryCondition.key)
 
         const matchResult = this.matchQuery(queryCondition, queryValue)
         if (!matchResult) return false
       }
     }
 
+    if (rule.body) {
+      const bodyValue = rule.body.path
+        ? get(params.body, rule.body.path)
+        : params.body
+      if (!this.matchValue(bodyValue, rule.body.value, rule.body.operator)) {
+        return false
+      }
+    }
+
     return true
+  }
+
+  private getHeaderValue(
+    headers: MockRequestMatchParams['headers'],
+    key: string,
+  ): string | string[] | undefined {
+    if (!headers) return undefined
+
+    const normalizedKey = key.toLowerCase()
+    for (const headerName of Object.keys(headers)) {
+      if (headerName.toLowerCase() === normalizedKey) {
+        return headers[headerName]
+      }
+    }
+
+    return undefined
   }
 
   /**
    * 匹配请求头条件
    */
   private matchHeader(
-    condition: {
-      key: string
-      value: string | string[]
-      operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex'
-    },
-    headerValue: string,
+    condition: HeaderMatchCondition,
+    headerValue: string | string[],
   ): boolean {
-    const value = condition.value
-    const strValue = String(headerValue)
-
-    switch (condition.operator) {
-      case 'equals':
-        if (Array.isArray(value)) {
-          return value.includes(strValue)
-        }
-        return value === strValue
-
-      case 'contains':
-        return strValue.includes(String(value))
-
-      case 'startsWith':
-        return strValue.startsWith(String(value))
-
-      case 'endsWith':
-        return strValue.endsWith(String(value))
-
-      case 'regex':
-        try {
-          const regex = new RegExp(String(value))
-          return regex.test(strValue)
-        } catch {
-          return false
-        }
-
-      default:
-        return false
-    }
+    return this.matchValue(headerValue, condition.value, condition.operator)
   }
 
   /**
    * 匹配查询参数条件
    */
   private matchQuery(
-    condition: {
-      key: string
-      value: string | string[]
-      operator:
-        | 'equals'
-        | 'contains'
-        | 'startsWith'
-        | 'endsWith'
-        | 'regex'
-        | 'exists'
-    },
-    queryValue: string,
+    condition: QueryMatchCondition,
+    queryValue: unknown,
   ): boolean {
-    const value = condition.value
-    const strValue = String(queryValue)
+    return this.matchValue(queryValue, condition.value, condition.operator)
+  }
 
-    switch (condition.operator) {
-      case 'exists':
-        return queryValue !== undefined && queryValue !== null
+  private matchValue(
+    actualValue: unknown,
+    expectedValue: string | string[],
+    operator:
+      | HeaderMatchCondition['operator']
+      | QueryMatchCondition['operator'],
+  ): boolean {
+    if (operator === 'exists') {
+      return actualValue !== undefined
+    }
 
+    if (actualValue === undefined || actualValue === null) {
+      return false
+    }
+
+    const actualValues = Array.isArray(actualValue)
+      ? actualValue.map(String)
+      : [
+          typeof actualValue === 'object'
+            ? JSON.stringify(actualValue)
+            : String(actualValue),
+        ]
+    const expectedValues = Array.isArray(expectedValue)
+      ? expectedValue
+      : [expectedValue]
+
+    switch (operator) {
       case 'equals':
-        if (Array.isArray(value)) {
-          return value.includes(strValue)
-        }
-        return value === strValue
-
+        return actualValues.some(actual => expectedValues.includes(actual))
       case 'contains':
-        return strValue.includes(String(value))
-
+        return actualValues.some(actual =>
+          expectedValues.some(expected => actual.includes(expected)),
+        )
       case 'startsWith':
-        return strValue.startsWith(String(value))
-
+        return actualValues.some(actual =>
+          expectedValues.some(expected => actual.startsWith(expected)),
+        )
       case 'endsWith':
-        return strValue.endsWith(String(value))
-
+        return actualValues.some(actual =>
+          expectedValues.some(expected => actual.endsWith(expected)),
+        )
       case 'regex':
-        try {
-          const regex = new RegExp(String(value))
-          return regex.test(strValue)
-        } catch {
-          return false
-        }
-
+        return expectedValues.some(expected => {
+          try {
+            const regex = new RegExp(expected)
+            return actualValues.some(actual => regex.test(actual))
+          } catch {
+            return false
+          }
+        })
       default:
         return false
     }
