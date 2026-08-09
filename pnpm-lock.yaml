@@ -310,9 +310,6 @@ importers:
 
   packages/faker-shared:
     devDependencies:
-      '@baicie/logger':
-        specifier: ^0.1.3
-        version: 0.1.3
       '@faker-js/faker':
         specifier: ^10.3.0
         version: 10.3.0
@@ -331,9 +328,6 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-      vite:
-        specifier: 'catalog:'
-        version: 7.2.7(@types/node@25.3.5)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.43.1)(tsx@4.21.0)(yaml@2.8.2)
 
   packages/faker-ui:
     dependencies:

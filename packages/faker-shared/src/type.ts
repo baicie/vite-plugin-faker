@@ -1,5 +1,4 @@
-import type { IncomingHttpHeaders } from 'node:http'
-import type { Connect } from 'vite'
+import type { IncomingHttpHeaders, IncomingMessage } from 'node:http'
 //#region apis
 export interface PageQuery {
   page: number
@@ -240,8 +239,12 @@ export type MockConfig<T = any> =
   | ErrorMockConfig
   | StatefulMockConfig
 
+export interface FakerIncomingMessage extends IncomingMessage {
+  originalUrl?: IncomingMessage['url']
+}
+
 export interface MockContext {
-  req: Connect.IncomingMessage
+  req: FakerIncomingMessage
   url: string
   method?: string
   headers: IncomingHttpHeaders

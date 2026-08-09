@@ -1,13 +1,7 @@
 import { defineConfig } from 'rolldown'
 import { dts } from 'rolldown-plugin-dts'
 
-const external = [
-  '@faker-js/faker',
-  'lodash-es',
-  '@baicie/logger',
-  /^vite(?:\/|$)/,
-  /^node:/,
-]
+const external = ['@faker-js/faker', 'lodash-es', /^node:/]
 
 export default defineConfig([
   {

@@ -1,11 +1,26 @@
-import type { ViteHotContext } from 'vite/types/hot.js'
-import type { Logger } from '@baicie/logger'
 import type { WSMessage, WSMessageType } from './type'
 
-export type FakerWebSocket = ViteHotContext | WebSocket | undefined
+export interface FakerHotContext {
+  readonly accept: unknown
+  on(event: string, handler: (message: WSMessage) => void): void
+  send(event: string, message: WSMessage): void
+}
 
-export function isViteHot(ws: FakerWebSocket): ws is ViteHotContext {
-  return !!ws && typeof (ws as ViteHotContext).accept === 'function'
+export interface FakerLogger {
+  debug(message: string, ...args: unknown[]): void
+  info(message: string, ...args: unknown[]): void
+  warn(message: string, ...args: unknown[]): void
+  error(message: string, ...args: unknown[]): void
+}
+
+interface ImportMetaWithHot {
+  hot?: FakerHotContext
+}
+
+export type FakerWebSocket = FakerHotContext | WebSocket | undefined
+
+export function isViteHot(ws: FakerWebSocket): ws is FakerHotContext {
+  return !!ws && typeof (ws as FakerHotContext).accept === 'function'
 }
 
 export function isWebSocket(ws: FakerWebSocket): ws is WebSocket {
@@ -24,9 +39,9 @@ export class WSClient {
   private handlers: Map<WSMessageType, Set<Function>> = new Map()
   private isConnecting = false
   private destroyed = false
-  private logger: Logger
+  private logger: FakerLogger
 
-  constructor(wsUrl: string, logger: Logger) {
+  constructor(wsUrl: string, logger: FakerLogger) {
     this.wsUrl = wsUrl
     this.logger = logger
     this.connect()
@@ -141,8 +156,9 @@ export class WSClient {
   }
 
   private messageGrid(): void {
-    if (!this.ws && !this.wsUrl && import.meta.hot) {
-      this.ws = import.meta.hot
+    const hot = (import.meta as ImportMeta & ImportMetaWithHot).hot
+    if (!this.ws && !this.wsUrl && hot) {
+      this.ws = hot
     }
   }
 
