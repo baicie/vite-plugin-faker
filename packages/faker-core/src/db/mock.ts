@@ -6,7 +6,7 @@ import type {
   QueryMatchCondition,
   UrlMatchType,
 } from '@baicie/faker-shared'
-import { get } from 'lodash-es'
+import { extend, get } from 'lodash-es'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
 import { type ParmasLike, methodLineUrl } from '../utils'
@@ -96,24 +96,31 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   // 添加Mock配置
   addMock(config: MockConfig): MockConfig {
     const id = methodLineUrl(config)
-    this.db.data[id] = config
+    const normalizedConfig = MocksDB.toMockConfig(id, config)
+    this.db.data[id] = normalizedConfig
     this.save()
-    return config
+    return normalizedConfig
   }
 
   // 获取所有Mock配置
   getAllMocks(): MockConfig[] {
-    return Object.values(this.db.data)
+    return Object.entries(this.db.data).map(function ([id, config]) {
+      return MocksDB.toMockConfig(id, config)
+    })
   }
 
   // 获取激活的Mock配置
   getActiveMocks(): MockConfig[] {
-    return Object.values(this.db.data).filter(mock => mock.enabled)
+    return this.getAllMocks().filter(mock => mock.enabled)
   }
 
   findMock<T extends ParmasLike>(params: T): MockConfig | undefined {
     const id = methodLineUrl(params)
-    return this.db.data[id]
+    const mock = this.db.data[id]
+    if (!mock || methodLineUrl(mock) !== id) {
+      return undefined
+    }
+    return MocksDB.toMockConfig(id, mock)
   }
 
   /**
@@ -307,16 +314,29 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   }
 
   getMock(id: string): MockConfig | undefined {
-    return this.db.data[id]
+    const mock = this.db.data[id]
+    return mock ? MocksDB.toMockConfig(id, mock) : undefined
   }
 
   updateMock(id: string, updates: Partial<MockConfig>): boolean {
-    if (this.db.data[id]) {
-      this.db.data[id] = { ...this.db.data[id], ...updates } as MockConfig
-      this.save()
-      return true
+    const current = this.db.data[id]
+    if (!current) {
+      return false
     }
-    return false
+
+    const updated = extend({}, current, updates) as MockConfig
+    const updatedId = methodLineUrl(updated)
+    if (updatedId !== id && this.db.data[updatedId]) {
+      return false
+    }
+
+    const normalizedConfig = MocksDB.toMockConfig(updatedId, updated)
+    if (updatedId !== id) {
+      delete this.db.data[id]
+    }
+    this.db.data[updatedId] = normalizedConfig
+    this.save()
+    return true
   }
 
   deleteMock(id: string): boolean {
@@ -389,10 +409,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
         },
       }
     }
-    return {
-      ...value,
-      id: value.id || id,
-    }
+    return extend({}, value, { id }) as MockConfig
   }
 
   /**
@@ -425,9 +442,9 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
    */
   getMocksByGroup(group: string): MockConfig[] {
     if (!group || group === '默认') {
-      return Object.values(this.db.data).filter(mock => !mock.group)
+      return this.getAllMocks().filter(mock => !mock.group)
     }
-    return Object.values(this.db.data).filter(mock => mock.group === group)
+    return this.getAllMocks().filter(mock => mock.group === group)
   }
 
   /**
@@ -449,7 +466,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
    * 按标签过滤 Mock
    */
   getMocksByTag(tag: string): MockConfig[] {
-    return Object.values(this.db.data).filter(
+    return this.getAllMocks().filter(
       mock => mock.tags && mock.tags.includes(tag),
     )
   }
