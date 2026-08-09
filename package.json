@@ -3,6 +3,11 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.30.3",
+  "pnpm": {
+    "overrides": {
+      "caniuse-lite": "1.0.30001809"
+    }
+  },
   "scripts": {
     "# Scrips for group #": "_",
     "dev": "turbo run dev --filter=!./playground/*",
