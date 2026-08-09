@@ -29,7 +29,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
   apply(compiler: Compiler): void {
     // 判断是否是 serve 模式
     // serve 模式会有 devServer 配置，build 模式没有
-    const isBuild = !!compiler.options.devServer
+    const isBuild = !compiler.options.devServer
     if (isBuild) {
       // build 模式下，跳过 faker 插件的所有初始化
       logger.info('skipping faker plugin initialization')
@@ -271,6 +271,10 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
       }
     }
   }
+}
+
+export function webpackFaker(options: FakerOptions = {}): WebpackPluginFaker {
+  return new WebpackPluginFaker(options)
 }
 
 export default WebpackPluginFaker
