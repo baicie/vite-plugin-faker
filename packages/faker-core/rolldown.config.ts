@@ -20,6 +20,7 @@ export default defineConfig([
       dir: './dist',
     },
     treeshake: true,
+    external,
     plugins: [dts({ emitDtsOnly: true })],
     watch: {
       clearScreen: false,
