@@ -5,10 +5,9 @@ import type {
   RequestRecord,
   WSMessage,
 } from '@baicie/faker-shared'
-import { EventBusType, WSMessageType } from '@baicie/faker-shared'
+import { EventBusType, WSMessageType, generateUUID } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { EventBus } from './types'
-import { createRequestKey } from '@baicie/faker-shared'
 
 /**
  * 请求记录相关消息处理器
@@ -38,7 +37,7 @@ export class RequestHandler {
         }
       }
 
-      const id = await createRequestKey(data)
+      const id = generateUUID()
       requestsDB.saveRequest(id, this.toRequestItem(data))
       logger.debug(`[Faker] 请求已记录id: ${data.url}-${data.method}`)
 
