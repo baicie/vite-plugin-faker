@@ -173,11 +173,15 @@ export interface BaseMockConfig {
   tags?: string[]
 }
 
-interface MockResponse<T = any> {
+export interface MockResponse<T = any> {
   status: number
   headers?: Record<string, string>
   body: T
   delay?: number
+}
+
+export interface FunctionMockHandler<T = any> {
+  (ctx: MockContext): MockResponse<T> | Promise<MockResponse<T>>
 }
 
 export interface StaticMockConfig<T = any> extends BaseMockConfig {
@@ -204,7 +208,8 @@ export interface ProxyMockConfig extends BaseMockConfig {
 
 export interface FunctionMockConfig<T = any> extends BaseMockConfig {
   type: 'function'
-  handler: (ctx: MockContext) => MockResponse<T> | Promise<MockResponse<T>>
+  handler?: FunctionMockHandler<T>
+  handlerSource?: string
 }
 
 export interface TemplateMockConfig extends BaseMockConfig {
@@ -265,10 +270,18 @@ export interface GeneratedResponse<T = any> {
     timestamp: number
   }
 }
-export type ResponseGenerator = (
-  mock: MockConfig,
-  ctx: MockContext,
-) => Promise<GeneratedResponse>
+export interface ResponseGeneratorOptions {
+  allowFunctionHandlerSource?: boolean
+  functionHandlerTimeout?: number
+}
+
+export interface ResponseGenerator {
+  (
+    mock: MockConfig,
+    ctx: MockContext,
+    options?: ResponseGeneratorOptions,
+  ): Promise<GeneratedResponse>
+}
 //#endregion
 //#region query&body
 export type QueryPrimitive = string | number | boolean | null

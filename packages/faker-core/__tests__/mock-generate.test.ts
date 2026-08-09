@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type {
   ErrorMockConfig,
+  FunctionMockConfig,
   StatefulMockConfig,
   StaticMockConfig,
   TemplateMockConfig,
@@ -109,6 +110,132 @@ describe('generateResponseMap - stateful', () => {
   it('传入非 stateful 类型时抛出错误', async () => {
     const mock = { type: 'static' } as any
     await expect(generateResponseMap.stateful(mock, baseCtx)).rejects.toThrow()
+  })
+
+  it('rejects an empty state list', () => {
+    const mock: StatefulMockConfig = {
+      url: '/api/test',
+      method: 'GET',
+      type: 'stateful',
+      enabled: true,
+      states: [],
+    }
+
+    return expect(generateResponseMap.stateful(mock, baseCtx)).rejects.toThrow(
+      'at least one state',
+    )
+  })
+})
+
+describe('generateResponseMap - function', () => {
+  it('executes an in-memory handler without enabling persisted source', () => {
+    const mock: FunctionMockConfig = {
+      id: '/api/test-GET',
+      url: '/api/test',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+      handler: function () {
+        return { status: 200, body: { source: 'runtime' } }
+      },
+    }
+
+    return generateResponseMap.function(mock, baseCtx).then(result => {
+      expect(result.body).toEqual({ source: 'runtime' })
+    })
+  })
+
+  it('rejects persisted source unless execution is explicitly enabled', () => {
+    const mock: FunctionMockConfig = {
+      url: '/api/test',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+      handlerSource: 'function handler() { return { status: 200, body: {} }; }',
+    }
+
+    return expect(generateResponseMap.function(mock, baseCtx)).rejects.toThrow(
+      'disabled',
+    )
+  })
+
+  it('executes a handler source after a JSON persistence round trip', () => {
+    const mock = JSON.parse(
+      JSON.stringify({
+        id: '/api/test-POST',
+        url: '/api/test',
+        method: 'POST',
+        type: 'function',
+        enabled: true,
+        handlerSource:
+          'function handler(ctx) { return { status: 201, headers: { "x-source": "function" }, body: { value: ctx.body.value }, delay: 5 }; }',
+      }),
+    ) as FunctionMockConfig
+    const ctx = Object.assign({}, baseCtx, {
+      method: 'POST',
+      body: { value: 'persisted' },
+    })
+
+    return generateResponseMap
+      .function(mock, ctx, { allowFunctionHandlerSource: true })
+      .then(result => {
+        expect(result).toMatchObject({
+          status: 201,
+          headers: { 'x-source': 'function' },
+          body: { value: 'persisted' },
+          delay: 5,
+          source: 'function',
+          meta: { mockId: '/api/test-POST' },
+        })
+      })
+  })
+
+  it('does not expose host constructors to persisted source', () => {
+    const mock: FunctionMockConfig = {
+      url: '/api/test',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+      handlerSource:
+        'function handler(ctx) { return { status: 200, body: ctx.constructor.constructor("return process")() }; }',
+    }
+
+    return expect(
+      generateResponseMap.function(mock, baseCtx, {
+        allowFunctionHandlerSource: true,
+      }),
+    ).rejects.toThrow('Code generation from strings disallowed')
+  })
+
+  it('times out CPU work scheduled by a handler promise', () => {
+    const mock: FunctionMockConfig = {
+      url: '/api/test',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+      handlerSource:
+        'function handler() { return Promise.resolve().then(function () { var start = Date.now(); while (Date.now() - start < 50) {} return { status: 200, body: {} }; }); }',
+    }
+
+    return expect(
+      generateResponseMap.function(mock, baseCtx, {
+        allowFunctionHandlerSource: true,
+        functionHandlerTimeout: 10,
+      }),
+    ).rejects.toThrow('timed out')
+  })
+
+  it('rejects a function mock without a handler or source', () => {
+    const mock = {
+      url: '/api/test',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+    } as FunctionMockConfig
+
+    return expect(generateResponseMap.function(mock, baseCtx)).rejects.toThrow(
+      'handler source',
+    )
   })
 })
 

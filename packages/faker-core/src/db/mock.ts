@@ -409,7 +409,15 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
         },
       }
     }
-    return extend({}, value, { id }) as MockConfig
+    const normalizedConfig = extend({}, value, { id }) as MockConfig
+    if (
+      normalizedConfig.type === 'function' &&
+      normalizedConfig.handlerSource &&
+      normalizedConfig.handlerSource.trim()
+    ) {
+      delete normalizedConfig.handler
+    }
+    return normalizedConfig
   }
 
   /**

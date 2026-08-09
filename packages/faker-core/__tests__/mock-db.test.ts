@@ -1,6 +1,7 @@
 import type { MockConfig, QueryObject } from '@baicie/faker-shared'
 import { describe, expect, it, vi } from 'vitest'
 import { MocksDB } from '../src/db/mock'
+import { generateResponseMap } from '../src/mock'
 
 function createMocksDB(mocks: MockConfig[]): MocksDB {
   const db = Object.create(MocksDB.prototype) as MocksDB
@@ -200,5 +201,61 @@ describe('MocksDB route identity', () => {
       id: '/api/users-GET',
       url: '/api/accounts',
     })
+  })
+
+  it('treats explicit function source as the persistent implementation', () => {
+    const db = createMutableMocksDB()
+    const handlerSource =
+      'function handler() { return { status: 201, body: { source: "persisted" } }; }'
+    const mock = {
+      url: '/api/function',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+      handlerSource,
+      handler: function handler() {
+        return { status: 200, body: { ok: true } }
+      },
+    } as MockConfig
+
+    const created = db.addMock(mock) as MockConfig & {
+      handlerSource?: string
+    }
+    const serialized = JSON.stringify(created)
+
+    expect(created.handler).toBeUndefined()
+    expect(created.handlerSource).toBe(handlerSource)
+    expect(serialized).toContain('handlerSource')
+    expect(serialized).not.toContain('"handler"')
+  })
+
+  it('advances a stateful mock across independent database lookups', () => {
+    const db = createMutableMocksDB({
+      '/api/stateful-GET': {
+        id: '/api/stateful-GET',
+        url: '/api/stateful',
+        method: 'GET',
+        type: 'stateful',
+        enabled: true,
+        states: [
+          { status: 200, body: { step: 1 } },
+          { status: 200, body: { step: 2 } },
+        ],
+        current: 0,
+      },
+    })
+    const first = db.findMock({ url: '/api/stateful', method: 'GET' })!
+
+    return generateResponseMap
+      .stateful(first, {} as never)
+      .then(function (firstResponse) {
+        const second = db.findMock({ url: '/api/stateful', method: 'GET' })!
+        return generateResponseMap
+          .stateful(second, {} as never)
+          .then(function (secondResponse) {
+            expect(firstResponse.body).toEqual({ step: 1 })
+            expect(secondResponse.body).toEqual({ step: 2 })
+          })
+      })
   })
 })
