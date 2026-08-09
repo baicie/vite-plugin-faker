@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { PassThrough } from 'node:stream'
 import type { DBManager } from '@baicie/faker-core'
-import type { StaticMockConfig } from '@baicie/faker-shared'
+import type { FunctionMockConfig, StaticMockConfig } from '@baicie/faker-shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockMiddleware } from '../src/middlewares/mock'
 
@@ -116,5 +116,37 @@ describe('webpack mockMiddleware', () => {
     expect(headers['Content-Type']).toBe('text/plain')
     expect(headers['X-Custom']).toBe('custom-value')
     expect(headers['X-Mock-Id']).toBe('users-get')
+  })
+
+  it('executes persisted function source only when middleware enables it', () => {
+    const mock: FunctionMockConfig = {
+      id: 'users-get',
+      url: '/api/users',
+      method: 'GET',
+      type: 'function',
+      enabled: true,
+      handlerSource:
+        'function handler(ctx) { return { status: 200, body: { url: ctx.url } }; }',
+    }
+    mockDB.findMock.mockReturnValue(mock)
+
+    return new Promise<void>(function (resolve, reject) {
+      const response = {
+        statusCode: 0,
+        setHeader: vi.fn(),
+        end: function (body: string) {
+          expect(JSON.parse(body)).toEqual({ url: '/api/users' })
+          resolve()
+          return this
+        },
+      } as unknown as ServerResponse
+
+      mockMiddleware(dbManager, {
+        allowFunctionHandlerSource: true,
+        functionHandlerTimeout: 100,
+      })(createRequest('', 'GET'), response, function (error?: unknown) {
+        reject(error || new Error('mock middleware unexpectedly called next'))
+      })
+    })
   })
 })

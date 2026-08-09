@@ -11,6 +11,8 @@ export const defaultConfig: ViteFakerConfig = {
   mountTarget: '#mock-ui',
   storeDir: '.mock',
   silent: false,
+  allowFunctionHandlerSource: false,
+  functionHandlerTimeout: 1000,
   loggerOptions: {
     enabled: true,
     level: 'error',
@@ -43,5 +45,10 @@ export function resolveConfig(config: ViteFakerOptions): ViteFakerConfig {
     ),
   )
 
-  return extend(defaultConfig, config)
+  const _uiOptions = extend({}, defaultConfig.uiOptions, config.uiOptions)
+
+  return extend({}, defaultConfig, config, {
+    loggerOptions: _loggerOptions,
+    uiOptions: _uiOptions,
+  })
 }

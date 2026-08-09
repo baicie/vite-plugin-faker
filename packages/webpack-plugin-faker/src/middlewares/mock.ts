@@ -1,4 +1,8 @@
-import type { MockContext, QueryObject } from '@baicie/faker-shared'
+import type {
+  MockContext,
+  QueryObject,
+  ResponseGeneratorOptions,
+} from '@baicie/faker-shared'
 import { extend, sleep } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import qs from 'qs'
@@ -21,6 +25,7 @@ export function parseQuery<T extends QueryObject = QueryObject>(
 
 export function mockMiddleware(
   dbManager: DBManager,
+  options: ResponseGeneratorOptions = {},
 ): (
   req: IncomingMessage,
   res: ServerResponse,
@@ -66,7 +71,7 @@ export function mockMiddleware(
         body: await readBody(req),
       }
 
-      const response = await generate(mock, ctx)
+      const response = await generate(mock, ctx, options)
 
       // ⏱ delay
       if (response.delay > 0) {

@@ -1,16 +1,23 @@
-import { type WSMessage, EventBusType } from '@baicie/faker-shared'
+import { EventBusType, type WSMessage } from '@baicie/faker-shared'
 import { FAKER_WEBSOCKET_SYMBOL, WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { ViteDevServer, WebSocketClient } from 'vite'
 import { type WebSocket, WebSocketServer } from 'ws'
+import type { IncomingMessage } from 'node:http'
 import {
-  WSMessageHandler,
-  type EventBus,
   type DBManager,
+  type EventBus,
+  WSMessageHandler,
+  isAllowedWebSocketClient,
 } from '@baicie/faker-core'
 import { EventBus as EventBusImpl } from './event-bus'
 import { isValidJSON } from '@baicie/faker-shared'
 import type { ViteFakerConfig } from './config'
+
+interface WebSocketVerifyInfo {
+  origin: string
+  req: IncomingMessage
+}
 
 export class WSServer {
   private viteServer?: ViteDevServer
@@ -84,9 +91,20 @@ export class WSServer {
    * 设置独立 WebSocket 服务器
    */
   private setupStandalone(port: number): void {
-    this.standaloneServer = new WebSocketServer({ port })
+    this.standaloneServer = new WebSocketServer({
+      port,
+      host: '127.0.0.1',
+      verifyClient: function (info: WebSocketVerifyInfo) {
+        return isAllowedWebSocketClient({
+          origin: info.origin,
+          host: info.req.headers.host,
+          remoteAddress: info.req.socket.remoteAddress,
+          loopbackOnly: true,
+        })
+      },
+    })
 
-    logger.info(`[Faker] 独立 WebSocket 服务器已启动，端口: ${port}`)
+    logger.info(`[Faker] 独立 WebSocket 服务器已启动，地址: 127.0.0.1:${port}`)
 
     this.standaloneServer.on('connection', (ws: WebSocket) => {
       this.clients.add(ws)

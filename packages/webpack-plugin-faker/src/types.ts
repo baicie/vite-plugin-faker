@@ -1,5 +1,5 @@
-import { type LoggerConfig } from '@baicie/logger'
-import { type UiOptionsMode } from '@baicie/faker-shared'
+import type { LoggerConfig } from '@baicie/logger'
+import type { UiOptionsMode } from '@baicie/faker-shared'
 
 export interface FakerOptions {
   /**
@@ -16,6 +16,16 @@ export interface FakerOptions {
    * @description logger options
    */
   loggerOptions?: Partial<LoggerConfig>
+  /**
+   * Execute persisted function mock source.
+   * @default false
+   */
+  allowFunctionHandlerSource?: boolean
+  /**
+   * Maximum persisted function handler execution time in milliseconds.
+   * @default 1000
+   */
+  functionHandlerTimeout?: number
 
   uiOptions?: {
     /**

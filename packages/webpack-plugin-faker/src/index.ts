@@ -112,7 +112,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
           // Add mock middleware (for API mocking)
           middlewares.unshift({
             name: 'faker-mock-middleware',
-            middleware: mockMiddleware(this.dbManager),
+            middleware: mockMiddleware(this.dbManager, this.config),
           })
         }
 
@@ -130,7 +130,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
             // app is express app usually
             const publicPath = compiler.options.output?.publicPath || '/'
             app.use(routeMiddleware(this.config, publicPath as string))
-            app.use(mockMiddleware(this.dbManager!))
+            app.use(mockMiddleware(this.dbManager!, this.config))
           }
           if (originalBefore) {
             originalBefore(app, server, compiler)
