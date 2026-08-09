@@ -1,3 +1,4 @@
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -17,10 +18,14 @@ export default defineConfig({
         },
       },
       {
+        plugins: [vueJsx()],
         test: {
           name: 'unit-jsdom',
           environment: 'jsdom',
-          include: ['packages/faker-interceptor/__tests__/**/*.test.ts'],
+          include: [
+            'packages/faker-interceptor/__tests__/**/*.test.ts',
+            'packages/faker-ui/__tests__/**/*.test.ts',
+          ],
           exclude: ['**/node_modules/**', '**/dist/**'],
         },
       },

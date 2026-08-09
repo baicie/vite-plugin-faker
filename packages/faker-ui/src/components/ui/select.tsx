@@ -6,12 +6,12 @@ import {
 } from '@headlessui/vue'
 import {
   type PropType,
+  Teleport,
   computed,
   defineComponent,
   onMounted,
   onUnmounted,
   ref,
-  watch,
 } from 'vue'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid'
 import { cn } from '../../lib/utils'
@@ -45,15 +45,22 @@ export const Select = defineComponent({
         props.options[0],
     )
 
-    const showOptions = ref(false)
-    const buttonRef = ref<HTMLElement | null>(null)
-    const position = ref({ top: 0, left: 0, width: '100%' })
+    const triggerRef = ref<HTMLElement | null>(null)
+    const position = ref({ top: 0, left: 0, width: 0 })
 
-    function updatePosition() {
-      if (!buttonRef.value) {
+    function getTriggerButton(): HTMLElement | null {
+      if (!triggerRef.value) {
+        return null
+      }
+      return triggerRef.value.querySelector('button')
+    }
+
+    function updatePosition(): void {
+      const button = getTriggerButton()
+      if (!button) {
         return
       }
-      const rect = buttonRef.value.getBoundingClientRect()
+      const rect = button.getBoundingClientRect()
       position.value = {
         top: rect.bottom + window.scrollY,
         left: rect.left + window.scrollX,
@@ -61,27 +68,19 @@ export const Select = defineComponent({
       }
     }
 
-    watch(
-      () => props.modelValue,
-      () => {
-        showOptions.value = false
-      },
-    )
-
-    function handleOpen() {
-      updatePosition()
-      showOptions.value = true
-      // 监听滚动以更新位置
-      window.addEventListener('scroll', updatePosition, true)
+    function updatePositionIfOpen(): void {
+      const button = getTriggerButton()
+      if (button && button.getAttribute('aria-expanded') === 'true') {
+        updatePosition()
+      }
     }
 
-    function handleClose() {
-      showOptions.value = false
-      window.removeEventListener('scroll', updatePosition, true)
-    }
+    onMounted(() => {
+      window.addEventListener('scroll', updatePositionIfOpen, true)
+    })
 
     onUnmounted(() => {
-      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('scroll', updatePositionIfOpen, true)
     })
 
     return () => (
@@ -91,81 +90,80 @@ export const Select = defineComponent({
           onUpdate:modelValue={val => emit('update:modelValue', val)}
         >
           <div class="relative mt-1">
-            <ListboxButton
-              ref={buttonRef}
-              class="relative w-full cursor-default rounded-md bg-background py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-input focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm sm:leading-6 text-foreground min-h-[38px]"
-              onClick={handleOpen}
+            <div
+              ref={triggerRef}
+              onClick={updatePosition}
+              onKeydown={updatePosition}
             >
-              <span class="block truncate">
-                {selectedOption.value?.label ?? props.modelValue}
-              </span>
-              <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <ChevronUpDownIcon
-                  class="h-5 w-5 text-muted-foreground"
-                  aria-hidden="true"
-                />
-              </span>
-            </ListboxButton>
+              <ListboxButton class="relative w-full cursor-default rounded-md bg-background py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-input focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm sm:leading-6 text-foreground min-h-[38px]">
+                <span class="block truncate">
+                  {selectedOption.value?.label ?? props.modelValue}
+                </span>
+                <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                  <ChevronUpDownIcon
+                    class="h-5 w-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </span>
+              </ListboxButton>
+            </div>
 
-            <teleport to="body">
-              {showOptions.value && (
-                <ListboxOptions
-                  class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-input"
-                  style={{
-                    top: `${position.value.top}px`,
-                    left: `${position.value.left}px`,
-                    width: `${position.value.width}px`,
-                    zIndex: 9999,
-                  }}
-                  onClick={handleClose}
-                >
-                  {props.options.map(option => (
-                    <ListboxOption
-                      key={option.value}
-                      value={option.value}
-                      as="template"
-                      v-slots={{
-                        default: ({
-                          active,
-                          selected,
-                        }: {
-                          active: boolean
-                          selected: boolean
-                        }) => (
-                          <li
+            <Teleport to="body">
+              <ListboxOptions
+                class="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-background py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-input"
+                style={{
+                  top: `${position.value.top}px`,
+                  left: `${position.value.left}px`,
+                  width: `${position.value.width}px`,
+                  zIndex: 9999,
+                }}
+              >
+                {props.options.map(option => (
+                  <ListboxOption
+                    key={option.value}
+                    value={option.value}
+                    as="template"
+                    v-slots={{
+                      default: ({
+                        active,
+                        selected,
+                      }: {
+                        active: boolean
+                        selected: boolean
+                      }) => (
+                        <li
+                          class={[
+                            active
+                              ? 'bg-secondary text-foreground'
+                              : 'text-foreground',
+                            'relative cursor-default select-none py-2 pl-10 pr-4',
+                          ]}
+                        >
+                          <span
                             class={[
-                              active
-                                ? 'bg-secondary text-foreground'
-                                : 'text-foreground',
-                              'relative cursor-default select-none py-2 pl-10 pr-4',
+                              selected ? 'font-medium' : 'font-normal',
+                              'block truncate',
                             ]}
                           >
+                            {option.label}
+                          </span>
+                          {selected ? (
                             <span
                               class={[
-                                selected ? 'font-medium' : 'font-normal',
-                                'block truncate',
+                                active ? 'text-foreground' : 'text-foreground',
+                                'absolute inset-y-0 left-0 flex items-center pl-3',
                               ]}
                             >
-                              {option.label}
+                              <CheckIcon class="h-5 w-5" aria-hidden="true" />
                             </span>
-                            {selected ? (
-                              <span
-                                class={[
-                                  active ? 'text-foreground' : 'text-foreground',
-                                  'absolute inset-y-0 left-0 flex items-center pl-3',
-                                ]}
-                              >
-                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                              </span>
-                            ) : null}
-                          </li>
-                        ),
-                      }}
-                    />
-                  ))}
-                </ListboxOptions>
-              )}
-            </teleport>
+                          ) : null}
+                        </li>
+                      ),
+                    }}
+                  />
+                ))}
+              </ListboxOptions>
+            </Teleport>
           </div>
         </Listbox>
       </div>
