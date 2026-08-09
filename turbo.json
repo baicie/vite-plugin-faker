@@ -9,7 +9,7 @@
         "tsconfig*.json",
         "package.json"
       ],
-      "outputs": ["dist/**"],
+      "outputs": ["dist/**", "extension/dist/**", "extension/manifest.json"],
       "dependsOn": ["^build"]
     },
     "dev": {
@@ -20,7 +20,7 @@
         "tsconfig*.json",
         "package.json"
       ],
-      "outputs": ["dist/**"],
+      "outputs": ["dist/**", "extension/dist/**", "extension/manifest.json"],
       "persistent": true
     },
     "typecheck": {
