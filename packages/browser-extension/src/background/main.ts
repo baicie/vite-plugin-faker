@@ -21,7 +21,7 @@ if (USE_SIDE_PANEL) {
 }
 
 browser.runtime.onInstalled.addListener((): void => {
-  console.log('Extension installed')
+  console.info('Extension installed')
 })
 
 let previousTabId = 0
@@ -43,7 +43,7 @@ browser.tabs.onActivated.addListener(async ({ tabId }) => {
     return
   }
 
-  console.log('previous tab', tab)
+  console.info('previous tab', tab)
   sendMessage(
     'tab-prev',
     { title: tab.title },

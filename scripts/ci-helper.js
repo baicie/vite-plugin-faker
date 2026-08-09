@@ -1,213 +1,449 @@
-import { execSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-/**
- * CI辅助工具
- */
-class CIHelper {
-  constructor() {
-    this.workspaceRoot = process.cwd()
-    this.changedFiles = this.getChangedFiles()
+const WORKSPACE_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+)
+const EXPECTED_NODE_ENGINE = '>=20.19.0'
+const EXPECTED_REGISTRY = 'https://registry.npmjs.org/'
+const EXPECTED_RELEASE_COMMAND =
+  'pnpm build && pnpm release:check && pnpm release:smoke && cross-env npm_config_ignore_scripts=true changeset publish'
+const SEMVER_PATTERN =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
+export const PACKAGES = [
+  {
+    directory: 'packages/faker-shared',
+    name: '@baicie/faker-shared',
+    dependencies: [],
+    formats: ['import', 'require'],
+    dualExports: ['./node'],
+  },
+  {
+    directory: 'packages/faker-core',
+    name: '@baicie/faker-core',
+    dependencies: ['@baicie/faker-shared'],
+    formats: ['import', 'require'],
+  },
+  {
+    directory: 'packages/faker-interceptor',
+    name: '@baicie/faker-interceptor',
+    dependencies: [],
+    formats: ['import'],
+  },
+  {
+    directory: 'packages/faker-ui',
+    name: '@baicie/faker-ui',
+    dependencies: ['@baicie/faker-shared'],
+    formats: ['import'],
+  },
+  {
+    directory: 'packages/vite-plugin-faker',
+    name: '@baicie/vite-plugin-faker',
+    dependencies: [
+      '@baicie/faker-core',
+      '@baicie/faker-interceptor',
+      '@baicie/faker-shared',
+      '@baicie/faker-ui',
+    ],
+    formats: ['import'],
+  },
+  {
+    directory: 'packages/webpack-plugin-faker',
+    name: '@baicie/webpack-plugin-faker',
+    dependencies: [
+      '@baicie/faker-core',
+      '@baicie/faker-interceptor',
+      '@baicie/faker-shared',
+      '@baicie/faker-ui',
+    ],
+    formats: ['import', 'require'],
+  },
+]
+
+const DEPENDENCY_FIELDS = [
+  'dependencies',
+  'optionalDependencies',
+  'peerDependencies',
+  'devDependencies',
+]
+
+export function validateReleaseCommand(manifest, errors) {
+  if (
+    !manifest.scripts ||
+    manifest.scripts.release !== EXPECTED_RELEASE_COMMAND
+  ) {
+    errors.push(
+      `package.json: scripts.release must be ${EXPECTED_RELEASE_COMMAND}`,
+    )
+  }
+}
+
+function readManifest(packageDefinition, errors) {
+  const manifestPath = path.join(
+    WORKSPACE_ROOT,
+    packageDefinition.directory,
+    'package.json',
+  )
+
+  try {
+    return JSON.parse(readFileSync(manifestPath, 'utf8'))
+  } catch (error) {
+    errors.push(
+      `${packageDefinition.directory}: cannot read package.json (${error.message})`,
+    )
+    return null
+  }
+}
+
+function hasDistEntry(files) {
+  return (
+    Array.isArray(files) &&
+    files.some(file => file === 'dist' || file.startsWith('dist/'))
+  )
+}
+
+function sorted(values) {
+  return values.slice().sort()
+}
+
+function arraysEqual(left, right) {
+  return (
+    left.length === right.length && left.every((value, i) => value === right[i])
+  )
+}
+
+function validateDualExport(packageDefinition, manifest, exportName, errors) {
+  const prefix = packageDefinition.directory
+  const exportEntry = manifest.exports && manifest.exports[exportName]
+  const exportLabel = `exports[${JSON.stringify(exportName)}]`
+
+  if (!exportEntry || typeof exportEntry !== 'object') {
+    errors.push(`${prefix}: ${exportLabel} must be an object`)
+    return
   }
 
-  /**
-   * 获取变更的文件
-   */
-  getChangedFiles() {
-    try {
-      const result = execSync('git diff --name-only HEAD~1 HEAD', {
-        encoding: 'utf8',
-        cwd: this.workspaceRoot,
-      })
-      return result.trim().split('\n').filter(Boolean)
-    } catch (error) {
-      console.warn('无法获取git变更，使用空列表:', error.message)
-      return []
-    }
-  }
-
-  /**
-   * 检查项目是否有变更
-   */
-  hasChanges(projectPath) {
-    if (this.changedFiles.length === 0) return true // 没有git信息时构建所有项目
-
-    return this.changedFiles.some(
-      file =>
-        file.startsWith(projectPath) ||
-        file.startsWith('packages/shared/') || // shared变更影响所有项目
-        file === 'package.json' ||
-        file.startsWith('pnpm-') ||
-        file.startsWith('.github/'),
+  if (typeof exportEntry.types === 'string') {
+    errors.push(
+      `${prefix}: ${exportLabel} must define types inside import and require`,
     )
   }
 
-  /**
-   * 获取需要构建的项目列表
-   */
-  getProjectsToBuild() {
-    const projects = [
-      { name: 'shared', path: 'packages/shared/', buildScript: 'build' },
-      {
-        name: 'vite-plugin-faker',
-        path: 'packages/vite-plugin-faker/',
-        buildScript: 'build',
-      },
-      { name: 'faker-ui', path: 'packages/faker-ui/', buildScript: 'build' },
-      {
-        name: 'api-server',
-        path: 'playground/api-server/',
-        buildScript: 'build',
-      },
-      { name: 'vue-app', path: 'playground/vue-app/', buildScript: 'build' },
-    ]
+  for (const format of ['import', 'require']) {
+    const condition = exportEntry[format]
 
-    return projects.filter(project => this.hasChanges(project.path))
-  }
-
-  /**
-   * 检查包是否需要发布
-   */
-  needsPublish(packagePath) {
-    const packageJsonPath = path.join(
-      this.workspaceRoot,
-      packagePath,
-      'package.json',
-    )
-    if (!existsSync(packageJsonPath)) return false
-
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
-    if (packageJson.private) return false
-
-    // 检查版本是否已发布到npm
-    try {
-      execSync(`npm view ${packageJson.name}@${packageJson.version}`, {
-        encoding: 'utf8',
-        stdio: 'pipe',
-      })
-      return false // 版本已存在
-    } catch {
-      return true // 版本不存在，需要发布
+    if (!condition) {
+      errors.push(`${prefix}: ${exportLabel} must define ${format}`)
+      continue
     }
-  }
-
-  /**
-   * 构建单个项目
-   */
-  buildProject(project) {
-    console.log(`🏗️ 构建项目: ${project.name}`)
-    try {
-      execSync(`pnpm --filter ${project.name} ${project.buildScript}`, {
-        stdio: 'inherit',
-        cwd: this.workspaceRoot,
-      })
-      console.log(`✅ ${project.name} 构建成功`)
-      return true
-    } catch (error) {
-      console.error(`❌ ${project.name} 构建失败:`, error.message)
-      return false
+    if (typeof condition !== 'object') {
+      if (format === 'require' && !condition.endsWith('.cjs')) {
+        errors.push(`${prefix}: ${exportLabel}.require must target a .cjs file`)
+      }
+      errors.push(
+        `${prefix}: ${exportLabel}.${format} must define conditional types and default`,
+      )
+      continue
     }
-  }
 
-  /**
-   * 运行测试
-   */
-  runTests(project) {
-    console.log(`🧪 测试项目: ${project.name}`)
-    try {
-      execSync(`pnpm --filter ${project.name} test`, {
-        stdio: 'inherit',
-        cwd: this.workspaceRoot,
-      })
-      console.log(`✅ ${project.name} 测试通过`)
-      return true
-    } catch (error) {
-      console.error(`❌ ${project.name} 测试失败:`, error.message)
-      return false
+    const expectedTypesExtension = format === 'require' ? '.d.cts' : '.d.ts'
+    const expectedDefaultExtension = format === 'require' ? '.cjs' : '.js'
+
+    if (
+      typeof condition.types !== 'string' ||
+      !condition.types.endsWith(expectedTypesExtension)
+    ) {
+      errors.push(
+        `${prefix}: ${exportLabel}.${format}.types must target a ${expectedTypesExtension} file`,
+      )
     }
-  }
-
-  /**
-   * 发布包到npm
-   */
-  publishPackage(packagePath) {
-    console.log(`📦 发布包: ${packagePath}`)
-    try {
-      execSync('pnpm publish --access public --no-git-checks', {
-        stdio: 'inherit',
-        cwd: path.join(this.workspaceRoot, packagePath),
-      })
-      console.log(`✅ ${packagePath} 发布成功`)
-      return true
-    } catch (error) {
-      console.error(`❌ ${packagePath} 发布失败:`, error.message)
-      return false
+    if (
+      typeof condition.default !== 'string' ||
+      !condition.default.endsWith(expectedDefaultExtension)
+    ) {
+      errors.push(
+        `${prefix}: ${exportLabel}.${format}.default must target a ${expectedDefaultExtension} file`,
+      )
     }
   }
 }
 
-// CLI命令处理
-const command = process.argv[2]
-const helper = new CIHelper()
+function validateRootExport(packageDefinition, manifest, errors) {
+  const prefix = packageDefinition.directory
+  const rootExport = manifest.exports && manifest.exports['.']
 
-switch (command) {
-  case 'check-changes': {
-    const projectsToBuild = helper.getProjectsToBuild()
-    console.log('需要构建的项目:', projectsToBuild.map(p => p.name).join(', '))
-    process.exit(projectsToBuild.length > 0 ? 0 : 1)
-    break
+  if (!rootExport || typeof rootExport !== 'object') {
+    errors.push(`${prefix}: exports["."] must be an object`)
+    return
   }
 
-  case 'build-changed': {
-    const projects = helper.getProjectsToBuild()
-    let allSuccess = true
+  if (packageDefinition.formats.includes('require')) {
+    validateDualExport(packageDefinition, manifest, '.', errors)
 
-    for (const project of projects) {
-      if (!helper.buildProject(project)) {
-        allSuccess = false
+    for (const exportName of packageDefinition.dualExports || []) {
+      validateDualExport(packageDefinition, manifest, exportName, errors)
+    }
+    return
+  }
+
+  for (const format of packageDefinition.formats) {
+    if (typeof rootExport[format] !== 'string') {
+      errors.push(`${prefix}: exports["."] must define ${format}`)
+    }
+  }
+}
+
+export function validateManifest(
+  packageDefinition,
+  manifest,
+  packageNames,
+  errors,
+) {
+  const prefix = packageDefinition.directory
+
+  if (manifest.name !== packageDefinition.name) {
+    errors.push(`${prefix}: expected package name ${packageDefinition.name}`)
+  }
+  if (manifest.private === true) {
+    errors.push(`${prefix}: public package cannot be private`)
+  }
+  if (!SEMVER_PATTERN.test(manifest.version)) {
+    errors.push(`${prefix}: version must be valid SemVer`)
+  }
+  if (!hasDistEntry(manifest.files)) {
+    errors.push(`${prefix}: files must include dist`)
+  }
+  if (!manifest.publishConfig || manifest.publishConfig.access !== 'public') {
+    errors.push(`${prefix}: publishConfig.access must be public`)
+  }
+  if (
+    !manifest.publishConfig ||
+    manifest.publishConfig.registry !== EXPECTED_REGISTRY
+  ) {
+    errors.push(
+      `${prefix}: publishConfig.registry must be ${EXPECTED_REGISTRY}`,
+    )
+  }
+  if (!manifest.engines || manifest.engines.node !== EXPECTED_NODE_ENGINE) {
+    errors.push(`${prefix}: engines.node must be ${EXPECTED_NODE_ENGINE}`)
+  }
+
+  validateRootExport(packageDefinition, manifest, errors)
+
+  const runtimeDependencies = manifest.dependencies || {}
+  const actualInternalDependencies = sorted(
+    Object.keys(runtimeDependencies).filter(name => packageNames.has(name)),
+  )
+  const expectedInternalDependencies = sorted(packageDefinition.dependencies)
+
+  if (!arraysEqual(actualInternalDependencies, expectedInternalDependencies)) {
+    errors.push(
+      `${prefix}: expected internal runtime dependencies ` +
+        `[${expectedInternalDependencies.join(', ')}], received ` +
+        `[${actualInternalDependencies.join(', ')}]`,
+    )
+  }
+
+  for (const field of DEPENDENCY_FIELDS) {
+    const dependencies = manifest[field] || {}
+
+    for (const name of Object.keys(dependencies)) {
+      const specifier = dependencies[name]
+
+      if (specifier.startsWith('workspace:') && !packageNames.has(name)) {
+        errors.push(
+          `${prefix}: ${field}.${name} points to an unknown workspace package`,
+        )
+      }
+      if (packageNames.has(name) && !specifier.startsWith('workspace:')) {
+        errors.push(
+          `${prefix}: ${field}.${name} must use the workspace protocol`,
+        )
+      }
+    }
+  }
+}
+
+function validateDependencyGraph(manifests, errors) {
+  const visiting = Object.create(null)
+  const visited = Object.create(null)
+
+  function visit(packageName, pathNames) {
+    if (visiting[packageName]) {
+      errors.push(
+        `internal dependency cycle: ${pathNames.concat(packageName).join(' -> ')}`,
+      )
+      return
+    }
+    if (visited[packageName]) return
+
+    visiting[packageName] = true
+    const manifest = manifests.get(packageName)
+    const dependencies = manifest.dependencies || {}
+
+    for (const dependencyName of Object.keys(dependencies)) {
+      if (manifests.has(dependencyName)) {
+        visit(dependencyName, pathNames.concat(packageName))
       }
     }
 
-    process.exit(allSuccess ? 0 : 1)
-    break
+    visiting[packageName] = false
+    visited[packageName] = true
   }
 
-  case 'test-changed': {
-    const testProjects = helper.getProjectsToBuild()
-    let allTestsPass = true
+  for (const packageName of manifests.keys()) {
+    visit(packageName, [])
+  }
+}
 
-    for (const project of testProjects) {
-      if (!helper.runTests(project)) {
-        allTestsPass = false
-      }
+export function validatePackedFiles(
+  packageDefinition,
+  manifest,
+  files,
+  errors,
+) {
+  const publicEntries = new Set()
+  const packedFiles = new Set(files)
+
+  for (const requiredFile of ['LICENSE', 'README.md']) {
+    if (!packedFiles.has(requiredFile)) {
+      errors.push(
+        `${packageDefinition.directory}: tarball does not include ${requiredFile}`,
+      )
     }
-
-    process.exit(allTestsPass ? 0 : 1)
-    break
   }
 
-  case 'check-publish': {
-    const packagePath = process.argv[3]
-    if (!packagePath) {
-      console.error('请提供包路径')
-      process.exit(1)
+  function addEntry(entry) {
+    if (typeof entry !== 'string') return
+
+    const normalizedEntry = entry.startsWith('./') ? entry.slice(2) : entry
+    if (normalizedEntry) publicEntries.add(normalizedEntry)
+  }
+
+  function addEntries(value) {
+    if (typeof value === 'string') {
+      addEntry(value)
+      return
     }
+    if (!value || typeof value !== 'object') return
 
-    const needsPublish = helper.needsPublish(packagePath)
-    console.log(`${packagePath} 需要发布:`, needsPublish)
-    process.exit(needsPublish ? 0 : 1)
-    break
+    for (const key of Object.keys(value)) {
+      addEntries(value[key])
+    }
   }
 
-  default:
-    console.log(`
-CI辅助工具使用方法:
+  for (const field of ['main', 'module', 'types', 'typings', 'css']) {
+    addEntry(manifest[field])
+  }
+  addEntries(manifest.browser)
+  addEntries(manifest.bin)
+  addEntries(manifest.exports)
 
-  node scripts/ci-helper.js check-changes     # 检查哪些项目有变更
-  node scripts/ci-helper.js build-changed     # 构建有变更的项目
-  node scripts/ci-helper.js test-changed      # 测试有变更的项目
-  node scripts/ci-helper.js check-publish <path>  # 检查包是否需要发布
-    `)
-    process.exit(1)
+  for (const entry of publicEntries) {
+    if (!packedFiles.has(entry)) {
+      errors.push(
+        `${packageDefinition.directory}: tarball is missing public entry ${entry}`,
+      )
+    }
+  }
+}
+
+function validateTarball(packageDefinition, manifest, errors) {
+  const result = spawnSync(
+    'pnpm',
+    ['--dir', packageDefinition.directory, 'pack', '--dry-run', '--json'],
+    {
+      cwd: WORKSPACE_ROOT,
+      encoding: 'utf8',
+    },
+  )
+
+  if (result.error || result.status !== 0) {
+    const detail = result.error ? result.error.message : result.stderr.trim()
+    errors.push(`${packageDefinition.directory}: pnpm pack failed (${detail})`)
+    return
+  }
+
+  let packResult
+  try {
+    packResult = JSON.parse(result.stdout)
+  } catch (error) {
+    errors.push(
+      `${packageDefinition.directory}: cannot parse pnpm pack output (${error.message})`,
+    )
+    return
+  }
+
+  const files = Array.isArray(packResult.files)
+    ? packResult.files.map(file => file.path)
+    : []
+
+  if (!files.includes('package.json')) {
+    errors.push(
+      `${packageDefinition.directory}: tarball does not include package.json`,
+    )
+  }
+  if (!files.some(file => file.startsWith('dist/'))) {
+    errors.push(
+      `${packageDefinition.directory}: tarball does not include dist files`,
+    )
+  }
+
+  validatePackedFiles(packageDefinition, manifest, files, errors)
+}
+
+function main() {
+  const errors = []
+  try {
+    validateReleaseCommand(
+      JSON.parse(
+        readFileSync(path.join(WORKSPACE_ROOT, 'package.json'), 'utf8'),
+      ),
+      errors,
+    )
+  } catch (error) {
+    errors.push(`package.json: cannot read root manifest (${error.message})`)
+  }
+  const packageNames = new Set(
+    PACKAGES.map(packageDefinition => packageDefinition.name),
+  )
+  const manifests = new Map()
+
+  for (const packageDefinition of PACKAGES) {
+    const manifest = readManifest(packageDefinition, errors)
+    if (!manifest) continue
+
+    manifests.set(packageDefinition.name, manifest)
+    validateManifest(packageDefinition, manifest, packageNames, errors)
+  }
+
+  if (manifests.size === PACKAGES.length) {
+    validateDependencyGraph(manifests, errors)
+  }
+
+  for (const packageDefinition of PACKAGES) {
+    const manifest = manifests.get(packageDefinition.name)
+    if (manifest) validateTarball(packageDefinition, manifest, errors)
+  }
+
+  if (errors.length > 0) {
+    console.error('Release validation failed:')
+    for (const error of errors) console.error(`- ${error}`)
+    process.exitCode = 1
+    return
+  }
+
+  console.info(
+    `Release validation passed for ${PACKAGES.length} public packages.`,
+  )
+}
+
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  main()
 }

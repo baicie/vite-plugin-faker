@@ -20,7 +20,7 @@
     "@baicie/webpack-plugin-faker": "workspace:*"
   },
   "dependencies": {
-    "axios": "^1.13.6",
+    "axios": "^1.19.0",
     "vue": "^3.5.29"
   }
 }

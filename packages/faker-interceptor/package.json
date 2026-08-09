@@ -27,7 +27,7 @@
   ],
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
-    "build": "rolldown --config rolldown.config.ts --minify",
+    "build": "rimraf dist && rolldown --config rolldown.config.ts --minify",
     "typecheck": "tsc --incremental --noEmit",
     "prepublishOnly": "pnpm run build"
   },

@@ -1,4 +1,5 @@
 import type { Compiler, WebpackPluginInstance } from 'webpack'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { logger } from '@baicie/logger'
 import {
@@ -16,6 +17,8 @@ import type { FakerConfig, FakerOptions } from './types'
 type InjectItem =
   | { kind: 'script'; path: string; module?: boolean }
   | { kind: 'style'; path: string }
+
+const nodeRequire = createRequire(import.meta.url)
 
 export class WebpackPluginFaker implements WebpackPluginInstance {
   private config: FakerConfig
@@ -176,8 +179,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
         // Webpack 5 + HtmlWebpackPlugin 5 uses getHooks(compilation).alterAssetTags
         // We can try to require html-webpack-plugin to get getHooks if available
         try {
-          // eslint-disable-next-line no-restricted-globals
-          const HtmlWebpackPlugin = require('html-webpack-plugin')
+          const HtmlWebpackPlugin = nodeRequire('html-webpack-plugin')
           if (HtmlWebpackPlugin.getHooks) {
             HtmlWebpackPlugin.getHooks(
               compilation,

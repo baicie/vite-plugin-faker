@@ -54,7 +54,7 @@ function startServer() {
 }
 
 process.on('SIGINT', () => {
-  console.log('\n正在关闭所有服务...')
+  console.info('\n正在关闭所有服务...')
 
   // 向所有子进程发送终止信号
   processes.forEach(proc => {
@@ -63,7 +63,7 @@ process.on('SIGINT', () => {
 
   // 设置一个超时，如果子进程没有正常退出，则强制退出
   const forceExitTimeout = setTimeout(() => {
-    console.log('部分服务未能正常关闭，强制退出')
+    console.info('部分服务未能正常关闭，强制退出')
     process.exit(1)
   }, 3000)
 
@@ -72,7 +72,7 @@ process.on('SIGINT', () => {
     if (processes.length === 0) {
       clearInterval(checkInterval)
       clearTimeout(forceExitTimeout)
-      console.log('所有服务已成功关闭')
+      console.info('所有服务已成功关闭')
       process.exit(0)
     }
   }, 100)

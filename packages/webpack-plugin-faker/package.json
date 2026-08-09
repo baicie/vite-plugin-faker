@@ -13,14 +13,27 @@
     "url": "https://github.com/baicie/vite-plugin-faker/issues"
   },
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
-    "build": "rolldown --config rolldown.config.ts --minify",
+    "build": "rimraf dist && rolldown --config rolldown.config.ts --minify && node ../../scripts/create-cjs-declarations.js dist",
     "typecheck": "tsc --incremental --noEmit",
     "prepublishOnly": "pnpm run build"
   },
@@ -46,11 +59,11 @@
     "@faker-js/faker": "^10.3.0",
     "chokidar": "^5.0.0",
     "co-body": "^6.2.0",
-    "lodash-es": "^4.17.23",
+    "lodash-es": "^4.18.1",
     "lowdb": "^7.0.1",
     "qs": "^6.15.0",
     "type-is": "^2.0.1",
-    "ws": "^8.19.0",
+    "ws": "^8.21.3",
     "picocolors": "^1.1.1"
   },
   "peerDependencies": {

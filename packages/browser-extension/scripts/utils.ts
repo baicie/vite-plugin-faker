@@ -8,5 +8,5 @@ export const isDev = process.env.NODE_ENV !== 'production'
 export const isFirefox = process.env.EXTENSION === 'firefox'
 
 export function log(name: string, message: string) {
-  console.log(black(bgCyan(` ${name} `)), message)
+  console.info(black(bgCyan(` ${name} `)), message)
 }

@@ -7,15 +7,41 @@ import type { Manifest } from 'webextension-polyfill'
 export { name } from '../package.json'
 
 export const extensionPath = path.join(__dirname, '../extension')
+const EXTENSION_PREPARE_TIMEOUT = 10000
+
+function isExtensionReady() {
+  return (
+    isDevArtifact() &&
+    fs.existsSync(
+      path.join(extensionPath, 'dist/contentScripts/index.global.js'),
+    )
+  )
+}
+
+function waitForExtension() {
+  const deadline = Date.now() + EXTENSION_PREPARE_TIMEOUT
+
+  function checkReady(): Promise<void> {
+    if (isExtensionReady()) return Promise.resolve()
+    if (Date.now() >= deadline) {
+      return Promise.reject(
+        new Error('Timed out waiting for the development extension artifact'),
+      )
+    }
+    return sleep(100).then(checkReady)
+  }
+
+  return checkReady()
+}
 
 export const test = base.extend<{
   context: BrowserContext
   extensionId: string
 }>({
   context: async ({ headless }, use) => {
-    // workaround for the Vite server has started but contentScript is not yet.
-    await sleep(1000)
+    await waitForExtension()
     const context = await chromium.launchPersistentContext('', {
+      channel: 'chromium',
       headless,
       args: [
         ...(headless ? ['--headless=new'] : []),
@@ -38,12 +64,18 @@ export const test = base.extend<{
 
 export const expect = test.expect
 
-export function isDevArtifact() {
-  const manifest: Manifest.WebExtensionManifest = fs.readJsonSync(
-    path.resolve(extensionPath, 'manifest.json'),
-  )
-  return Boolean(
-    typeof manifest.content_security_policy === 'object' &&
-    manifest.content_security_policy.extension_pages?.includes('localhost'),
-  )
+function isDevArtifact() {
+  try {
+    const manifest: Manifest.WebExtensionManifest = fs.readJsonSync(
+      path.resolve(extensionPath, 'manifest.json'),
+    )
+    const contentSecurityPolicy = manifest.content_security_policy
+    return Boolean(
+      typeof contentSecurityPolicy === 'object' &&
+      typeof contentSecurityPolicy.extension_pages === 'string' &&
+      contentSecurityPolicy.extension_pages.includes('localhost'),
+    )
+  } catch {
+    return false
+  }
 }

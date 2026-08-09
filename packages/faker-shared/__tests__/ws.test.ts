@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createLoggerInstance } from '@baicie/logger'
 import { FAKER_WEBSOCKET_SYMBOL, WSClient } from '../src/ws'
 import { WSMessageType } from '../src/type'
 import type { WSMessage } from '../src/type'
+import type { FakerLogger } from '../src/ws'
 
 interface CreateMockPayload {
   method: string
@@ -29,7 +29,13 @@ describe('WSClient request correlation', function () {
       accept: vi.fn(),
       send: hotSend,
     }
-    const client = new WSClient('', createLoggerInstance({ enabled: false }))
+    const logger: FakerLogger = {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    }
+    const client = new WSClient('', logger)
     ;(client as unknown as MutableWSClient).ws = hotContext
 
     const payload: CreateMockPayload = {

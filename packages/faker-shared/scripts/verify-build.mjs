@@ -21,11 +21,31 @@ for (const moduleName of forbiddenModules) {
 }
 
 for (const exportName of ['.', './node']) {
-  const requirePath = packageJson.exports[exportName].require
-  if (!requirePath.endsWith('.cjs')) {
+  const exportEntry = packageJson.exports[exportName]
+  const importEntry = exportEntry.import
+  const requireEntry = exportEntry.require
+
+  if (!importEntry.default.endsWith('.js')) {
+    throw new Error(`${exportName} import export must target ESM output`)
+  }
+  if (!importEntry.types.endsWith('.d.ts')) {
+    throw new Error(`${exportName} import types must target .d.ts output`)
+  }
+  if (!requireEntry.default.endsWith('.cjs')) {
     throw new Error(`${exportName} require export must target CommonJS output`)
   }
-  if (!existsSync(new URL(`..${requirePath.slice(1)}`, import.meta.url))) {
-    throw new Error(`Missing CommonJS output: ${packageDir}/${requirePath}`)
+  if (!requireEntry.types.endsWith('.d.cts')) {
+    throw new Error(`${exportName} require types must target .d.cts output`)
+  }
+
+  for (const exportPath of [
+    importEntry.default,
+    importEntry.types,
+    requireEntry.default,
+    requireEntry.types,
+  ]) {
+    if (!existsSync(new URL(`..${exportPath.slice(1)}`, import.meta.url))) {
+      throw new Error(`Missing package output: ${packageDir}/${exportPath}`)
+    }
   }
 }

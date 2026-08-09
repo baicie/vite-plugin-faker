@@ -32,6 +32,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           include: [
+            'scripts/__tests__/**/*.test.js',
             'packages/faker-shared/__tests__/**/*.test.ts',
             'packages/faker-core/__tests__/**/*.test.ts',
             'packages/vite-plugin-faker/__tests__/**/*.test.ts',
