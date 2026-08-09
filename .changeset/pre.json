@@ -1,0 +1,17 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "vitesse-webext": "0.0.1",
+    "@baicie/faker-core": "0.1.0",
+    "@baicie/faker-interceptor": "0.1.0",
+    "@baicie/faker-shared": "1.0.0",
+    "@baicie/faker-ui": "0.1.0",
+    "@baicie/vite-plugin-faker": "0.1.0",
+    "@baicie/webpack-plugin-faker": "0.1.0",
+    "api-server": "0.0.1",
+    "vue-app": "0.0.0",
+    "@playground/webpack-app": "0.0.0"
+  },
+  "changesets": []
+}
