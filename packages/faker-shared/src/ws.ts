@@ -112,7 +112,8 @@ export class WSClient {
 
     this.reconnectAttempts++
     const jitter = Math.random() * 500
-    const exponentialDelay = this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
+    const exponentialDelay =
+      this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
     const delay = Math.min(exponentialDelay + jitter, this.maxReconnectDelay)
 
     this.logger.info(
@@ -145,11 +146,11 @@ export class WSClient {
     }
   }
 
-  send<T = any>(type: WSMessageType, data?: T): void {
+  send<T = any>(type: WSMessageType, data?: T, id?: string): void {
     this.logger.debug('ws send start', type, data)
     try {
       this.messageGrid()
-      const message: WSMessage = { type, data }
+      const message: WSMessage = { type, data, id }
       if (isViteHot(this.ws)) {
         this.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
       } else {

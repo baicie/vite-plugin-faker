@@ -20,7 +20,7 @@ export class SettingsHandler {
   /**
    * 处理获取设置
    */
-  handleGet(id?: string): WSMessage {
+  handleGet(): WSMessage {
     try {
       const settingsDB = this.dbManager.getSettingsDB()
       const settings = settingsDB.getSettings()
@@ -28,7 +28,6 @@ export class SettingsHandler {
       return {
         type: WSMessageType.SETTINGS_GET,
         data: settings,
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 获取设置失败:', error)
@@ -39,7 +38,7 @@ export class SettingsHandler {
   /**
    * 处理设置更新
    */
-  handleUpdate(data: any, id?: string): WSMessage {
+  handleUpdate(data: any): WSMessage {
     try {
       const settingsDB = this.dbManager.getSettingsDB()
       settingsDB.updateSettings(data)
@@ -50,7 +49,6 @@ export class SettingsHandler {
       return {
         type: WSMessageType.SETTINGS_UPDATE,
         data: { success: true },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 更新设置失败:', error)

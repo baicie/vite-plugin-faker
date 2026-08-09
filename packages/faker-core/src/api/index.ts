@@ -22,62 +22,86 @@ export class WSMessageHandler {
    * 处理 WebSocket 消息
    */
   async handleMessage(message: WSMessage): Promise<WSMessage | void> {
+    let response: WSMessage | undefined
+
     switch (message.type) {
       case WSMessageType.REQUEST_RECORDED:
         await this.requestHandler.handleRecorded(message.data)
-        return
+        break
 
       case WSMessageType.MOCK_CREATE:
-        return this.mockHandler.handleCreate(message.data, message.id)
+        response = this.mockHandler.handleCreate(message.data)
+        break
 
       case WSMessageType.MOCK_UPDATE:
-        return this.mockHandler.handleUpdate(message.data, message.id)
+        response = this.mockHandler.handleUpdate(message.data)
+        break
 
       case WSMessageType.MOCK_DELETE:
-        return this.mockHandler.handleDelete(message.data, message.id)
+        response = this.mockHandler.handleDelete(message.data)
+        break
 
       case WSMessageType.MOCK_LIST:
-        return this.mockHandler.handleList(message.data)
+        response = this.mockHandler.handleList(message.data)
+        break
 
       case WSMessageType.MOCK_GET:
-        return this.mockHandler.handleGet(message.data, message.id)
+        response = this.mockHandler.handleGet(message.data)
+        break
 
       case WSMessageType.MOCK_EXPORT:
-        return this.mockHandler.handleExport(message.id)
+        response = this.mockHandler.handleExport()
+        break
 
       case WSMessageType.MOCK_IMPORT:
-        return this.mockHandler.handleImport(message.data, message.id)
+        response = this.mockHandler.handleImport(message.data)
+        break
 
       case WSMessageType.MOCK_GROUPS_GET:
-        return this.mockHandler.handleGetGroups()
+        response = this.mockHandler.handleGetGroups()
+        break
 
       case WSMessageType.MOCK_GROUPS_STATS_GET:
-        return this.mockHandler.handleGetGroupStats()
+        response = this.mockHandler.handleGetGroupStats()
+        break
 
       case WSMessageType.MOCK_TAGS_GET:
-        return this.mockHandler.handleGetTags()
+        response = this.mockHandler.handleGetTags()
+        break
 
       case WSMessageType.REQUEST_HISTORY:
-        return this.requestHandler.handleHistory(message.data)
+        response = this.requestHandler.handleHistory(message.data)
+        break
 
       case WSMessageType.REQUEST_CLEAR:
-        return this.requestHandler.handleClear(message.id)
+        response = this.requestHandler.handleClear()
+        break
 
       case WSMessageType.SETTINGS_GET:
-        return this.settingsHandler.handleGet(message.id)
+        response = this.settingsHandler.handleGet()
+        break
 
       case WSMessageType.SETTINGS_UPDATE:
-        return this.settingsHandler.handleUpdate(message.data, message.id)
+        response = this.settingsHandler.handleUpdate(message.data)
+        break
 
       case WSMessageType.SETTINGS_CLEAR_CACHE:
-        return this.settingsHandler.handleClearCache()
+        response = this.settingsHandler.handleClearCache()
+        break
 
       case WSMessageType.FAKERAPIS:
-        return this.settingsHandler.handleFakerApis()
+        response = this.settingsHandler.handleFakerApis()
+        break
 
       default:
         logger.warn(`[Faker] 未知消息类型: ${message.type}`)
     }
+
+    if (response) {
+      response.id = message.id
+    }
+
+    return response
   }
 
   getAllMockConfigs(): MockConfig[] {

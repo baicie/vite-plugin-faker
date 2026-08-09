@@ -1,5 +1,5 @@
 import type { WSMessage, WSMessageType } from '@baicie/faker-shared'
-import { extend, generateUUID } from '@baicie/faker-shared'
+import { generateUUID } from '@baicie/faker-shared'
 import { useAppContext } from './use-app-context'
 import { wsClient } from './use-ws'
 
@@ -16,37 +16,40 @@ type WSHandler<T = any> = (data: T, message: WSMessage) => void
 export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
   function request(data?: T): Promise<R> {
     const { timeout } = useAppContext()
+    const reqId = generateUUID()
 
-    function send(payload: T): void {
-      wsClient.send(context.sendType, payload)
+    function send(payload?: T): void {
+      wsClient.send(context.sendType, payload, reqId)
     }
 
-    function on(handler: WSHandler<T>): void {
+    function on(handler: WSHandler<R>): void {
       wsClient.on(context.responseType, handler)
     }
 
-    function off(handler: WSHandler<T>): void {
+    function off(handler: WSHandler<R>): void {
       wsClient.off(context.responseType, handler)
     }
 
-    const reqId = generateUUID()
-
     return new Promise(function (resolve, reject) {
       let done = false
-      function handler(payload: T, message: WSMessage) {
+      let timer: number | undefined
+
+      function handler(payload: R, message: WSMessage) {
         if (done) {
           return
         }
-        if (message.id && message.id !== reqId) {
+        if (message.id !== reqId) {
           return
         }
         done = true
-        resolve(payload as unknown as R)
+        off(handler)
+        if (timer !== undefined) {
+          window.clearTimeout(timer)
+        }
+        resolve(payload)
       }
 
       on(handler)
-
-      let timer: number | undefined
 
       if (timeout > 0) {
         timer = window.setTimeout(function () {
@@ -60,18 +63,7 @@ export function useWsRequest<T = any, R = T>(context: WsRequestContext) {
       }
 
       try {
-        let payload: any
-        if (Array.isArray(data)) {
-          // 对于数组，保持数组格式，使用 items 包装
-          payload = { id: reqId, items: data }
-        } else if (data && typeof data === 'object') {
-          // 对于对象，合并 id
-          payload = extend({ id: reqId }, data)
-        } else {
-          // 对于原始值
-          payload = { id: reqId, value: data }
-        }
-        send(payload as T)
+        send(data)
       } catch (error) {
         if (!done) {
           done = true
