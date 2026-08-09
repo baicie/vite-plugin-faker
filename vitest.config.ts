@@ -11,6 +11,7 @@ export default defineConfig({
             'packages/faker-shared/__tests__/**/*.test.ts',
             'packages/faker-core/__tests__/**/*.test.ts',
             'packages/vite-plugin-faker/__tests__/**/*.test.ts',
+            'packages/webpack-plugin-faker/__tests__/**/*.test.ts',
           ],
           exclude: ['**/node_modules/**', '**/dist/**'],
         },
