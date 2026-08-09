@@ -2,6 +2,16 @@
   "name": "@baicie/webpack-plugin-faker",
   "version": "0.1.0",
   "description": "Webpack plugin for mocking API requests with faker",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baicie/vite-plugin-faker.git",
+    "directory": "packages/webpack-plugin-faker"
+  },
+  "homepage": "https://github.com/baicie/vite-plugin-faker#readme",
+  "bugs": {
+    "url": "https://github.com/baicie/vite-plugin-faker/issues"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +21,15 @@
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
     "build": "rolldown --config rolldown.config.ts --minify",
-    "typecheck": "tsc --incremental --noEmit"
+    "typecheck": "tsc --incremental --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "keywords": [
     "webpack-plugin",

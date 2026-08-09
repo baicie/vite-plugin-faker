@@ -2,6 +2,16 @@
   "name": "@baicie/vite-plugin-faker",
   "version": "0.1.0",
   "description": "Vite插件，用于拦截API请求并使用faker进行模拟数据",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baicie/vite-plugin-faker.git",
+    "directory": "packages/vite-plugin-faker"
+  },
+  "homepage": "https://github.com/baicie/vite-plugin-faker#readme",
+  "bugs": {
+    "url": "https://github.com/baicie/vite-plugin-faker/issues"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +27,15 @@
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
     "build": "rolldown --config rolldown.config.ts --minify",
-    "typecheck": "tsc --incremental --noEmit"
+    "typecheck": "tsc --incremental --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "keywords": [
     "vite-plugin",
@@ -36,6 +54,7 @@
     "co-body": "^6.2.0",
     "lodash-es": "^4.17.23",
     "lowdb": "^7.0.1",
+    "picocolors": "^1.1.1",
     "qs": "^6.15.0",
     "type-is": "^2.0.1",
     "ws": "^8.19.0"

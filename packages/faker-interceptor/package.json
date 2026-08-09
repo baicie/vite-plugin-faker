@@ -2,6 +2,16 @@
   "name": "@baicie/faker-interceptor",
   "version": "0.1.0",
   "description": "Browser-side request interceptor with Faker.js support",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baicie/vite-plugin-faker.git",
+    "directory": "packages/faker-interceptor"
+  },
+  "homepage": "https://github.com/baicie/vite-plugin-faker#readme",
+  "bugs": {
+    "url": "https://github.com/baicie/vite-plugin-faker/issues"
+  },
   "type": "module",
   "main": "dist/interceptor.js",
   "types": "dist/index.d.ts",
@@ -18,7 +28,15 @@
   "scripts": {
     "dev": "rolldown --config rolldown.config.ts --watch",
     "build": "rolldown --config rolldown.config.ts --minify",
-    "typecheck": "tsc --incremental --noEmit"
+    "typecheck": "tsc --incremental --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@baicie/logger": "^0.1.3",

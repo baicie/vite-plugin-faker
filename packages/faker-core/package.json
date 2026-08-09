@@ -2,6 +2,16 @@
   "name": "@baicie/faker-core",
   "version": "0.1.0",
   "description": "Core logic for faker plugins",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baicie/vite-plugin-faker.git",
+    "directory": "packages/faker-core"
+  },
+  "homepage": "https://github.com/baicie/vite-plugin-faker#readme",
+  "bugs": {
+    "url": "https://github.com/baicie/vite-plugin-faker/issues"
+  },
   "type": "module",
   "files": [
     "dist"
@@ -21,6 +31,13 @@
     "dev": "rolldown --watch -c",
     "typecheck": "tsc --incremental --noEmit",
     "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@baicie/faker-shared": "workspace:*",
