@@ -27,11 +27,9 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
   }
 
   apply(compiler: Compiler): void {
-    // 判断是否是 serve 模式
-    // serve 模式会有 devServer 配置，build 模式没有
-    const isBuild = !compiler.options.devServer
-    if (isBuild) {
-      // build 模式下，跳过 faker 插件的所有初始化
+    const devServer = compiler.options.devServer
+    const isServe = process.env.WEBPACK_SERVE === 'true'
+    if (!isServe || !devServer) {
       logger.info('skipping faker plugin initialization')
       return
     }
@@ -141,16 +139,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
       }
     }
 
-    // Try to modify devServer config
-    if (compiler.options.devServer) {
-      setupDevServer(compiler.options.devServer)
-    } else {
-      // If devServer is not present in options (e.g. CLI), we might not catch it easily here.
-      // But typically it is.
-      logger.warn(
-        '[Faker] devServer options not found in compiler options. Make sure you are running webpack-dev-server.',
-      )
-    }
+    setupDevServer(devServer)
 
     // 3. Inject Scripts via HtmlWebpackPlugin
     compiler.hooks.compilation.tap('WebpackPluginFaker', compilation => {
@@ -276,5 +265,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
 export function webpackFaker(options: FakerOptions = {}): WebpackPluginFaker {
   return new WebpackPluginFaker(options)
 }
+
+export type { FakerConfig, FakerOptions } from './types'
 
 export default WebpackPluginFaker

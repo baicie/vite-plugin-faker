@@ -1,7 +1,9 @@
+import path from 'node:path'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Compiler } from 'webpack'
 import { DBManager } from '@baicie/faker-core'
-import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WebpackPluginFaker, webpackFaker } from '../src/index'
+import type { FakerOptions } from '../src/index'
 
 interface TestDevServerOptions {
   setupMiddlewares?: (
@@ -28,9 +30,11 @@ function createCompiler(devServer?: TestDevServerOptions): Compiler {
 describe('WebpackPluginFaker', () => {
   afterEach(function () {
     vi.restoreAllMocks()
+    vi.unstubAllEnvs()
   })
 
   it('registers middleware when webpack-dev-server is configured', () => {
+    vi.stubEnv('WEBPACK_SERVE', 'true')
     const devServer: TestDevServerOptions = {}
     const dbManager = {
       getMocksDB: function () {
@@ -53,15 +57,31 @@ describe('WebpackPluginFaker', () => {
     ).toEqual(['faker-mock-middleware', 'faker-route-middleware'])
   })
 
-  it('does not initialize during a build without dev-server config', () => {
+  it('does not initialize during a build with dev-server config', () => {
+    const devServer: TestDevServerOptions = {}
     const getInstance = vi.spyOn(DBManager, 'getInstance')
 
-    new WebpackPluginFaker().apply(createCompiler())
+    new WebpackPluginFaker().apply(createCompiler(devServer))
 
     expect(getInstance).not.toHaveBeenCalled()
+    expect(devServer.setupMiddlewares).toBeUndefined()
   })
 
-  it('exposes a factory matching the Vite plugin API', () => {
-    expect(webpackFaker()).toBeInstanceOf(WebpackPluginFaker)
+  it('exposes a factory that forwards plugin options', () => {
+    vi.stubEnv('WEBPACK_SERVE', 'true')
+    const getInstance = vi.spyOn(DBManager, 'getInstance')
+    getInstance.mockReturnValue({} as DBManager)
+    const options: FakerOptions = {
+      storeDir: '.custom-mocks',
+    }
+
+    const plugin = webpackFaker(options)
+    plugin.apply(createCompiler({}))
+
+    expect(plugin).toBeInstanceOf(WebpackPluginFaker)
+    expect(getInstance).toHaveBeenCalledWith(
+      expect.any(String),
+      path.resolve(process.cwd(), '.custom-mocks'),
+    )
   })
 })
