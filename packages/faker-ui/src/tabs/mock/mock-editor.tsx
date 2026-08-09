@@ -28,6 +28,15 @@ import { Input } from '../../components/ui/input'
 import { Switch } from '../../components/ui/switch'
 import { Select } from '../../components/ui/select'
 import clsx from 'clsx'
+import {
+  DEFAULT_FUNCTION_HANDLER_SOURCE,
+  DEFAULT_STATEFUL_STATES,
+  createFunctionMock,
+  createStatefulMock,
+  getFunctionHandlerSource,
+  parseStatefulStates,
+} from './mock-editor-utils'
+import type { MockEditorBase } from './mock-editor-utils'
 
 const MockEditor = defineComponent({
   name: 'MockEditor',
@@ -51,7 +60,6 @@ const MockEditor = defineComponent({
       {
         content: `
           declare interface MockContext {
-            req: any;
             url: string;
             method?: string;
             headers: Record<string, string | string[] | undefined>;
@@ -91,7 +99,8 @@ const MockEditor = defineComponent({
       responseType: 'static',
       responseData: '{}',
       responseTemplate: '{}',
-      responseCode: '',
+      responseCode: DEFAULT_FUNCTION_HANDLER_SOURCE,
+      statefulStates: DEFAULT_STATEFUL_STATES,
       delay: 0,
       headers: JSON.stringify({ 'Content-Type': 'application/json' }, null, 2),
       // Proxy 代理配置
@@ -149,7 +158,8 @@ const MockEditor = defineComponent({
             responseType: 'static',
             responseData: '{}',
             responseTemplate: '{}',
-            responseCode: '',
+            responseCode: DEFAULT_FUNCTION_HANDLER_SOURCE,
+            statefulStates: DEFAULT_STATEFUL_STATES,
             delay: 0,
             headers: JSON.stringify(
               { 'Content-Type': 'application/json' },
@@ -216,7 +226,7 @@ const MockEditor = defineComponent({
             )
           } else if (newVal.type === 'function') {
             formData.responseType = 'function'
-            // Function handler editing not fully supported yet
+            formData.responseCode = getFunctionHandlerSource(newVal)
           } else if (newVal.type === 'error') {
             formData.responseType = 'error'
             const response = newVal.response || {
@@ -231,8 +241,11 @@ const MockEditor = defineComponent({
             formData.responseData = JSON.stringify(response.body || {}, null, 2)
           } else if (newVal.type === 'stateful') {
             formData.responseType = 'stateful'
-            // Stateful editing logic can be complex, for now we can just show the first state or handle it similarly
-            // Ideally we need a list editor for states
+            formData.statefulStates = JSON.stringify(
+              newVal.states || [],
+              null,
+              2,
+            )
           }
         }
       },
@@ -248,7 +261,7 @@ const MockEditor = defineComponent({
       saving.value = true
       try {
         let data: MockConfig
-        const base = {
+        const base: MockEditorBase = {
           id: formData.id || undefined,
           name: formData.name || undefined,
           url: formData.url,
@@ -284,7 +297,7 @@ const MockEditor = defineComponent({
 
         // 如果有匹配规则，添加到 base 中
         if (Object.keys(matchRule).length > 0) {
-          ;(base as any).matchRule = matchRule
+          base.matchRule = matchRule
         }
 
         if (formData.responseType === 'static') {
@@ -360,27 +373,10 @@ const MockEditor = defineComponent({
             },
           }
         } else if (formData.responseType === 'stateful') {
-          // Simplified stateful creation
-          data = {
-            ...base,
-            type: 'stateful',
-            states: [
-              {
-                status: formData.statusCode,
-                body: {},
-                delay: formData.delay,
-                headers: headers as Record<string, string>,
-              },
-            ],
-            current: 0,
-          }
+          const states = parseStatefulStates(formData.statefulStates)
+          data = createStatefulMock(base, states)
         } else {
-          // Function type
-          data = {
-            ...base,
-            type: 'function',
-            handler: () => ({ status: 200, body: {} }),
-          } as unknown as MockConfig
+          data = createFunctionMock(base, formData.responseCode)
         }
 
         if (data.id) {
@@ -719,15 +715,17 @@ const MockEditor = defineComponent({
                             )}
 
                             {formData.responseType === 'stateful' && (
-                              <div class="text-center py-8 text-muted-foreground">
-                                <p>
-                                  Stateful mock editing is not fully supported
-                                  in UI yet.
-                                </p>
-                                <p class="text-sm mt-2">
-                                  It will create a default stateful mock which
-                                  you can modify later.
-                                </p>
+                              <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                  Stateful Responses
+                                </label>
+                                <JsonEditor
+                                  value={formData.statefulStates}
+                                  onChange={val =>
+                                    (formData.statefulStates = val)
+                                  }
+                                  theme={isDark.value ? 'vs-dark' : 'vs'}
+                                />
                               </div>
                             )}
                           </div>
