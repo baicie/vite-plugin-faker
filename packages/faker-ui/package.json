@@ -1,8 +1,11 @@
 {
   "name": "@baicie/faker-ui",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Browser UI for the Baicie Faker plugins",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "main": "dist/index.js",
   "css": "dist/index.css",
   "exports": {

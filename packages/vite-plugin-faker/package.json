@@ -1,5 +1,5 @@
 {
-  "name": "vite-plugin-faker",
+  "name": "@baicie/vite-plugin-faker",
   "version": "0.1.0",
   "description": "Vite插件，用于拦截API请求并使用faker进行模拟数据",
   "type": "module",

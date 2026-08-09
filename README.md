@@ -15,11 +15,11 @@
 ## 安装
 
 ```bash
-npm install vite-plugin-faker --save-dev
+npm install @baicie/vite-plugin-faker --save-dev
 # 或
-yarn add vite-plugin-faker -D
+yarn add @baicie/vite-plugin-faker -D
 # 或
-pnpm add vite-plugin-faker -D
+pnpm add @baicie/vite-plugin-faker -D
 ```
 
 ## 使用方法
@@ -29,7 +29,7 @@ pnpm add vite-plugin-faker -D
 ```js
 // vite.config.js / vite.config.ts
 import { defineConfig } from 'vite'
-import { viteFaker } from 'vite-plugin-faker'
+import { viteFaker } from '@baicie/vite-plugin-faker'
 
 export default defineConfig({
   plugins: [
@@ -49,7 +49,7 @@ export default defineConfig({
 
 ```js
 // webpack.config.js
-const { webpackFaker } = require('webpack-plugin-faker')
+const { webpackFaker } = require('@baicie/webpack-plugin-faker')
 
 module.exports = {
   plugins: [
@@ -63,14 +63,14 @@ module.exports = {
 
 ## 配置选项
 
-| 选项名                  | 类型    | 默认值     | 说明                                       |
-| ----------------------- | ------- | ---------- | ------------------------------------------ |
-| `mountTarget`           | string  | `'#mock-ui'` | UI 面板挂载的目标元素选择器              |
-| `storeDir`              | string  | `'.mock'`  | 存储配置的目录路径，相对于项目根目录       |
-| `uiOptions.mode`        | string  | `'route'`  | UI 展示模式：`'button'`（悬浮按钮）或 `'route'`（独立路由） |
-| `uiOptions.wsPort`      | number  | `3456`     | WebSocket 服务端口                         |
-| `uiOptions.timeout`     | number  | `10000`    | 默认请求超时时间（毫秒）                   |
-| `loggerOptions`         | object  | —          | 日志配置                                   |
+| 选项名              | 类型   | 默认值       | 说明                                                        |
+| ------------------- | ------ | ------------ | ----------------------------------------------------------- |
+| `mountTarget`       | string | `'#mock-ui'` | UI 面板挂载的目标元素选择器                                 |
+| `storeDir`          | string | `'.mock'`    | 存储配置的目录路径，相对于项目根目录                        |
+| `uiOptions.mode`    | string | `'route'`    | UI 展示模式：`'button'`（悬浮按钮）或 `'route'`（独立路由） |
+| `uiOptions.wsPort`  | number | `3456`       | WebSocket 服务端口                                          |
+| `uiOptions.timeout` | number | `10000`      | 默认请求超时时间（毫秒）                                    |
+| `loggerOptions`     | object | —            | 日志配置                                                    |
 
 ## Mock 类型说明
 
@@ -188,9 +188,7 @@ module.exports = {
       "pattern": "/api/users/*",
       "type": "wildcard"
     },
-    "headers": [
-      { "key": "x-env", "value": "test", "operator": "equals" }
-    ]
+    "headers": [{ "key": "x-env", "value": "test", "operator": "equals" }]
   },
   "response": {
     "status": 200,
