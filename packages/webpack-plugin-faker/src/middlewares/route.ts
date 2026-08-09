@@ -5,12 +5,12 @@ import path from 'node:path'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { FakerConfig } from '../types'
 import {
+  CLIENT_INTERCEPTOR_PATH,
   CLIENT_UI_CSS,
   CLIENT_UI_PATH,
-  CLIENT_INTERCEPTOR_PATH,
-  UI_ENTRY,
-  UI_CSS,
   INTERCEPTOR_PATH,
+  UI_CSS,
+  UI_ENTRY,
 } from '../constants'
 
 const createPage = (publicPath: string): string => {
