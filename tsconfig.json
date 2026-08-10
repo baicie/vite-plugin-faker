@@ -11,6 +11,8 @@
     "paths": {
       "@baicie/faker-shared": ["./packages/faker-shared/src"],
       "@baicie/faker-shared/*": ["./packages/faker-shared/src/*"],
+      "@baicie/faker-core": ["./packages/faker-core/src"],
+      "@baicie/faker-core/*": ["./packages/faker-core/src/*"],
       "@baicie/vite-plugin-faker": ["./packages/vite-plugin-faker/src"],
       "@baicie/vite-plugin-faker/*": ["./packages/vite-plugin-faker/src/*"],
       "@baicie/faker-interceptor": ["./packages/faker-interceptor/src"],

@@ -1,8 +1,21 @@
 {
   "name": "@baicie/faker-ui",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Browser UI for the Baicie Faker plugins",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baicie/vite-plugin-faker.git",
+    "directory": "packages/faker-ui"
+  },
+  "homepage": "https://github.com/baicie/vite-plugin-faker#readme",
+  "bugs": {
+    "url": "https://github.com/baicie/vite-plugin-faker/issues"
+  },
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "main": "dist/index.js",
   "css": "dist/index.css",
   "exports": {
@@ -15,12 +28,21 @@
     "./dist/index.css": "./dist/index.css"
   },
   "scripts": {
-    "dev": "rolldown --config rolldown.config.ts --watch",
-    "analyze": "cross-env ANALYZE=true rolldown --config rolldown.config.ts",
+    "dev": "vite build --watch",
+    "analyze": "cross-env ANALYZE=true vite build",
     "vite": "vite",
-    "build": "vue-tsc -b && rolldown --config rolldown.config.ts --minify",
+    "build": "rimraf dist && vue-tsc -b && vite build && rolldown --config rolldown.config.ts && node scripts/verify-build.mjs",
+    "verify-build": "node scripts/verify-build.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc --incremental --noEmit"
+    "typecheck": "tsc --incremental --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
     "@baicie/faker-shared": "workspace:*",
@@ -30,20 +52,21 @@
     "@monaco-editor/loader": "^1.7.0",
     "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
-    "lodash-es": "^4.17.23",
+    "lodash-es": "^4.18.1",
     "monaco-editor": "^0.55.1",
     "tailwind-merge": "^3.5.0",
-    "vue": "^3.5.29"
+    "vue": "^3.5.41"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vitejs/plugin-vue-jsx": "^5.1.4",
+    "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.9.0",
     "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.26",
     "rolldown": "1.0.0-rc.7",
-    "rollup-plugin-postcss": "^4.0.2",
+    "rolldown-plugin-dts": "^0.22.4",
     "rollup-plugin-visualizer": "^7.0.1",
     "tailwindcss": "^4.2.1",
     "typescript": "~5.9.3",

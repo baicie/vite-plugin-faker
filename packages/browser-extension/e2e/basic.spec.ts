@@ -1,8 +1,6 @@
-import { expect, isDevArtifact, name, test } from './fixtures'
+import { expect, name, test } from './fixtures'
 
-test('example test', async ({ page }, testInfo) => {
-  testInfo.skip(!isDevArtifact(), 'contentScript is in closed ShadowRoot mode')
-
+test('example test', async ({ page }) => {
   await page.goto('https://example.com')
 
   await page.locator(`#${name} button`).click()

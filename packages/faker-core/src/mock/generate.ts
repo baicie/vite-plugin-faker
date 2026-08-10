@@ -1,14 +1,137 @@
 import type {
   ErrorMockConfig,
   FunctionMockConfig,
+  MockContext,
+  MockResponse,
   MockType,
   ProxyMockConfig,
   ResponseGenerator,
+  ResponseGeneratorOptions,
   StatefulMockConfig,
   StaticMockConfig,
   TemplateMockConfig,
 } from '@baicie/faker-shared'
 import { resolveFakerValue } from '@baicie/faker-shared'
+import { Script } from 'node:vm'
+
+const DEFAULT_FUNCTION_HANDLER_TIMEOUT_MS = 1000
+const statefulCurrentIndexes = new WeakMap<MockResponse[], number>()
+
+function getFunctionHandlerTimeout(options?: ResponseGeneratorOptions): number {
+  const timeout = options && options.functionHandlerTimeout
+  return typeof timeout === 'number' && isFinite(timeout) && timeout > 0
+    ? timeout
+    : DEFAULT_FUNCTION_HANDLER_TIMEOUT_MS
+}
+
+function getPersistedContextSource(ctx: MockContext): string {
+  return JSON.stringify({
+    url: ctx.url,
+    method: ctx.method,
+    headers: ctx.headers,
+    query: ctx.query,
+    body: ctx.body,
+  })
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+function waitForFunctionHandler(
+  result: MockResponse | Promise<MockResponse>,
+  timeout: number,
+): Promise<MockResponse> {
+  return new Promise(function (resolve, reject) {
+    let settled = false
+    const timeoutId = setTimeout(function () {
+      if (!settled) {
+        settled = true
+        reject(new Error(`Function mock handler timed out after ${timeout}ms`))
+      }
+    }, timeout)
+
+    Promise.resolve(result).then(
+      function (response) {
+        if (!settled) {
+          settled = true
+          clearTimeout(timeoutId)
+          resolve(response)
+        }
+      },
+      function (error) {
+        if (!settled) {
+          settled = true
+          clearTimeout(timeoutId)
+          reject(error)
+        }
+      },
+    )
+  })
+}
+
+function executePersistedFunctionHandler(
+  source: string,
+  ctx: MockContext,
+  timeout: number,
+): Promise<MockResponse> {
+  try {
+    const contextSource = getPersistedContextSource(ctx)
+    const script = new Script(
+      `'use strict'; const ctx = JSON.parse(${JSON.stringify(contextSource)}); (${source})(ctx)`,
+      { filename: 'faker-function-mock.js' },
+    )
+    const result = script.runInNewContext(Object.create(null), {
+      timeout,
+      microtaskMode: 'afterEvaluate',
+      contextCodeGeneration: {
+        strings: false,
+        wasm: false,
+      },
+    }) as MockResponse | Promise<MockResponse>
+
+    return waitForFunctionHandler(result, timeout).then(
+      function (response) {
+        return response
+      },
+      function (error) {
+        throw new Error(
+          `Function mock handler failed: ${getErrorMessage(error)}`,
+        )
+      },
+    )
+  } catch (error) {
+    return Promise.reject(
+      new Error(`Function mock handler failed: ${getErrorMessage(error)}`),
+    )
+  }
+}
+
+function executeFunctionHandler(
+  mock: FunctionMockConfig,
+  ctx: MockContext,
+  options?: ResponseGeneratorOptions,
+): MockResponse | Promise<MockResponse> {
+  const source = mock.handlerSource ? mock.handlerSource.trim() : ''
+  if (source) {
+    if (!options || options.allowFunctionHandlerSource !== true) {
+      throw new Error(
+        'Persisted function mock source execution is disabled by default',
+      )
+    }
+    return executePersistedFunctionHandler(
+      source,
+      ctx,
+      getFunctionHandlerTimeout(options),
+    )
+  }
+
+  if (typeof mock.handler === 'function') {
+    return mock.handler(ctx)
+  }
+
+  throw new Error('Function mock requires a handler or handler source')
+}
 
 const generateStaticMockResponse: ResponseGenerator = async mock => {
   if (mock.type !== 'static') {
@@ -30,21 +153,32 @@ const generateStaticMockResponse: ResponseGenerator = async mock => {
   }
 }
 
-export const generateFunctionMockResponse: ResponseGenerator = async (
+export const generateFunctionMockResponse: ResponseGenerator = function (
   mock,
   ctx,
-) => {
+  options,
+) {
   if (mock.type !== 'function') throw new Error('Invalid mock type')
   const fnMock = mock as FunctionMockConfig
-  const res = await fnMock.handler(ctx)
-  return {
-    status: res.status,
-    headers: res.headers ?? {},
-    body: res.body,
-    delay: res.delay ?? 0,
-    source: 'function',
-    meta: { mockId: mock.id, timestamp: Date.now() },
-  }
+  return Promise.resolve()
+    .then(function () {
+      return executeFunctionHandler(fnMock, ctx, options)
+    })
+    .then(function (res) {
+      if (!res || typeof res !== 'object' || typeof res.status !== 'number') {
+        throw new Error(
+          'Function mock handler must return a response with a status',
+        )
+      }
+      return {
+        status: res.status,
+        headers: res.headers || {},
+        body: res.body,
+        delay: res.delay || 0,
+        source: 'function',
+        meta: { mockId: mock.id, timestamp: Date.now() },
+      }
+    })
 }
 
 export const generateTemplateMockResponse: ResponseGenerator = async mock => {
@@ -77,14 +211,31 @@ export const generateErrorMockResponse: ResponseGenerator = async mock => {
 export const generateStatefulMockResponse: ResponseGenerator = async mock => {
   if (mock.type !== 'stateful') throw new Error('Invalid mock type')
   const stateMock = mock as StatefulMockConfig
-  const idx = (stateMock.current ?? 0) % stateMock.states.length
+  if (!stateMock.states || stateMock.states.length === 0) {
+    throw new Error('Stateful mock requires at least one state')
+  }
+  let current = statefulCurrentIndexes.get(stateMock.states)
+  if (current === undefined) {
+    current =
+      typeof stateMock.current === 'number' &&
+      isFinite(stateMock.current) &&
+      stateMock.current >= 0
+        ? Math.floor(stateMock.current)
+        : 0
+  }
+  const idx = current % stateMock.states.length
   const res = stateMock.states[idx]
-  stateMock.current = (idx + 1) % stateMock.states.length
+  if (!res) {
+    throw new Error('Stateful mock state is invalid')
+  }
+  const nextIndex = (idx + 1) % stateMock.states.length
+  statefulCurrentIndexes.set(stateMock.states, nextIndex)
+  stateMock.current = nextIndex
   return {
-    status: res?.status!,
-    headers: res?.headers ?? {},
-    body: res?.body,
-    delay: res?.delay ?? 0,
+    status: res.status,
+    headers: res.headers || {},
+    body: res.body,
+    delay: res.delay || 0,
     source: 'stateful',
     meta: { mockId: mock.id, timestamp: Date.now() },
   }
@@ -105,10 +256,7 @@ export const generateProxyMockResponse: ResponseGenerator = async (
     const proxyResponse = await fetchProxy(targetUrl, ctx, proxyMock)
 
     // 处理响应修改
-    const modifiedResponse = modifyProxyResponse(
-      proxyResponse,
-      proxyMock,
-    )
+    const modifiedResponse = modifyProxyResponse(proxyResponse, proxyMock)
 
     return {
       status: modifiedResponse.status,

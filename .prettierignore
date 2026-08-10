@@ -1,3 +1,7 @@
 dist
 pnpm-lock.yaml
 CHANGELOG*.md
+**/.mock/
+packages/browser-extension/extension/manifest.json
+packages/browser-extension/src/auto-imports.d.ts
+packages/browser-extension/src/components.d.ts

@@ -2,13 +2,25 @@
   "$schema": "https://turborepo.com/schema.json",
   "tasks": {
     "build": {
-      "inputs": ["src/**", "rolldown.config.*", "tsconfig*.json", "package.json"],
-      "outputs": ["dist/**"],
+      "inputs": [
+        "src/**",
+        "rolldown.config.*",
+        "vite.config.*",
+        "tsconfig*.json",
+        "package.json"
+      ],
+      "outputs": ["dist/**", "extension/dist/**", "extension/manifest.json"],
       "dependsOn": ["^build"]
     },
     "dev": {
-      "inputs": ["src/**", "rolldown.config.*", "tsconfig*.json", "package.json"],
-      "outputs": ["dist/**"],
+      "inputs": [
+        "src/**",
+        "rolldown.config.*",
+        "vite.config.*",
+        "tsconfig*.json",
+        "package.json"
+      ],
+      "outputs": ["dist/**", "extension/dist/**", "extension/manifest.json"],
       "persistent": true
     },
     "typecheck": {
@@ -16,7 +28,13 @@
       "outputs": []
     },
     "test": {
-      "inputs": ["src/**", "__tests__/**", "*.test.ts", "*.spec.ts", "vitest.config.*"],
+      "inputs": [
+        "src/**",
+        "__tests__/**",
+        "*.test.ts",
+        "*.spec.ts",
+        "vitest.config.*"
+      ],
       "outputs": ["coverage/**"]
     }
   }

@@ -1,4 +1,5 @@
 import { defineConfig } from 'rolldown'
+import { dts } from 'rolldown-plugin-dts'
 
 const external = [...Object.keys({})]
 
@@ -23,4 +24,13 @@ const esmConfig = defineConfig({
   },
 })
 
-export default defineConfig([esmConfig])
+const dtsConfig = defineConfig({
+  ...sharedConfig,
+  output: {
+    format: 'esm',
+    dir: 'dist',
+  },
+  plugins: [dts({ emitDtsOnly: true })],
+})
+
+export default defineConfig([esmConfig, dtsConfig])

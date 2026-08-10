@@ -1,11 +1,14 @@
-import { StorageSerializers } from '@vueuse/core'
-import { pausableWatch, tryOnScopeDispose } from '@vueuse/shared'
-import { ref, shallowRef } from 'vue-demi'
+import {
+  StorageSerializers,
+  pausableWatch,
+  tryOnScopeDispose,
+} from '@vueuse/core'
+import { ref, shallowRef, toValue } from 'vue-demi'
 import { storage } from 'webextension-polyfill'
 
 import type { StorageLikeAsync, UseStorageAsyncOptions } from '@vueuse/core'
-import type { RemovableRef } from '@vueuse/shared'
-import type { Ref } from 'vue-demi'
+import type { RemovableRef } from '@vueuse/core'
+import type { MaybeRefOrGetter, Ref } from 'vue-demi'
 import type { Storage } from 'webextension-polyfill'
 
 export type WebExtensionStorageOptions<T> = UseStorageAsyncOptions<T>
@@ -56,7 +59,7 @@ const storageInterface: StorageLikeAsync = {
  */
 export function useWebExtensionStorage<T>(
   key: string,
-  initialValue: Ref<T>,
+  initialValue: MaybeRefOrGetter<T>,
   options: WebExtensionStorageOptions<T> = {},
 ): { data: RemovableRef<T>; dataReady: Promise<T> } {
   const {
@@ -75,7 +78,7 @@ export function useWebExtensionStorage<T>(
   const rawInit: T = toValue(initialValue)
   const type = guessSerializerType(rawInit)
 
-  const data = (shallow ? shallowRef : ref)(initialValue) as Ref<T>
+  const data = (shallow ? shallowRef : ref)(rawInit) as Ref<T>
   const serializer = options.serializer ?? StorageSerializers[type]
 
   async function read(event?: { key: string; newValue: string | null }) {

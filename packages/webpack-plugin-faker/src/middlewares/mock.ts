@@ -1,10 +1,14 @@
-import type { MockContext, QueryObject } from '@baicie/faker-shared'
+import type {
+  MockContext,
+  QueryObject,
+  ResponseGeneratorOptions,
+} from '@baicie/faker-shared'
 import { extend, sleep } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import qs from 'qs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { DBManager } from '@baicie/faker-core'
-import { generateResponseMap, readBody } from '@baicie/faker-core'
+import { generateResponseMap, readBody, restoreBody } from '@baicie/faker-core'
 
 export function parseQuery<T extends QueryObject = QueryObject>(
   url: string,
@@ -21,6 +25,7 @@ export function parseQuery<T extends QueryObject = QueryObject>(
 
 export function mockMiddleware(
   dbManager: DBManager,
+  options: ResponseGeneratorOptions = {},
 ): (
   req: IncomingMessage,
   res: ServerResponse,
@@ -30,14 +35,30 @@ export function mockMiddleware(
 
   return async function (req: any, res: any, next: any) {
     try {
-      const mock = mockDB.findMock(req)
+      let mock = mockDB.findMock(req)
+
+      if (mock && !mock.enabled) {
+        mock = undefined
+      }
+
+      if (!mock) {
+        mock = mockDB.findMockAdvanced({
+          url: req.url!,
+          method: req.method || 'GET',
+          headers: req.headers,
+          query: parseQuery(req.url!),
+          body: await readBody(req),
+        })
+      }
 
       if (!mock || !mock.enabled) {
+        restoreBody(req)
         return next()
       }
 
       const generate = generateResponseMap[mock.type]
       if (!generate) {
+        restoreBody(req)
         return next()
       }
 
@@ -50,7 +71,7 @@ export function mockMiddleware(
         body: await readBody(req),
       }
 
-      const response = await generate(mock, ctx)
+      const response = await generate(mock, ctx, options)
 
       // ⏱ delay
       if (response.delay > 0) {
@@ -65,9 +86,9 @@ export function mockMiddleware(
         'X-Mock-Source': response.source ?? 'static',
         'X-Mock-Id': response.meta?.mockId ?? 'unknown',
       }
-      response.headers = extend(defaultHeaders)
+      const responseHeaders = extend({}, defaultHeaders, response.headers)
       // headers
-      for (const [k, v] of Object.entries(response.headers)) {
+      for (const [k, v] of Object.entries(responseHeaders)) {
         res.setHeader(k, v)
       }
 

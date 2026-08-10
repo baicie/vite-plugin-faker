@@ -7,6 +7,8 @@ describe('resolveConfig', () => {
     expect(config.mountTarget).toBe(defaultConfig.mountTarget)
     expect(config.storeDir).toBe(defaultConfig.storeDir)
     expect(config.silent).toBe(defaultConfig.silent)
+    expect(config.allowFunctionHandlerSource).toBe(false)
+    expect(config.functionHandlerTimeout).toBe(1000)
   })
 
   it('自定义 mountTarget 被正确合并', () => {
@@ -32,5 +34,30 @@ describe('resolveConfig', () => {
   it('自定义 loggerOptions 被正确合并', () => {
     const config = resolveConfig({ loggerOptions: { level: 'debug' } })
     expect(config.loggerOptions?.level).toBe('debug')
+  })
+
+  it('显式启用持久化函数源码并配置执行超时', () => {
+    const config = resolveConfig({
+      allowFunctionHandlerSource: true,
+      functionHandlerTimeout: 250,
+    })
+
+    expect(config.allowFunctionHandlerSource).toBe(true)
+    expect(config.functionHandlerTimeout).toBe(250)
+  })
+
+  it('does not leak function execution settings into later configs', () => {
+    resolveConfig({ allowFunctionHandlerSource: true })
+
+    expect(resolveConfig({}).allowFunctionHandlerSource).toBe(false)
+  })
+
+  it('preserves nested ui defaults when overriding one option', () => {
+    const config = resolveConfig({ uiOptions: { mode: 'button' } })
+
+    expect(config.uiOptions).toMatchObject({
+      mode: 'button',
+      timeout: 10000,
+    })
   })
 })

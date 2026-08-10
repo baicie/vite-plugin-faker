@@ -39,4 +39,23 @@ const dtsConfig = defineConfig({
   },
 })
 
-export default defineConfig([esmConfig, dtsConfig])
+const cjsConfig = defineConfig({
+  ...sharedConfig,
+  output: {
+    format: 'cjs',
+    dir: 'dist',
+    entryFileNames: '[name].cjs',
+    exports: 'named',
+    sourcemap: true,
+  },
+  transform: {
+    define: {
+      'import.meta.url': '__filename',
+    },
+  },
+  watch: {
+    clearScreen: false,
+  },
+})
+
+export default defineConfig([esmConfig, cjsConfig, dtsConfig])

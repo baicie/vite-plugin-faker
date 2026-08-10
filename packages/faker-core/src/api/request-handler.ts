@@ -4,12 +4,10 @@ import type {
   Page,
   RequestRecord,
   WSMessage,
-  WithId,
 } from '@baicie/faker-shared'
-import { EventBusType, WSMessageType } from '@baicie/faker-shared'
+import { EventBusType, WSMessageType, generateUUID } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
 import type { EventBus } from './types'
-import { createRequestKey } from '@baicie/faker-shared'
 
 /**
  * 请求记录相关消息处理器
@@ -39,7 +37,7 @@ export class RequestHandler {
         }
       }
 
-      const id = await createRequestKey(data)
+      const id = generateUUID()
       requestsDB.saveRequest(id, this.toRequestItem(data))
       logger.debug(`[Faker] 请求已记录id: ${data.url}-${data.method}`)
 
@@ -50,10 +48,10 @@ export class RequestHandler {
     }
   }
 
-  handleHistory(data: WithId<DashboardQuery>): WSMessage<Page<RequestRecord>> {
+  handleHistory(data?: DashboardQuery): WSMessage<Page<RequestRecord>> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
-      const { page = 1, pageSize = 20, id, search } = data
+      const { page = 1, pageSize = 20, search } = data || {}
 
       const result = requestsDB.getRequestsWithPagination(
         page,
@@ -66,7 +64,6 @@ export class RequestHandler {
       return {
         type: WSMessageType.REQUEST_HISTORY,
         data: result,
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 获取请求历史失败:', error)
@@ -74,7 +71,7 @@ export class RequestHandler {
     }
   }
 
-  handleClear(id?: string): WSMessage<{ success: boolean }> {
+  handleClear(): WSMessage<{ success: boolean }> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
       requestsDB.clear()
@@ -82,7 +79,6 @@ export class RequestHandler {
       return {
         type: WSMessageType.REQUEST_CLEARED,
         data: { success: true },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 清空请求历史失败:', error)

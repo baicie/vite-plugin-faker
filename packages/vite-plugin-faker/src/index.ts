@@ -38,6 +38,16 @@ export interface ViteFakerOptions {
    * @description logger options
    */
   loggerOptions?: Partial<LoggerConfig>
+  /**
+   * Execute persisted function mock source.
+   * @default false
+   */
+  allowFunctionHandlerSource?: boolean
+  /**
+   * Maximum persisted function handler execution time in milliseconds.
+   * @default 1000
+   */
+  functionHandlerTimeout?: number
 
   uiOptions?: {
     /**
@@ -92,7 +102,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
       server = _server
       const config = _server.config
 
-      server.middlewares.use(mockMiddleware(server))
+      server.middlewares.use(mockMiddleware(server, _config))
       server.middlewares.use(routeMiddleware(server, _config))
 
       if (dbManager) {

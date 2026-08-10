@@ -3,7 +3,7 @@ packages:
   - playground/*
 
 catalog:
-  vite: 7.2.7
+  vite: 7.3.6
 
-ignoredBuiltDependencies:
+onlyBuiltDependencies:
   - sqlite3

@@ -1,4 +1,5 @@
 import type { Compiler, WebpackPluginInstance } from 'webpack'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { logger } from '@baicie/logger'
 import {
@@ -17,6 +18,8 @@ type InjectItem =
   | { kind: 'script'; path: string; module?: boolean }
   | { kind: 'style'; path: string }
 
+const nodeRequire = createRequire(import.meta.url)
+
 export class WebpackPluginFaker implements WebpackPluginInstance {
   private config: FakerConfig
   private dbManager: DBManager | null = null
@@ -27,11 +30,9 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
   }
 
   apply(compiler: Compiler): void {
-    // 判断是否是 serve 模式
-    // serve 模式会有 devServer 配置，build 模式没有
-    const isBuild = !!compiler.options.devServer
-    if (isBuild) {
-      // build 模式下，跳过 faker 插件的所有初始化
+    const devServer = compiler.options.devServer
+    const isServe = process.env.WEBPACK_SERVE === 'true'
+    if (!isServe || !devServer) {
       logger.info('skipping faker plugin initialization')
       return
     }
@@ -114,7 +115,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
           // Add mock middleware (for API mocking)
           middlewares.unshift({
             name: 'faker-mock-middleware',
-            middleware: mockMiddleware(this.dbManager),
+            middleware: mockMiddleware(this.dbManager, this.config),
           })
         }
 
@@ -132,7 +133,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
             // app is express app usually
             const publicPath = compiler.options.output?.publicPath || '/'
             app.use(routeMiddleware(this.config, publicPath as string))
-            app.use(mockMiddleware(this.dbManager!))
+            app.use(mockMiddleware(this.dbManager!, this.config))
           }
           if (originalBefore) {
             originalBefore(app, server, compiler)
@@ -141,16 +142,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
       }
     }
 
-    // Try to modify devServer config
-    if (compiler.options.devServer) {
-      setupDevServer(compiler.options.devServer)
-    } else {
-      // If devServer is not present in options (e.g. CLI), we might not catch it easily here.
-      // But typically it is.
-      logger.warn(
-        '[Faker] devServer options not found in compiler options. Make sure you are running webpack-dev-server.',
-      )
-    }
+    setupDevServer(devServer)
 
     // 3. Inject Scripts via HtmlWebpackPlugin
     compiler.hooks.compilation.tap('WebpackPluginFaker', compilation => {
@@ -187,8 +179,7 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
         // Webpack 5 + HtmlWebpackPlugin 5 uses getHooks(compilation).alterAssetTags
         // We can try to require html-webpack-plugin to get getHooks if available
         try {
-          // eslint-disable-next-line no-restricted-globals
-          const HtmlWebpackPlugin = require('html-webpack-plugin')
+          const HtmlWebpackPlugin = nodeRequire('html-webpack-plugin')
           if (HtmlWebpackPlugin.getHooks) {
             HtmlWebpackPlugin.getHooks(
               compilation,
@@ -272,5 +263,11 @@ export class WebpackPluginFaker implements WebpackPluginInstance {
     }
   }
 }
+
+export function webpackFaker(options: FakerOptions = {}): WebpackPluginFaker {
+  return new WebpackPluginFaker(options)
+}
+
+export type { FakerConfig, FakerOptions } from './types'
 
 export default WebpackPluginFaker

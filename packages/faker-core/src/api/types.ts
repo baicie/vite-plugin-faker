@@ -1,4 +1,4 @@
-import type { EventBusType, EventBusEvent } from '@baicie/faker-shared'
+import type { EventBusEvent, EventBusType } from '@baicie/faker-shared'
 
 /**
  * 事件总线接口

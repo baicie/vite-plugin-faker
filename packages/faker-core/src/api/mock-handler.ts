@@ -4,7 +4,6 @@ import type {
   MockConfig,
   Page,
   WSMessage,
-  WithId,
 } from '@baicie/faker-shared'
 import { EventBusType, WSMessageType } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
@@ -22,7 +21,7 @@ export class MockHandler {
   /**
    * 处理 Mock 创建
    */
-  handleCreate(data: Partial<MockConfig>, id?: string): WSMessage {
+  handleCreate(data: Partial<MockConfig>): WSMessage {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       const mock = mocksDB.addMock(data as any)
@@ -33,7 +32,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_CREATED,
         data: mock,
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 创建 Mock 失败:', error)
@@ -44,10 +42,7 @@ export class MockHandler {
   /**
    * 处理 Mock 更新
    */
-  handleUpdate(
-    data: { id: string; updates: Partial<MockConfig> },
-    id?: string,
-  ): WSMessage {
+  handleUpdate(data: { id: string; updates: Partial<MockConfig> }): WSMessage {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       const success = mocksDB.updateMock(data.id, data.updates)
@@ -61,7 +56,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_UPDATED,
         data: { success },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 更新 Mock 失败:', error)
@@ -72,7 +66,7 @@ export class MockHandler {
   /**
    * 处理 Mock 删除
    */
-  handleDelete(data: { id: string }, id?: string): WSMessage {
+  handleDelete(data: { id: string }): WSMessage {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       const success = mocksDB.deleteMock(data.id)
@@ -83,7 +77,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_DELETED,
         data: { success },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 删除 Mock 失败:', error)
@@ -94,7 +87,7 @@ export class MockHandler {
   /**
    * 处理 Mock 详情查询
    */
-  handleGet(data: { id: string }, id?: string): WSMessage<MockConfig> {
+  handleGet(data: { id: string }): WSMessage<MockConfig> {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       const mock = mocksDB.getMock(data.id)
@@ -102,7 +95,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_DETAIL,
         data: mock!,
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 获取 Mock 详情失败:', error)
@@ -113,10 +105,10 @@ export class MockHandler {
   /**
    * 处理 Mock 列表查询
    */
-  handleList(data: WithId<DashboardQuery>): WSMessage<Page<MockConfig>> {
+  handleList(data?: DashboardQuery): WSMessage<Page<MockConfig>> {
     try {
       const mocksDB = this.dbManager.getMocksDB()
-      const { page = 1, pageSize = 20, search, group, id } = data || {}
+      const { page = 1, pageSize = 20, search, group } = data || {}
 
       const result = mocksDB.getMocksWithPagination(
         page,
@@ -130,7 +122,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_LIST,
         data: result,
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 获取 Mock 列表失败:', error)
@@ -141,7 +132,7 @@ export class MockHandler {
   /**
    * 处理 Mock 导出
    */
-  handleExport(id?: string): WSMessage<MockConfig[]> {
+  handleExport(): WSMessage<MockConfig[]> {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       const mocks = mocksDB.getAllMocks()
@@ -149,7 +140,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_EXPORTED,
         data: mocks,
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 导出 Mock 失败:', error)
@@ -160,10 +150,7 @@ export class MockHandler {
   /**
    * 处理 Mock 导入
    */
-  handleImport(
-    data: { items: MockConfig[] } | MockConfig[],
-    id?: string,
-  ): WSMessage {
+  handleImport(data: { items: MockConfig[] } | MockConfig[]): WSMessage {
     try {
       const mocksDB = this.dbManager.getMocksDB()
       let successCount = 0
@@ -187,7 +174,6 @@ export class MockHandler {
       return {
         type: WSMessageType.MOCK_IMPORTED,
         data: { success: true, count: successCount },
-        id,
       }
     } catch (error) {
       logger.error('[Faker] 导入 Mock 失败:', error)

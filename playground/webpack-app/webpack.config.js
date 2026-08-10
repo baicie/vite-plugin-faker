@@ -1,7 +1,7 @@
-const path = require('path')
+const path = require('node:path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { VueLoaderPlugin } = require('vue-loader')
-const { WebpackPluginFaker } = require('webpack-plugin-faker')
+const { WebpackPluginFaker } = require('@baicie/webpack-plugin-faker')
 const webpack = require('webpack')
 
 module.exports = {

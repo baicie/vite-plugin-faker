@@ -67,6 +67,16 @@ export default defineConfig(
     },
   },
 
+  // browser extension package
+  {
+    name: 'browser-extension',
+    files: ['packages/browser-extension/**'],
+    rules: {
+      'no-console': 'off',
+      'no-restricted-globals': 'off',
+    },
+  },
+
   // playground packages
   {
     name: 'playground',
@@ -101,6 +111,14 @@ export default defineConfig(
       'no-restricted-syntax': 'off',
       'vitest/no-disabled-tests': 'error',
       'vitest/no-focused-tests': 'error',
+    },
+  },
+
+  // Playwright owns skip semantics in browser-extension E2E tests.
+  {
+    files: ['packages/browser-extension/e2e/**'],
+    rules: {
+      'vitest/no-disabled-tests': 'off',
     },
   },
 
@@ -140,6 +158,9 @@ export default defineConfig(
       '.idea/',
       'packages/*/templates/**',
       '**/templates/**',
+      'packages/browser-extension/extension/manifest.json',
+      'packages/browser-extension/src/auto-imports.d.ts',
+      'packages/browser-extension/src/components.d.ts',
       'docs/.vitepress/cache/**',
       'packages/napi/baicie-napi.{wasi,wasi-browser}.*',
       'packages/napi/index.d.ts',

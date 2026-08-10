@@ -1,5 +1,4 @@
-import type { IncomingHttpHeaders } from 'node:http'
-import type { Connect } from 'vite'
+import type { IncomingHttpHeaders, IncomingMessage } from 'node:http'
 //#region apis
 export interface PageQuery {
   page: number
@@ -121,7 +120,13 @@ export interface HeaderMatchCondition {
 export interface QueryMatchCondition {
   key: string
   value: string | string[]
-  operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex' | 'exists'
+  operator:
+    | 'equals'
+    | 'contains'
+    | 'startsWith'
+    | 'endsWith'
+    | 'regex'
+    | 'exists'
 }
 
 /**
@@ -168,11 +173,15 @@ export interface BaseMockConfig {
   tags?: string[]
 }
 
-interface MockResponse<T = any> {
+export interface MockResponse<T = any> {
   status: number
   headers?: Record<string, string>
   body: T
   delay?: number
+}
+
+export interface FunctionMockHandler<T = any> {
+  (ctx: MockContext): MockResponse<T> | Promise<MockResponse<T>>
 }
 
 export interface StaticMockConfig<T = any> extends BaseMockConfig {
@@ -199,7 +208,8 @@ export interface ProxyMockConfig extends BaseMockConfig {
 
 export interface FunctionMockConfig<T = any> extends BaseMockConfig {
   type: 'function'
-  handler: (ctx: MockContext) => MockResponse<T> | Promise<MockResponse<T>>
+  handler?: FunctionMockHandler<T>
+  handlerSource?: string
 }
 
 export interface TemplateMockConfig extends BaseMockConfig {
@@ -234,8 +244,12 @@ export type MockConfig<T = any> =
   | ErrorMockConfig
   | StatefulMockConfig
 
+export interface FakerIncomingMessage extends IncomingMessage {
+  originalUrl?: IncomingMessage['url']
+}
+
 export interface MockContext {
-  req: Connect.IncomingMessage
+  req: FakerIncomingMessage
   url: string
   method?: string
   headers: IncomingHttpHeaders
@@ -256,21 +270,37 @@ export interface GeneratedResponse<T = any> {
     timestamp: number
   }
 }
-export type ResponseGenerator = (
-  mock: MockConfig,
-  ctx: MockContext,
-) => Promise<GeneratedResponse>
+export interface ResponseGeneratorOptions {
+  allowFunctionHandlerSource?: boolean
+  functionHandlerTimeout?: number
+}
+
+export interface ResponseGenerator {
+  (
+    mock: MockConfig,
+    ctx: MockContext,
+    options?: ResponseGeneratorOptions,
+  ): Promise<GeneratedResponse>
+}
 //#endregion
 //#region query&body
-type QueryPrimitive = string | number | boolean | null
+export type QueryPrimitive = string | number | boolean | null
 
-type QueryValue = QueryPrimitive | QueryPrimitive[] | QueryObject
+export type QueryValue = QueryPrimitive | QueryPrimitive[] | QueryObject
 
 export interface QueryObject {
   [key: string]: QueryValue
 }
 
-export type ParsedBody = undefined | string | Record<string, any> | any[]
+export type ParsedBody = null | undefined | string | Record<string, any> | any[]
+
+export interface MockRequestMatchParams {
+  url: string
+  method: string
+  headers?: IncomingHttpHeaders
+  query?: QueryObject
+  body?: ParsedBody
+}
 //#endregion
 //#region event
 export enum EventBusType {
