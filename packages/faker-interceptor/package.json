@@ -1,6 +1,6 @@
 {
   "name": "@baicie/faker-interceptor",
-  "version": "0.1.0",
+  "version": "0.1.1-beta.0",
   "description": "Browser-side request interceptor with Faker.js support",
   "license": "MIT",
   "repository": {

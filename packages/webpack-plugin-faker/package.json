@@ -1,6 +1,6 @@
 {
   "name": "@baicie/webpack-plugin-faker",
-  "version": "0.1.0",
+  "version": "0.1.1-beta.0",
   "description": "Webpack plugin for mocking API requests with faker",
   "license": "MIT",
   "repository": {
