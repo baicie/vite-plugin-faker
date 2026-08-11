@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
@@ -20,7 +20,7 @@ for (const moduleName of forbiddenModules) {
   }
 }
 
-for (const exportName of ['.', './node']) {
+for (const exportName of ['.', './browser', './node']) {
   const exportEntry = packageJson.exports[exportName]
   const importEntry = exportEntry.import
   const requireEntry = exportEntry.require
@@ -47,5 +47,21 @@ for (const exportName of ['.', './node']) {
     if (!existsSync(new URL(`..${exportPath.slice(1)}`, import.meta.url))) {
       throw new Error(`Missing package output: ${packageDir}/${exportPath}`)
     }
+  }
+}
+
+for (const fileName of readdirSync(new URL('../dist/', import.meta.url))) {
+  if (!fileName.endsWith('.cjs')) {
+    continue
+  }
+
+  const source = readFileSync(
+    new URL('../dist/' + fileName, import.meta.url),
+    'utf8',
+  )
+  if (/require\((['"`])\.\/[^'"`]+\.js\1\)/.test(source)) {
+    throw new Error(
+      `${fileName} must not require .js chunks from a module package`,
+    )
   }
 }

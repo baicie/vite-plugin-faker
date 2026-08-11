@@ -16,6 +16,7 @@ const placeholders = [
   '__FAKER_WS_PORT__',
   '__FAKER_LOGGER_OPTIONS__',
   '__FAKER_UI_OPTIONS__',
+  '__FAKER_HOT_CONTEXT__',
 ]
 
 for (const placeholder of placeholders) {

@@ -1,11 +1,13 @@
 import type { DashboardQuery, MockConfig, Page } from '@baicie/faker-shared'
-import { WSMessageType } from '@baicie/faker-shared'
+import { WSMessageType } from '@baicie/faker-shared/browser'
 import { useWsRequest } from '../hooks/use-ws-request'
+import type { WsRequest } from '../hooks/use-ws-request'
 
-export const createMock = useWsRequest<MockConfig>({
-  sendType: WSMessageType.MOCK_CREATE,
-  responseType: WSMessageType.MOCK_CREATED,
-})
+export const createMock: WsRequest<MockConfig, MockConfig> =
+  useWsRequest<MockConfig>({
+    sendType: WSMessageType.MOCK_CREATE,
+    responseType: WSMessageType.MOCK_CREATED,
+  })
 
 /**
  * 更新 Mock
@@ -16,7 +18,10 @@ export const createMock = useWsRequest<MockConfig>({
  * - 请求数据：{ id, updates }
  * - 响应数据：{ success: boolean }
  */
-export const updateMock = useWsRequest<
+export const updateMock: WsRequest<
+  { id: string; updates: Partial<MockConfig> },
+  { success: boolean }
+> = useWsRequest<
   { id: string; updates: Partial<MockConfig> },
   { success: boolean }
 >({
@@ -33,10 +38,11 @@ export const updateMock = useWsRequest<
  * - 请求数据：{ id }
  * - 响应数据：{ success: boolean }
  */
-export const deleteMock = useWsRequest<{ id: string }, { success: boolean }>({
-  sendType: WSMessageType.MOCK_DELETE,
-  responseType: WSMessageType.MOCK_DELETED,
-})
+export const deleteMock: WsRequest<{ id: string }, { success: boolean }> =
+  useWsRequest<{ id: string }, { success: boolean }>({
+    sendType: WSMessageType.MOCK_DELETE,
+    responseType: WSMessageType.MOCK_DELETED,
+  })
 
 /**
  * 分页查询 Mock 列表
@@ -47,7 +53,10 @@ export const deleteMock = useWsRequest<{ id: string }, { success: boolean }>({
  * - 请求数据：{ page, pageSize, search? }
  * - 响应数据：Page<MockConfig>
  */
-export const fetchMockList = useWsRequest<DashboardQuery, Page<MockConfig>>({
+export const fetchMockList: WsRequest<
+  DashboardQuery,
+  Page<MockConfig>
+> = useWsRequest<DashboardQuery, Page<MockConfig>>({
   sendType: WSMessageType.MOCK_LIST,
   responseType: WSMessageType.MOCK_LIST,
 })
@@ -55,7 +64,10 @@ export const fetchMockList = useWsRequest<DashboardQuery, Page<MockConfig>>({
 /**
  * 获取 Mock 详情
  */
-export const fetchMock = useWsRequest<{ id: string }, MockConfig>({
+export const fetchMock: WsRequest<{ id: string }, MockConfig> = useWsRequest<
+  { id: string },
+  MockConfig
+>({
   sendType: WSMessageType.MOCK_GET,
   responseType: WSMessageType.MOCK_DETAIL,
 })
@@ -63,7 +75,10 @@ export const fetchMock = useWsRequest<{ id: string }, MockConfig>({
 /**
  * 导出 Mock
  */
-export const exportMocks = useWsRequest<void, MockConfig[]>({
+export const exportMocks: WsRequest<void, MockConfig[]> = useWsRequest<
+  void,
+  MockConfig[]
+>({
   sendType: WSMessageType.MOCK_EXPORT,
   responseType: WSMessageType.MOCK_EXPORTED,
 })
@@ -71,10 +86,10 @@ export const exportMocks = useWsRequest<void, MockConfig[]>({
 /**
  * 导入 Mock
  */
-export const importMocks = useWsRequest<
+export const importMocks: WsRequest<
   MockConfig[],
   { success: boolean; count: number }
->({
+> = useWsRequest<MockConfig[], { success: boolean; count: number }>({
   sendType: WSMessageType.MOCK_IMPORT,
   responseType: WSMessageType.MOCK_IMPORTED,
 })
@@ -82,7 +97,10 @@ export const importMocks = useWsRequest<
 /**
  * 获取所有分组
  */
-export const fetchGroups = useWsRequest<void, string[]>({
+export const fetchGroups: WsRequest<void, string[]> = useWsRequest<
+  void,
+  string[]
+>({
   sendType: WSMessageType.MOCK_GROUPS_GET,
   responseType: WSMessageType.MOCK_LIST,
 })
@@ -90,7 +108,10 @@ export const fetchGroups = useWsRequest<void, string[]>({
 /**
  * 获取分组统计
  */
-export const fetchGroupStats = useWsRequest<void, Record<string, number>>({
+export const fetchGroupStats: WsRequest<
+  void,
+  Record<string, number>
+> = useWsRequest<void, Record<string, number>>({
   sendType: WSMessageType.MOCK_GROUPS_STATS_GET,
   responseType: WSMessageType.MOCK_LIST,
 })
@@ -98,7 +119,10 @@ export const fetchGroupStats = useWsRequest<void, Record<string, number>>({
 /**
  * 获取所有标签
  */
-export const fetchTags = useWsRequest<void, string[]>({
+export const fetchTags: WsRequest<void, string[]> = useWsRequest<
+  void,
+  string[]
+>({
   sendType: WSMessageType.MOCK_TAGS_GET,
   responseType: WSMessageType.MOCK_LIST,
 })

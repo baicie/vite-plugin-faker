@@ -123,6 +123,21 @@ describe('MocksDB.findMockAdvanced', () => {
 
     expect(result).toBeUndefined()
   })
+
+  it('matches a pathname rule when the request contains a query string', () => {
+    const mock = createMock({
+      url: { pattern: '/api/users', type: 'exact' },
+    })
+    const db = createMocksDB([mock])
+
+    const result = db.findMockAdvanced({
+      url: '/api/users?preview=true',
+      method: 'GET',
+      query: { preview: 'true' },
+    })
+
+    expect(result).toBe(mock)
+  })
 })
 
 describe('MocksDB route identity', () => {
@@ -137,6 +152,53 @@ describe('MocksDB route identity', () => {
     expect(db.getData()).toEqual({
       '/api/users-GET': created,
     })
+  })
+
+  it('does not persist a partial batch when an imported rule is invalid', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const valid = createMock(undefined)
+    valid.url = '/api/accounts'
+    const invalid = createMock(undefined)
+    invalid.url = ''
+
+    expect(function () {
+      db.importMocks([valid, invalid])
+    }).toThrow('url and method')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
+
+  it('imports a valid batch with normalized route ids in one write', () => {
+    const db = createMutableMocksDB()
+    const users = createMock(undefined)
+    const accounts = createMock(undefined)
+    accounts.url = '/api/accounts'
+    accounts.method = 'POST'
+
+    const imported = db.importMocks([users, accounts])
+
+    expect(
+      imported.map(function (mock) {
+        return mock.id
+      }),
+    ).toEqual(['/api/users-GET', '/api/accounts-POST'])
+    expect(Object.keys(db.getData())).toEqual([
+      '/api/users-GET',
+      '/api/accounts-POST',
+    ])
+    expect((db as unknown as MutableMocksDB).save).toHaveBeenCalledOnce()
+  })
+
+  it('finds a basic route when the request contains a query string', () => {
+    const mock = createMock(undefined)
+    mock.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': mock })
+
+    expect(
+      db.findMock({ url: '/api/users?page=2', method: 'GET' }),
+    ).toMatchObject({ id: '/api/users-GET' })
   })
 
   it('moves the database key when url or method changes', () => {
@@ -185,6 +247,18 @@ describe('MocksDB route identity', () => {
 
     const result = db.getMocksWithPagination()
 
+    expect(result.items[0]!.id).toBe('/api/users-GET')
+  })
+
+  it('finds rules by their visible name', () => {
+    const mock = createMock(undefined)
+    mock.id = '/api/users-GET'
+    mock.name = 'Customer profile rule'
+    const db = createMutableMocksDB({ '/api/users-GET': mock })
+
+    const result = db.getMocksWithPagination(1, 20, 'customer profile')
+
+    expect(result.items).toHaveLength(1)
     expect(result.items[0]!.id).toBe('/api/users-GET')
   })
 

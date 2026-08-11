@@ -1,5 +1,25 @@
-import { WSMessageType } from '@baicie/faker-shared'
+import { WSMessageType } from '@baicie/faker-shared/browser'
 import { useWsRequest } from '../hooks/use-ws-request'
+import type { WsRequest } from '../hooks/use-ws-request'
+
+export interface RuntimeSettings {
+  globalDelay: number
+  enableAllMocks: boolean
+  logRequests: boolean
+  corsEnabled: boolean
+  corsAllowOrigin: string
+}
+
+export type FakerTheme = 'light' | 'dark'
+
+export interface FakerSettings extends Partial<RuntimeSettings> {
+  version: number
+  theme?: FakerTheme
+}
+
+export interface SettingsActionResult {
+  success: boolean
+}
 
 /**
  * 获取设置
@@ -10,7 +30,10 @@ import { useWsRequest } from '../hooks/use-ws-request'
  * - 请求数据：无
  * - 响应数据：settings 对象（结构由后端定义）
  */
-export const getSettings = useWsRequest<void, any>({
+export const getSettings: WsRequest<void, FakerSettings> = useWsRequest<
+  void,
+  FakerSettings
+>({
   sendType: WSMessageType.SETTINGS_GET,
   responseType: WSMessageType.SETTINGS_GET,
 })
@@ -24,7 +47,10 @@ export const getSettings = useWsRequest<void, any>({
  * - 请求数据：部分或全部设置字段
  * - 响应数据：{ success: true }
  */
-export const updateSettings = useWsRequest<any, { success: boolean }>({
+export const updateSettings: WsRequest<
+  Partial<FakerSettings>,
+  SettingsActionResult
+> = useWsRequest<Partial<FakerSettings>, SettingsActionResult>({
   sendType: WSMessageType.SETTINGS_UPDATE,
   responseType: WSMessageType.SETTINGS_UPDATE,
 })
@@ -38,7 +64,10 @@ export const updateSettings = useWsRequest<any, { success: boolean }>({
  * - 请求数据：无
  * - 响应数据：{ success: true }
  */
-export const clearCache = useWsRequest<void, { success: boolean }>({
+export const clearCache: WsRequest<void, SettingsActionResult> = useWsRequest<
+  void,
+  SettingsActionResult
+>({
   sendType: WSMessageType.SETTINGS_CLEAR_CACHE,
   responseType: WSMessageType.SETTINGS_CLEAR_CACHE,
 })

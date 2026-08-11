@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { PassThrough } from 'node:stream'
 import type { FunctionMockConfig, StaticMockConfig } from '@baicie/faker-shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { MocksDB } from '../../faker-core/src/db/mock'
 
 const mocks = vi.hoisted(function () {
   return {
@@ -22,9 +23,13 @@ vi.mock('../src/index', function () {
 
 import { mockMiddleware } from '../src/middlewares/mock'
 
-function createRequest(body: string, method: string = 'POST'): IncomingMessage {
+function createRequest(
+  body: string,
+  method: string = 'POST',
+  url: string = '/api/users',
+): IncomingMessage {
   const request = new PassThrough() as unknown as IncomingMessage
-  request.url = '/api/users'
+  request.url = url
   request.method = method
   request.headers = {
     'content-length': String(Buffer.byteLength(body)),
@@ -32,6 +37,14 @@ function createRequest(body: string, method: string = 'POST'): IncomingMessage {
   }
   request.end(body)
   return request
+}
+
+function createMocksDB(mock: StaticMockConfig): MocksDB {
+  const db = Object.create(MocksDB.prototype) as MocksDB
+  const data: Record<string, StaticMockConfig> = {}
+  data[mock.id || '/api/users-GET'] = mock
+  Object.defineProperty(db, 'db', { value: { data } })
+  return db
 }
 
 function collectBody(request: IncomingMessage): Promise<string> {
@@ -119,6 +132,94 @@ describe('mockMiddleware', () => {
     expect(headers['Content-Type']).toBe('text/plain')
     expect(headers['X-Custom']).toBe('custom-value')
     expect(headers['X-Mock-Id']).toBe('users-get')
+  })
+
+  it('serves query URLs with authoritative mock markers', () => {
+    const mock: StaticMockConfig = {
+      id: '/api/users-GET',
+      url: '/api/users',
+      method: 'GET',
+      type: 'static',
+      enabled: true,
+      response: {
+        status: 202,
+        headers: {
+          'Content-Type': 'application/problem+json',
+          'x-mock-id': 'forged-id',
+          'x-mock-source': 'forged-source',
+        },
+        body: { ok: true },
+      },
+    }
+    const db = createMocksDB(mock)
+    const headers: Record<string, string | number | readonly string[]> = {}
+    let responseBody = ''
+    let statusCode = 0
+    mocks.findMock.mockImplementation(db.findMock.bind(db))
+    mocks.findMockAdvanced.mockImplementation(db.findMockAdvanced.bind(db))
+
+    return new Promise<void>(function (resolve, reject) {
+      const response = {
+        statusCode,
+        setHeader: function (
+          name: string,
+          value: string | number | readonly string[],
+        ) {
+          headers[name.toLowerCase()] = value
+          return this
+        },
+        end: function (body: string) {
+          responseBody = body
+          statusCode = this.statusCode
+          resolve()
+          return this
+        },
+      } as unknown as ServerResponse
+      mockMiddleware({} as never)(
+        createRequest('', 'GET', '/api/users?tenant=zeus'),
+        response,
+        function (error?: unknown) {
+          reject(error || new Error('mock middleware unexpectedly called next'))
+        },
+      )
+    }).then(function () {
+      expect(statusCode).toBe(202)
+      expect(JSON.parse(responseBody)).toEqual({ ok: true })
+      expect(headers['content-type']).toBe('application/problem+json')
+      expect(headers['x-mock-id']).toBe('/api/users-GET')
+      expect(headers['x-mock-source']).toBe('static')
+    })
+  })
+
+  it('does not serve disabled rules', () => {
+    const mock: StaticMockConfig = {
+      id: '/api/users-GET',
+      url: '/api/users',
+      method: 'GET',
+      type: 'static',
+      enabled: false,
+      response: { status: 200, body: { ok: true } },
+    }
+    const db = createMocksDB(mock)
+    const response = { end: vi.fn() } as unknown as ServerResponse
+    mocks.findMock.mockImplementation(db.findMock.bind(db))
+    mocks.findMockAdvanced.mockImplementation(db.findMockAdvanced.bind(db))
+
+    return new Promise<void>(function (resolve, reject) {
+      mockMiddleware({} as never)(
+        createRequest('', 'GET', '/api/users?tenant=zeus'),
+        response,
+        function (error?: unknown) {
+          if (error) {
+            reject(error)
+            return
+          }
+          resolve()
+        },
+      )
+    }).then(function () {
+      expect(response.end).not.toHaveBeenCalled()
+    })
   })
 
   it('executes persisted function source only when middleware enables it', () => {

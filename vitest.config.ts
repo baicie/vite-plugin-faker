@@ -1,33 +1,47 @@
-import vueJsx from '@vitejs/plugin-vue-jsx'
 import { defineConfig } from 'vitest/config'
 import { fileURLToPath } from 'node:url'
 
+const workspaceAliases = [
+  {
+    find: /^@baicie\/faker-shared$/,
+    replacement: fileURLToPath(
+      new URL('./packages/faker-shared/src/index.ts', import.meta.url),
+    ),
+  },
+  {
+    find: /^@baicie\/faker-shared\/browser$/,
+    replacement: fileURLToPath(
+      new URL('./packages/faker-shared/src/browser.ts', import.meta.url),
+    ),
+  },
+  {
+    find: /^@baicie\/faker-shared\/node$/,
+    replacement: fileURLToPath(
+      new URL('./packages/faker-shared/src/node.ts', import.meta.url),
+    ),
+  },
+  {
+    find: /^@baicie\/faker-core$/,
+    replacement: fileURLToPath(
+      new URL('./packages/faker-core/src/index.ts', import.meta.url),
+    ),
+  },
+]
+
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: '@zeus-js/zeus',
+  },
   resolve: {
-    alias: [
-      {
-        find: /^@baicie\/faker-shared$/,
-        replacement: fileURLToPath(
-          new URL('./packages/faker-shared/src/index.ts', import.meta.url),
-        ),
-      },
-      {
-        find: /^@baicie\/faker-shared\/node$/,
-        replacement: fileURLToPath(
-          new URL('./packages/faker-shared/src/node.ts', import.meta.url),
-        ),
-      },
-      {
-        find: /^@baicie\/faker-core$/,
-        replacement: fileURLToPath(
-          new URL('./packages/faker-core/src/index.ts', import.meta.url),
-        ),
-      },
-    ],
+    alias: workspaceAliases,
   },
   test: {
     projects: [
       {
+        resolve: {
+          alias: workspaceAliases,
+        },
         test: {
           name: 'unit',
           environment: 'node',
@@ -42,10 +56,21 @@ export default defineConfig({
         },
       },
       {
-        plugins: [vueJsx()],
+        esbuild: {
+          jsx: 'automatic',
+          jsxImportSource: '@zeus-js/zeus',
+        },
+        resolve: {
+          alias: workspaceAliases,
+        },
         test: {
           name: 'unit-jsdom',
           environment: 'jsdom',
+          server: {
+            deps: {
+              inline: [/@zeus-js\//, /@zeus-web\//],
+            },
+          },
           include: [
             'packages/faker-interceptor/__tests__/**/*.test.ts',
             'packages/faker-ui/__tests__/**/*.test.ts',

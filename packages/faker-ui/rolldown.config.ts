@@ -7,6 +7,9 @@ const external = Object.keys(pkg.dependencies || {})
 export default defineConfig({
   input: 'src/index.ts',
   external,
+  transform: {
+    target: 'es2015',
+  },
   output: {
     format: 'esm',
     dir: 'dist',

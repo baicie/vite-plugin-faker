@@ -1,19 +1,25 @@
 import {
-  type MockConfig,
   type RequestRecord,
   type WSClient,
   WSMessageType,
 } from '@baicie/faker-shared'
 import { logger } from '@baicie/logger'
+import {
+  getMockResponseMarker,
+  getRequestLocation,
+  parseXHRRequestBody,
+  readXHRResponseBody,
+} from '../request-record'
 
 interface HackXMLHttpRequest extends XMLHttpRequest {
   _url: string
   _method: string
   _requestHeaders: Record<string, string>
+  _requestBody?: unknown
+  _startTime: number
 }
 
 export class XHRInterceptor {
-  private mocks: MockConfig[] = []
   private wsClient: WSClient
   private OriginalXHR: typeof XMLHttpRequest
 
@@ -35,6 +41,7 @@ export class XHRInterceptor {
       // @ts-expect-error
       private _method: string = 'GET'
       private _requestHeaders: Record<string, string> = {}
+      _requestBody?: unknown
       private _startTime: number = 0
 
       open(
@@ -44,12 +51,17 @@ export class XHRInterceptor {
         username?: string | null,
         password?: string | null,
       ): void {
+        super.open(
+          method,
+          url,
+          typeof async === 'boolean' ? async : true,
+          username,
+          password,
+        )
         this._method = method
         this._url = typeof url === 'string' ? url : url.toString()
         this._requestHeaders = {}
-        this._startTime = Date.now()
-
-        return super.open(method, url, async ?? true, username, password)
+        this._requestBody = undefined
       }
 
       setRequestHeader(header: string, value: string): void {
@@ -58,93 +70,48 @@ export class XHRInterceptor {
       }
 
       send(body?: Document | XMLHttpRequestBodyInit | null): void {
-        this.setupResponseListener()
-        super.send(body)
-      }
-
-      private setupResponseListener(): void {
+        this._requestBody = parseXHRRequestBody(body)
+        this._startTime = Date.now()
         const xhr = this
-
-        const originalOnReadyStateChange = this.onreadystatechange
-
-        this.onreadystatechange = function (event) {
-          if (xhr.readyState === 4) {
-            const duration = Date.now() - xhr._startTime
-            self.recordXHRRequest(
-              xhr as unknown as HackXMLHttpRequest,
-              xhr.responseText,
-              duration,
-              false,
-            )
-          }
-
-          if (originalOnReadyStateChange) {
-            originalOnReadyStateChange.call(this, event)
-          }
+        const handleLoadEnd = function () {
+          self.recordXHRRequest(
+            xhr as unknown as HackXMLHttpRequest,
+            Date.now() - xhr._startTime,
+          )
+        }
+        this.addEventListener('loadend', handleLoadEnd, { once: true })
+        try {
+          super.send(body)
+        } catch (error) {
+          this.removeEventListener('loadend', handleLoadEnd)
+          throw error
         }
       }
     } as any
   }
 
-  private recordXHRRequest(
-    xhr: HackXMLHttpRequest,
-    responseBody: string,
-    duration: number,
-    isMocked: boolean,
-  ): void {
+  private recordXHRRequest(xhr: HackXMLHttpRequest, duration: number): void {
     try {
-      let body: unknown = null
-      try {
-        body =
-          typeof responseBody === 'string'
-            ? JSON.parse(responseBody)
-            : responseBody
-      } catch {
-        body = responseBody
-      }
-
-      const url = new URL(xhr._url, window.location.origin)
-
-      // 获取响应头
+      const location = getRequestLocation(xhr._url)
       const responseHeaders = this.getResponseHeaders(xhr)
-
-      // 检查响应头中的 Mock ID
-      let currentMockId: string | undefined
-      let currentIsMocked = isMocked
-      const headerMockId = responseHeaders['x-mock-id']
-
-      if (headerMockId && headerMockId !== 'unknown') {
-        currentMockId = headerMockId
-        currentIsMocked = true
-      } else {
-        // 尝试在现有的 Mock 配置中查找匹配项
-        const foundMock = this.mocks.find(
-          m =>
-            m.url === url.pathname &&
-            m.method.toUpperCase() === xhr._method.toUpperCase(),
-        )
-        if (foundMock) {
-          currentMockId = foundMock.id
-          currentIsMocked = true
-        }
-      }
+      const marker = getMockResponseMarker(responseHeaders)
 
       const record: RequestRecord = {
-        url: xhr._url,
+        url: location.url,
         method: xhr._method,
         headers: xhr._requestHeaders,
-        query: Object.fromEntries(url.searchParams.entries()),
+        query: location.query,
+        body: xhr._requestBody,
         response: {
-          statusCode: xhr.status || 200,
+          statusCode: xhr.status,
           headers: responseHeaders,
-          body,
+          body: readXHRResponseBody(xhr),
         },
         duration,
-        isMocked: currentIsMocked,
-        mockId: currentMockId,
+        isMocked: marker.isMocked,
+        mockId: marker.mockId,
         timestamp: Date.now(),
       }
-      // 总是发送请求记录，无论是否是 Mock 请求
       this.sendRequestRecord(record)
     } catch (error) {
       // 静默失败
@@ -170,15 +137,7 @@ export class XHRInterceptor {
     return headers
   }
 
-  private sendRequestRecord(record: RequestRecord) {
+  private sendRequestRecord(record: RequestRecord): void {
     this.wsClient.send(WSMessageType.REQUEST_RECORDED, record)
-  }
-
-  /**
-   * 更新 Mock 配置
-   */
-  updateMocks(mocks: MockConfig[]): void {
-    this.mocks = mocks
-    logger.info(`XHR Mock 配置已更新: ${this.mocks.length} 个`)
   }
 }

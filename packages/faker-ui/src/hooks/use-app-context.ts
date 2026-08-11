@@ -1,23 +1,31 @@
-import { type InjectionKey, inject } from 'vue'
-
-export interface UIOPtions {
+export interface UIOptions {
   wsUrl: string
   timeout: number
   mode: 'button' | 'route'
 }
 
-export const appContextKey = Symbol('app-config') as InjectionKey<UIOPtions>
+export interface UIOptionsInput {
+  wsUrl?: string
+  timeout?: number
+  mode?: 'button' | 'route'
+}
 
-const defaultOptions: UIOPtions = {
+/** @deprecated Use UIOptions instead. */
+export interface UIOPtions extends UIOptions {}
+
+const DEFAULT_OPTIONS: UIOptions = {
   wsUrl: '',
   timeout: 10 * 1000,
   mode: 'route',
 }
 
-export function useAppContext() {
-  return Object.assign(
-    {},
-    defaultOptions,
-    inject(appContextKey, defaultOptions),
-  )
+let appOptions: UIOptions = DEFAULT_OPTIONS
+
+export function configureAppContext(options?: UIOptionsInput): UIOptions {
+  appOptions = Object.assign({}, DEFAULT_OPTIONS, options || {})
+  return appOptions
+}
+
+export function useAppContext(): UIOptions {
+  return appOptions
 }

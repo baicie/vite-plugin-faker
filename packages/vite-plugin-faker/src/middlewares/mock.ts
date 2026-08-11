@@ -81,16 +81,22 @@ export function mockMiddleware(
       // status
       res.statusCode = response.status
 
-      const defaultHeaders = {
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Mock-Source': response.source ?? 'static',
-        'X-Mock-Id': response.meta?.mockId ?? 'unknown',
-      }
-      const responseHeaders = extend({}, defaultHeaders, response.headers)
+      const responseHeaders = extend(
+        {},
+        {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        response.headers,
+      )
       // headers
       for (const [k, v] of Object.entries(responseHeaders)) {
         res.setHeader(k, v)
       }
+      res.setHeader('X-Mock-Source', response.source || 'static')
+      res.setHeader(
+        'X-Mock-Id',
+        (response.meta && response.meta.mockId) || 'unknown',
+      )
 
       // body
       res.end(

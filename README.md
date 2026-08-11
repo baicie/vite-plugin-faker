@@ -210,10 +210,14 @@ module.exports = {
 
 启动后访问 `http://localhost:<port>/__faker-ui__/` 打开 Mock 管理界面，支持：
 
-- Mock 列表查看、分组、标签过滤
-- 在线编辑 Mock 配置（Monaco Editor）
-- 请求历史记录查看
-- 全局设置管理
+- `Traffic`：实时查看 Fetch/XHR 请求、响应与 Mock 命中状态
+- `Rules`：管理规则、在线编辑响应与匹配条件、导入 OpenAPI/Swagger
+- `Settings`：管理运行时策略、主题、规则数据和请求历史
+
+Faker Studio 基于 Zeus 和 Zeus Web 原生 Custom Elements，并使用 Monaco
+Editor。源码继续接受仓库根 TypeScript `ES5` 目标的类型检查与语法约束；浏览器
+UI 发布产物最低为 ES2015，因为原生 Custom Element 构造器不能安全降级为 ES5
+函数继承，当前 Rolldown 版本也以 ES2015 为最低转换目标。支持当前主流现代浏览器。
 
 ## 开发
 

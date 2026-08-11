@@ -9,7 +9,7 @@ import type {
 import { extend, get } from 'lodash-es'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
-import { type ParmasLike, methodLineUrl } from '../utils'
+import { type ParmasLike, methodLineUrl, normalizeRequestUrl } from '../utils'
 
 /**
  * 匹配器工具函数
@@ -102,6 +102,39 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     return normalizedConfig
   }
 
+  importMocks(configs: MockConfig[]): MockConfig[] {
+    const nextData = extend({}, this.db.data) as Record<string, MockConfig>
+    const imported: MockConfig[] = []
+    const batchIds: Record<string, boolean> = {}
+
+    for (const config of configs) {
+      if (
+        !config ||
+        typeof config.url !== 'string' ||
+        !config.url.trim() ||
+        typeof config.method !== 'string' ||
+        !config.method.trim()
+      ) {
+        throw new Error('Imported mocks require a url and method')
+      }
+
+      const id = methodLineUrl(config)
+      if (batchIds[id]) {
+        throw new Error('Imported mocks contain a duplicate route: ' + id)
+      }
+      batchIds[id] = true
+      const normalizedConfig = MocksDB.toMockConfig(id, config)
+      nextData[id] = normalizedConfig
+      imported.push(normalizedConfig)
+    }
+
+    if (imported.length > 0) {
+      this.db.data = nextData
+      this.save()
+    }
+    return imported
+  }
+
   // 获取所有Mock配置
   getAllMocks(): MockConfig[] {
     return Object.entries(this.db.data).map(function ([id, config]) {
@@ -172,18 +205,19 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   ): boolean {
     const rule = mock.matchRule
     if (!rule) return false
+    const requestUrl = normalizeRequestUrl(params.url) || '/'
 
     // URL 匹配
     if (rule.url) {
       const urlMatched = matchers.matchUrl(
         rule.url.pattern,
         rule.url.type,
-        params.url,
+        requestUrl,
       )
       if (!urlMatched) return false
     } else {
       // 如果没有 URL 规则，检查传统 url 和 method
-      if (mock.url && mock.url !== params.url) return false
+      if (mock.url && normalizeRequestUrl(mock.url) !== requestUrl) return false
     }
 
     // 请求头匹配
@@ -379,7 +413,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
 
     const result = this.getPaginatedItems(filteredData, page, pageSize, {
       searchVal,
-      searchFields: ['url', 'method', 'description'],
+      searchFields: ['name', 'url', 'method', 'description'],
       sortBy,
       sortDesc,
     })

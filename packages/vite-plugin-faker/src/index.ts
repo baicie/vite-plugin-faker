@@ -193,6 +193,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
             JSON.stringify(_config.loggerOptions),
           )
           .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(_config.uiOptions))
+          .replace(`__FAKER_HOT_CONTEXT__`, 'import.meta.hot')
       }
       return code
     },

@@ -131,4 +131,39 @@ describe('useWsRequest request correlation', function () {
       expect(firstRequestId).not.toBe(secondRequestId)
     })
   })
+
+  it('rejects only the correlated request when the server returns an error', function () {
+    const request = useWsRequest<CreateMockPayload, RequestResult>({
+      sendType: WSMessageType.MOCK_CREATE,
+      responseType: WSMessageType.MOCK_CREATED,
+    })
+
+    const firstPromise = request({ method: 'GET', url: '/api/first' })
+    const secondPromise = request({ method: 'GET', url: '/api/second' })
+    const firstRequestId = fakeWsClient.send.mock.calls[0]![2]
+    const secondRequestId = fakeWsClient.send.mock.calls[1]![2]
+
+    emitResponse(
+      WSMessageType.ERROR,
+      { message: 'Mock rule already exists' },
+      firstRequestId,
+    )
+    emitResponse(
+      WSMessageType.MOCK_CREATED,
+      { request: 'second' },
+      secondRequestId,
+    )
+
+    return Promise.all([
+      expect(firstPromise).rejects.toThrow('Mock rule already exists'),
+      expect(secondPromise).resolves.toEqual({ request: 'second' }),
+    ]).then(function () {
+      expect(fakeWsClient.handlers.get(WSMessageType.ERROR)).toEqual(
+        new Set<WSHandler>(),
+      )
+      expect(fakeWsClient.handlers.get(WSMessageType.MOCK_CREATED)).toEqual(
+        new Set<WSHandler>(),
+      )
+    })
+  })
 })

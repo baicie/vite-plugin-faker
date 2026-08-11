@@ -6,6 +6,9 @@ const external = [...Object.keys({})]
 const sharedConfig = defineConfig({
   input: 'src/index.ts',
   external,
+  transform: {
+    target: 'es2015',
+  },
 })
 
 const esmConfig = defineConfig({

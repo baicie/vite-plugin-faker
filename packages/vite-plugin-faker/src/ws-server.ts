@@ -165,12 +165,22 @@ export class WSServer {
         this.broadcastMockConfigs()
       })
 
+      this.eventBus.on(EventBusType.DB_REQUEST_SAVED, event => {
+        this.broadcast({
+          type: WSMessageType.REQUEST_RECORDED,
+          data: event.data,
+        })
+      })
+
       this.eventBus.on(EventBusType.DB_SETTINGS_UPDATED, event => {
         logger.debug('[Faker] 设置已更新:', event.data)
       })
 
       this.eventBus.on(EventBusType.DB_CACHE_CLEARED, () => {
-        logger.debug('[Faker] 缓存已清除')
+        this.broadcast({
+          type: WSMessageType.REQUEST_CLEARED,
+          data: { success: true },
+        })
       })
     }
   }
@@ -227,8 +237,9 @@ export class WSServer {
         if (client && client.readyState === 1) {
           client.send(JSON.stringify(message))
         }
+      } else if (client && typeof client.send === 'function') {
+        client.send(FAKER_WEBSOCKET_SYMBOL, message)
       } else {
-        // Vite 模式
         this.viteServer?.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
       }
     } catch (error) {

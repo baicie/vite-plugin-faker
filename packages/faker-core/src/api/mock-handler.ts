@@ -153,27 +153,20 @@ export class MockHandler {
   handleImport(data: { items: MockConfig[] } | MockConfig[]): WSMessage {
     try {
       const mocksDB = this.dbManager.getMocksDB()
-      let successCount = 0
+      const items = Array.isArray(data)
+        ? data
+        : data && data.items
+          ? data.items
+          : []
+      const imported = mocksDB.importMocks(items)
 
-      const items = Array.isArray(data) ? data : data?.items || []
-
-      for (const mock of items) {
-        try {
-          // 确保必要的字段存在
-          if ((mock as any).url && (mock as any).method) {
-            mocksDB.addMock(mock)
-            successCount++
-            // 触发单个 Mock 变更事件，以便通知其他客户端
-            this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
-          }
-        } catch (e) {
-          logger.warn(`[Faker] 导入 Mock 失败: ${(mock as any).url}`, e)
-        }
+      for (const mock of imported) {
+        this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
       }
 
       return {
         type: WSMessageType.MOCK_IMPORTED,
-        data: { success: true, count: successCount },
+        data: { success: true, count: imported.length },
       }
     } catch (error) {
       logger.error('[Faker] 导入 Mock 失败:', error)

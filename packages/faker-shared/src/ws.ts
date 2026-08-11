@@ -19,6 +19,17 @@ interface ImportMetaWithHot {
 
 export type FakerWebSocket = FakerHotContext | WebSocket | undefined
 
+export type WSConnectionStatus =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'disconnected'
+  | 'closed'
+
+export interface WSStatusHandler {
+  (status: WSConnectionStatus): void
+}
+
 export function isViteHot(ws: FakerWebSocket): ws is FakerHotContext {
   return !!ws && typeof (ws as FakerHotContext).accept === 'function'
 }
@@ -37,22 +48,34 @@ export class WSClient {
   private baseReconnectDelay = 1000
   private maxReconnectDelay = 30000
   private handlers: Map<WSMessageType, Set<Function>> = new Map()
+  private statusHandlers: Set<WSStatusHandler> = new Set()
+  private status: WSConnectionStatus = 'disconnected'
+  private pendingMessages: WSMessage[] = []
+  private maxPendingMessages = 100
+  private reconnectTimer: ReturnType<typeof setTimeout> | undefined
   private isConnecting = false
   private destroyed = false
   private logger: FakerLogger
+  private hotContext: FakerHotContext | undefined
 
-  constructor(wsUrl: string, logger: FakerLogger) {
+  constructor(
+    wsUrl: string,
+    logger: FakerLogger,
+    hotContext?: FakerHotContext,
+  ) {
     this.wsUrl = wsUrl
     this.logger = logger
+    this.hotContext = hotContext
     this.connect()
   }
 
   private connect(): void {
-    if (this.isConnecting) {
+    if (this.destroyed || this.isConnecting) {
       return
     }
 
     this.isConnecting = true
+    this.setStatus(this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting')
 
     try {
       if (!this.wsUrl) {
@@ -63,6 +86,8 @@ export class WSClient {
 
       if (!this.ws) {
         this.logger.error('interceptor error: websocket faile')
+        this.isConnecting = false
+        this.setStatus('disconnected')
         return
       }
 
@@ -70,6 +95,8 @@ export class WSClient {
         this.ws.onopen = () => {
           this.isConnecting = false
           this.reconnectAttempts = 0
+          this.setStatus('connected')
+          this.flushPendingMessages()
           this.logger.info('WebSocket 连接成功')
         }
 
@@ -97,21 +124,30 @@ export class WSClient {
         this.ws.onerror = error => {
           this.logger.error('WebSocket 错误:', error)
           this.isConnecting = false
+          this.setStatus('disconnected')
         }
 
         this.ws.onclose = () => {
           this.isConnecting = false
           this.ws = undefined
+          if (!this.destroyed) {
+            this.setStatus('disconnected')
+          }
           this.attemptReconnect()
         }
       } else if (isViteHot(this.ws)) {
+        this.isConnecting = false
+        this.setStatus('connected')
         this.ws.on(FAKER_WEBSOCKET_SYMBOL, (message: WSMessage) => {
           this.handleMessage(message)
         })
+        this.flushPendingMessages()
       }
     } catch (error) {
       this.logger.error('WebSocket 连接失败:', error)
       this.isConnecting = false
+      this.setStatus('disconnected')
+      this.attemptReconnect()
     }
   }
 
@@ -134,10 +170,53 @@ export class WSClient {
     this.logger.info(
       `${Math.round(delay)}ms 后尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
     )
+    this.setStatus('reconnecting')
 
-    setTimeout(() => {
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined
       this.connect()
     }, delay)
+  }
+
+  private setStatus(status: WSConnectionStatus): void {
+    if (this.status === status) return
+    this.status = status
+    this.statusHandlers.forEach(function (handler) {
+      handler(status)
+    })
+  }
+
+  private queueMessage(message: WSMessage): void {
+    if (this.pendingMessages.length >= this.maxPendingMessages) {
+      this.pendingMessages.shift()
+      this.logger.warn(
+        'WebSocket message queue is full; dropping oldest message',
+      )
+    }
+    this.pendingMessages.push(message)
+  }
+
+  private flushPendingMessages(): void {
+    if (this.destroyed || this.pendingMessages.length === 0) return
+
+    if (isViteHot(this.ws)) {
+      const pending = this.pendingMessages.splice(0)
+      for (const message of pending) {
+        this.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      }
+      return
+    }
+
+    if (
+      this.ws &&
+      isWebSocket(this.ws) &&
+      this.ws.readyState === WebSocket.OPEN
+    ) {
+      const pending = this.pendingMessages.splice(0)
+      for (const message of pending) {
+        this.ws.send(JSON.stringify(message))
+      }
+    }
   }
 
   private handleMessage(message: WSMessage): void {
@@ -156,46 +235,41 @@ export class WSClient {
   }
 
   private messageGrid(): void {
+    if (this.ws || this.wsUrl) {
+      return
+    }
+    if (this.hotContext) {
+      this.ws = this.hotContext
+      return
+    }
     const hot = (import.meta as ImportMeta & ImportMetaWithHot).hot
-    if (!this.ws && !this.wsUrl && hot) {
+    if (hot) {
       this.ws = hot
     }
   }
 
   send<T = any>(type: WSMessageType, data?: T, id?: string): void {
     this.logger.debug('ws send start', type, data)
+    if (this.destroyed) {
+      this.logger.warn('WebSocket client is closed; ignoring message')
+      return
+    }
+
     try {
       this.messageGrid()
       const message: WSMessage = { type, data, id }
       if (isViteHot(this.ws)) {
         this.ws.send(FAKER_WEBSOCKET_SYMBOL, message)
+      } else if (
+        this.ws &&
+        isWebSocket(this.ws) &&
+        this.ws.readyState === WebSocket.OPEN
+      ) {
+        this.ws.send(JSON.stringify(message))
       } else {
-        this.logger.debug('ws send', message)
-        const sendMsg = () => {
-          if (
-            this.ws &&
-            isWebSocket(this.ws) &&
-            this.ws.readyState === WebSocket.OPEN
-          ) {
-            this.ws.send(JSON.stringify(message))
-          } else {
-            // Check if connection is still possible
-            if (
-              !this.ws ||
-              (isWebSocket(this.ws) &&
-                (this.ws.readyState === WebSocket.CLOSED ||
-                  this.ws.readyState === WebSocket.CLOSING))
-            ) {
-              this.logger.warn(
-                'WebSocket connection lost, attempting to reconnect...',
-              )
-              this.connect()
-            }
-            this.logger.warn('WebSocket not ready, queuing message')
-            setTimeout(sendMsg, 1000)
-          }
-        }
-        sendMsg()
+        this.queueMessage(message)
+        this.logger.warn('WebSocket not ready, queuing message')
+        if (!this.isConnecting) this.connect()
       }
     } catch (error) {
       this.logger.error('message send error:', error)
@@ -222,11 +296,30 @@ export class WSClient {
     }
   }
 
+  getStatus(): WSConnectionStatus {
+    return this.status
+  }
+
+  onStatus(handler: WSStatusHandler): void {
+    this.statusHandlers.add(handler)
+    handler(this.status)
+  }
+
+  offStatus(handler: WSStatusHandler): void {
+    this.statusHandlers.delete(handler)
+  }
+
   /**
    * 关闭连接并禁止自动重连
    */
   close(): void {
     this.destroyed = true
+    if (this.reconnectTimer !== undefined) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = undefined
+    }
+    this.pendingMessages = []
+    this.setStatus('closed')
     if (this.ws && isWebSocket(this.ws)) {
       this.ws.close()
       this.ws = undefined

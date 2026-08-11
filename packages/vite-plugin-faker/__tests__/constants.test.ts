@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
 import { INTERCEPTOR_PATH, UI_CSS, UI_ENTRY } from '../src/constants'
+import { viteFaker } from '../src/index'
 
 const require = createRequire(import.meta.url)
 
@@ -15,5 +16,19 @@ describe('plugin asset resolution', () => {
     expect(existsSync(UI_ENTRY)).toBe(true)
     expect(existsSync(UI_CSS)).toBe(true)
     expect(existsSync(INTERCEPTOR_PATH)).toBe(true)
+  })
+
+  it('injects the Vite HMR transport into the UI asset', () => {
+    const transform = viteFaker().transform
+    if (typeof transform !== 'function') {
+      throw new Error('Expected a Vite transform hook')
+    }
+
+    const transformed: unknown = Reflect.apply(transform, {}, [
+      'const hotContext = __FAKER_HOT_CONTEXT__',
+      UI_ENTRY,
+    ])
+
+    expect(transformed).toBe('const hotContext = import.meta.hot')
   })
 })
