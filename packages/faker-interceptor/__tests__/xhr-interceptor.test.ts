@@ -120,7 +120,8 @@ describe('XHRInterceptor', () => {
     ;(xhr as unknown as FakeXHR).configure({
       status: 200,
       responseText: JSON.stringify({ ok: true }),
-      headers: 'content-type: application/json\r\nx-mock-id: users-post\r\n',
+      headers:
+        'content-type: application/json\r\nx-mock-id: users-post\r\nx-mock-source: static\r\n',
     })
     xhr.send(JSON.stringify({ name: 'Ada' }))
 
@@ -134,6 +135,7 @@ describe('XHRInterceptor', () => {
         body: { name: 'Ada' },
         isMocked: true,
         mockId: 'users-post',
+        mockSource: 'static',
       }),
     )
   })

@@ -85,6 +85,13 @@ const ZH_CN: { [key: string]: string } = {
   'Response headers': '响应头',
   'Response body': '响应体',
   'Network response': '网络响应',
+  'Response source': '响应来源',
+  'Replay request': '重放请求',
+  'Replaying...': '正在重放...',
+  'Replay {{method}} request? It may change data.':
+    '确定重放 {{method}} 请求吗？这可能会修改数据。',
+  'Replay completed: HTTP {{status}}': '重放完成：HTTP {{status}}',
+  'Replay failed: {{error}}': '重放失败：{{error}}',
   Request: '请求',
   Response: '响应',
   'Request detail views': '请求详情视图',

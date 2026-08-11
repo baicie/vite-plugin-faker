@@ -75,6 +75,7 @@ const firstRecord: RequestRecord = {
   duration: 18,
   isMocked: true,
   mockId: 'mock-1',
+  mockSource: 'static',
   timestamp: 1000,
 }
 
@@ -139,11 +140,13 @@ function submitSearch(target: Element): void {
 describe('TrafficWorkspace', function () {
   let target: HTMLDivElement
   let dispose: () => void
+  let originalFetch: typeof window.fetch
 
   beforeEach(function () {
     target = document.createElement('div')
     document.body.appendChild(target)
     dispose = function () {}
+    originalFetch = window.fetch
     vi.clearAllMocks()
     requestApi.clearRequestHistory.mockResolvedValue({ success: true })
     requestApi.fetchRequestHistory.mockResolvedValue(
@@ -153,6 +156,7 @@ describe('TrafficWorkspace', function () {
 
   afterEach(function () {
     dispose()
+    window.fetch = originalFetch
     document.body.innerHTML = ''
     vi.restoreAllMocks()
   })
@@ -203,6 +207,99 @@ describe('TrafficWorkspace', function () {
       getButton(target, 'Create rule from request').click()
       expect(onCreateRule).toHaveBeenCalledWith(secondRecord)
     })
+  })
+
+  it('replays the selected request with its method and headers', function () {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }))
+    window.fetch = fetchMock
+    const client = new FakeTrafficClient()
+
+    dispose = render(function () {
+      return TrafficWorkspace({ client, onCreateRule: function () {} })
+    }, target)
+
+    return settle()
+      .then(function () {
+        const firstRow = target.querySelector<HTMLElement>(
+          '[data-request-id="request-1"]',
+        )
+        if (!firstRow) {
+          throw new Error('Expected the first traffic row')
+        }
+        firstRow.click()
+        getButton(target, 'Replay request').click()
+        return settle()
+      })
+      .then(function () {
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/users?limit=10',
+          expect.objectContaining({
+            method: 'GET',
+            headers: { accept: 'application/json' },
+          }),
+        )
+        expect(target.querySelector('.traffic-detail')?.textContent).toContain(
+          'Replay completed: HTTP 204',
+        )
+      })
+  })
+
+  it('asks for confirmation before replaying a mutating request', function () {
+    const fetchMock = vi.fn()
+    window.fetch = fetchMock
+    const confirmMock = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const client = new FakeTrafficClient()
+
+    dispose = render(function () {
+      return TrafficWorkspace({ client, onCreateRule: function () {} })
+    }, target)
+
+    return settle().then(function () {
+      const secondRow = target.querySelector<HTMLElement>(
+        '[data-request-id="request-2"]',
+      )
+      if (!secondRow) {
+        throw new Error('Expected the second traffic row')
+      }
+      secondRow.click()
+      getButton(target, 'Replay request').click()
+
+      expect(confirmMock).toHaveBeenCalledWith(
+        'Replay POST request? It may change data.',
+      )
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+  })
+
+  it('shows a failure message when replay cannot reach the target', function () {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('offline'))
+    window.fetch = fetchMock
+    const client = new FakeTrafficClient()
+
+    dispose = render(function () {
+      return TrafficWorkspace({ client, onCreateRule: function () {} })
+    }, target)
+
+    return settle()
+      .then(function () {
+        const firstRow = target.querySelector<HTMLElement>(
+          '[data-request-id="request-1"]',
+        )
+        if (!firstRow) {
+          throw new Error('Expected the first traffic row')
+        }
+        firstRow.click()
+        getButton(target, 'Replay request').click()
+        return settle()
+      })
+      .then(function () {
+        expect(fetchMock).toHaveBeenCalledTimes(1)
+        expect(target.querySelector('.traffic-detail')?.textContent).toContain(
+          'Replay failed: offline',
+        )
+      })
   })
 
   it('searches, refreshes, and changes pages with the active query', function () {

@@ -899,6 +899,27 @@
   line-height: 20px;
 }
 
+.traffic-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.traffic-replay-feedback {
+  margin: 0 13px 8px;
+  color: var(--studio-muted);
+  font-size: 10px;
+}
+
+.traffic-replay-feedback[data-state='success'] {
+  color: var(--studio-green);
+}
+
+.traffic-replay-feedback[data-state='error'] {
+  color: var(--studio-red);
+}
+
 .traffic-refreshing {
   color: var(--studio-amber);
   font-size: 11px;

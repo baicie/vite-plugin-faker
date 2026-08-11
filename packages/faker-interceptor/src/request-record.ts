@@ -1,3 +1,5 @@
+import type { MockType } from '@baicie/faker-shared'
+
 export interface RequestLocation {
   url: string
   query: Record<string, string>
@@ -6,7 +8,17 @@ export interface RequestLocation {
 export interface MockResponseMarker {
   isMocked: boolean
   mockId?: string
+  mockSource?: MockType
 }
+
+const MOCK_RESPONSE_SOURCES: MockType[] = [
+  'static',
+  'proxy',
+  'template',
+  'function',
+  'error',
+  'stateful',
+]
 
 export function headersToObject(headers: Headers): Record<string, string> {
   const result: Record<string, string> = {}
@@ -130,8 +142,16 @@ export function getMockResponseMarker(
   headers: Record<string, string>,
 ): MockResponseMarker {
   const mockId = headers['x-mock-id'] || headers['X-Mock-Id']
+  const source = headers['x-mock-source'] || headers['X-Mock-Source']
   if (!mockId || mockId === 'unknown') {
     return { isMocked: false }
   }
-  return { isMocked: true, mockId }
+  return {
+    isMocked: true,
+    mockId,
+    mockSource:
+      MOCK_RESPONSE_SOURCES.indexOf(source as MockType) >= 0
+        ? (source as MockType)
+        : undefined,
+  }
 }

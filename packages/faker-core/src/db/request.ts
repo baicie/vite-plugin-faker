@@ -91,6 +91,7 @@ export class RequestsDB extends BaseDB<Record<string, RequestItem>> {
       duration: item.duration,
       isMocked: item.req ? (item.req as any).isMocked : undefined,
       mockId: item.req ? (item.req as any).mockId : undefined,
+      mockSource: item.req ? (item.req as any).mockSource : undefined,
       timestamp: item.timestamp || Date.now(),
     }
   }

@@ -86,6 +86,7 @@ export interface RequestRecord {
   duration?: number
   isMocked?: boolean
   mockId?: string
+  mockSource?: MockType
   timestamp: number
 }
 //#endregion

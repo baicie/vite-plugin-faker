@@ -119,6 +119,7 @@ describe('FetchInterceptor', () => {
           expect.objectContaining({
             isMocked: true,
             mockId: 'users-post',
+            mockSource: 'static',
             response: expect.objectContaining({ statusCode: 201 }),
           }),
         )

@@ -1,6 +1,6 @@
-import type { RequestRecord } from '@baicie/faker-shared'
+import type { MockType, RequestRecord } from '@baicie/faker-shared'
 import { state } from '@zeus-js/zeus'
-import { dynamic } from '../lib/zeus'
+import { dynamic, getErrorMessage } from '../lib/zeus'
 import { formatDuration, formatTrafficValue } from './traffic-utils'
 import { t } from '../i18n'
 
@@ -10,6 +10,7 @@ export interface TrafficDetailProps {
 }
 
 type DetailTab = 'request' | 'response'
+type ReplayStatus = 'idle' | 'replaying' | 'success' | 'error'
 
 interface TabChangeDetail {
   value: string
@@ -26,6 +27,42 @@ function readTab(event: Event): DetailTab {
 function methodLabel(record: RequestRecord): string {
   const method = record.method.trim().toUpperCase()
   return method || 'GET'
+}
+
+function mockSourceLabel(source: MockType): string {
+  return t(source.charAt(0).toUpperCase() + source.slice(1))
+}
+
+function replayHeaders(record: RequestRecord): Record<string, string> {
+  const headers: Record<string, string> = {}
+  const blockedHeaders = [
+    'connection',
+    'content-length',
+    'cookie',
+    'host',
+    'keep-alive',
+    'transfer-encoding',
+  ]
+  Object.keys(record.headers).forEach(function (key) {
+    if (blockedHeaders.indexOf(key.toLowerCase()) === -1) {
+      headers[key] = record.headers[key]
+    }
+  })
+  return headers
+}
+
+function replayBody(record: RequestRecord): BodyInit | undefined {
+  const method = record.method.trim().toUpperCase() || 'GET'
+  if (method === 'GET' || method === 'HEAD') {
+    return undefined
+  }
+  if (record.body === undefined || record.body === null) {
+    return undefined
+  }
+  if (typeof record.body === 'string') {
+    return record.body
+  }
+  return JSON.stringify(record.body)
 }
 
 function statusLabel(record: RequestRecord): string {
@@ -132,6 +169,51 @@ function renderResponseTab(record: RequestRecord): JSX.Element {
 
 export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
   const selectedTab = state<DetailTab>('request')
+  const replayStatus = state<ReplayStatus>('idle')
+  const replayMessage = state('')
+
+  function replayRequest(record: RequestRecord): void {
+    const method = record.method.trim().toUpperCase() || 'GET'
+    if (
+      method !== 'GET' &&
+      method !== 'HEAD' &&
+      !window.confirm(
+        t('Replay {{method}} request? It may change data.', { method }),
+      )
+    ) {
+      return
+    }
+
+    let body: BodyInit | undefined
+    try {
+      body = replayBody(record)
+    } catch (error: unknown) {
+      replayStatus.value = 'error'
+      replayMessage.value = getErrorMessage(error)
+      return
+    }
+
+    replayStatus.value = 'replaying'
+    replayMessage.value = ''
+    window
+      .fetch(record.url, {
+        method,
+        headers: replayHeaders(record),
+        body,
+      })
+      .then(function (response) {
+        replayStatus.value = 'success'
+        replayMessage.value = t('Replay completed: HTTP {{status}}', {
+          status: response.status,
+        })
+      })
+      .catch(function (error: unknown) {
+        replayStatus.value = 'error'
+        replayMessage.value = t('Replay failed: {{error}}', {
+          error: getErrorMessage(error),
+        })
+      })
+  }
 
   return (
     <aside class="traffic-detail" aria-labelledby="traffic-detail-title">
@@ -145,18 +227,42 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
             return null
           }
           return (
-            <zw-button
-              variant="primary"
-              size="sm"
-              aria-label={t('Create rule from request')}
-              onClick={function () {
-                if (props.record) {
-                  props.onCreateRule(props.record)
-                }
-              }}
-            >
-              {t('Create rule')}
-            </zw-button>
+            <div class="traffic-detail-actions">
+              <zw-button
+                variant="outline"
+                size="sm"
+                aria-label={t('Replay request')}
+                loading={function () {
+                  return replayStatus.value === 'replaying'
+                }}
+                disabled={function () {
+                  return replayStatus.value === 'replaying'
+                }}
+                onClick={function () {
+                  if (props.record) {
+                    replayRequest(props.record)
+                  }
+                }}
+              >
+                {dynamic(function () {
+                  return replayStatus.value === 'replaying'
+                    ? t('Replaying...')
+                    : t('Replay request')
+                })}
+              </zw-button>
+              <zw-button
+                variant="primary"
+                size="sm"
+                aria-label={t('Create rule from request')}
+                onClick={function () {
+                  if (props.record) {
+                    props.onCreateRule(props.record)
+                  }
+                }}
+              >
+                {t('Create rule')}
+              </zw-button>
+            </div>
           )
         })}
       </header>
@@ -198,8 +304,29 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
               <span>
                 {record.isMocked ? t('Mock hit') : t('Network response')}
               </span>
+              {record.mockSource ? (
+                <code>
+                  {t('Response source') +
+                    ': ' +
+                    mockSourceLabel(record.mockSource)}
+                </code>
+              ) : null}
               {record.mockId ? <code>#{record.mockId}</code> : null}
             </div>
+            {dynamic(function () {
+              if (replayStatus.value === 'idle') {
+                return null
+              }
+              return (
+                <p
+                  class="traffic-replay-feedback"
+                  data-state={replayStatus.value}
+                  role={replayStatus.value === 'error' ? 'alert' : 'status'}
+                >
+                  {replayMessage.value}
+                </p>
+              )
+            })}
 
             <zw-tabs
               value={function () {

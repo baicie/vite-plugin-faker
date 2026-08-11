@@ -82,6 +82,7 @@ export class RequestHandler {
         body: record.body,
         mockId: record.mockId,
         isMocked: record.isMocked,
+        mockSource: record.mockSource,
       },
       res: record.response
         ? {

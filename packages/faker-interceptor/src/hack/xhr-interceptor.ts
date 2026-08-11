@@ -110,6 +110,7 @@ export class XHRInterceptor {
         duration,
         isMocked: marker.isMocked,
         mockId: marker.mockId,
+        mockSource: marker.mockSource,
         timestamp: Date.now(),
       }
       this.sendRequestRecord(record)

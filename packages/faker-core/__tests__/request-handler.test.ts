@@ -78,6 +78,7 @@ describe('RequestHandler request history', () => {
         method: 'GET',
         headers: {},
         isMocked: false,
+        mockSource: undefined,
         timestamp: 100,
       })
       .then(() => {
@@ -86,6 +87,35 @@ describe('RequestHandler request history', () => {
         expect(history.data.items[0]).toMatchObject({
           isMocked: false,
           mockId: undefined,
+          mockSource: undefined,
+        })
+      })
+  })
+
+  it('persists the explicit mock response source', () => {
+    const requestsDB = createRequestsDB()
+    const dbManager = {
+      getRequestsDB: () => requestsDB,
+      getMocksDB: () => ({ findMock: vi.fn() }),
+    } as unknown as DBManager
+    const handler = new RequestHandler(dbManager, { emit: vi.fn() })
+
+    return handler
+      .handleRecorded({
+        url: '/api/users',
+        method: 'GET',
+        headers: {},
+        isMocked: true,
+        mockId: 'users-get',
+        mockSource: 'template',
+        timestamp: 100,
+      })
+      .then(() => {
+        const history = handler.handleHistory()
+        expect(history.data.items[0]).toMatchObject({
+          isMocked: true,
+          mockId: 'users-get',
+          mockSource: 'template',
         })
       })
   })
