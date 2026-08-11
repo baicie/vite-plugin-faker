@@ -9,6 +9,7 @@ import {
   getErrorMessage,
   readInputValue,
 } from '../lib/zeus'
+import { t } from '../i18n'
 import {
   createRuleConfig,
   createRuleEditorDraft,
@@ -91,7 +92,7 @@ function setText(
 function renderFieldLabel(text: string, required = false): JSX.Element {
   return (
     <span class="rule-field-label">
-      <span>{text}</span>
+      <span>{t(text)}</span>
       {required ? <em aria-hidden="true">*</em> : null}
     </span>
   )
@@ -111,7 +112,7 @@ function renderTextInput(
         value={function () {
           return draft[field]
         }}
-        placeholder={placeholder}
+        placeholder={t(placeholder)}
         onValue-change={function (event: Event) {
           setText(draft, field, readValueChange(event))
         }}
@@ -144,7 +145,7 @@ function renderJsonEditor(
           setText(draft, field, value)
         }}
       />
-      <small class="rule-field-hint">{description}</small>
+      <small class="rule-field-hint">{t(description)}</small>
     </div>
   )
 }
@@ -163,7 +164,7 @@ function renderTypeOptions(): JSX.Element[] {
   return RULE_TYPES.map(function (item) {
     return (
       <option value={item.value} key={item.value}>
-        {item.label}
+        {t(item.label)}
       </option>
     )
   })
@@ -174,11 +175,11 @@ function renderCommonFields(draft: RuleEditorDraft): JSX.Element {
     <div class="rule-editor-section" data-section="common">
       <div class="rule-editor-section-heading">
         <div>
-          <span class="rule-editor-kicker">Rule identity</span>
-          <h3>Request contract</h3>
+          <span class="rule-editor-kicker">{t('Rule identity')}</span>
+          <h3>{t('Request contract')}</h3>
         </div>
         <span class="rule-editor-section-note">
-          Shared by every response mode
+          {t('Shared by every response mode')}
         </span>
       </div>
       <div class="rule-fields-grid">
@@ -225,15 +226,17 @@ function renderCommonFields(draft: RuleEditorDraft): JSX.Element {
           checked={function () {
             return draft.enabled
           }}
-          aria-label="Enable rule"
+          aria-label={t('Enable rule')}
           onChecked-change={function (event: Event) {
             draft.enabled = readCheckedChange(event)
           }}
         />
         <span>
-          <strong>Rule enabled</strong>
+          <strong>{t('Rule enabled')}</strong>
           <small>
-            Disabled rules stay in the registry but never intercept traffic.
+            {t(
+              'Disabled rules stay in the registry but never intercept traffic.',
+            )}
           </small>
         </span>
       </label>
@@ -249,11 +252,11 @@ function renderResponseFields(
     <div class="rule-editor-section" data-section="response">
       <div class="rule-editor-section-heading">
         <div>
-          <span class="rule-editor-kicker">Response strategy</span>
-          <h3>What should the client receive?</h3>
+          <span class="rule-editor-kicker">{t('Response strategy')}</span>
+          <h3>{t('What should the client receive?')}</h3>
         </div>
         <span class="rule-editor-section-note">
-          The interceptor applies this server-side
+          {t('The interceptor applies this server-side')}
         </span>
       </div>
       <label class="rule-field rule-field-wide">
@@ -298,24 +301,24 @@ function renderResponseFields(
                   checked={function () {
                     return draft.rewriteHeaders
                   }}
-                  aria-label="Rewrite response headers"
+                  aria-label={t('Rewrite response headers')}
                   onChecked-change={function (event: Event) {
                     draft.rewriteHeaders = readCheckedChange(event)
                   }}
                 />
-                <span>Pass through response headers</span>
+                <span>{t('Pass through response headers')}</span>
               </label>
               <label class="rule-toggle-row compact">
                 <zw-switch
                   checked={function () {
                     return draft.rewriteStatus
                   }}
-                  aria-label="Rewrite response status"
+                  aria-label={t('Rewrite response status')}
                   onChecked-change={function (event: Event) {
                     draft.rewriteStatus = readCheckedChange(event)
                   }}
                 />
-                <span>Pass through response status</span>
+                <span>{t('Pass through response status')}</span>
               </label>
             </div>
           )
@@ -358,7 +361,7 @@ function renderResponseFields(
                     return draft.handlerSource
                   }}
                   language="javascript"
-                  ariaLabel="Handler source"
+                  ariaLabel={t('Handler source')}
                   theme={function () {
                     return theme() === 'dark' ? 'vs-dark' : 'vs'
                   }}
@@ -368,8 +371,9 @@ function renderResponseFields(
                   }}
                 />
                 <small class="rule-field-hint">
-                  The function receives the request context and returns a
-                  response object.
+                  {t(
+                    'The function receives the request context and returns a response object.',
+                  )}
                 </small>
               </div>
             </div>
@@ -465,10 +469,12 @@ function renderMatchingFields(
     <div class="rule-editor-section" data-section="matching">
       <div class="rule-editor-section-heading">
         <div>
-          <span class="rule-editor-kicker">Advanced matching</span>
-          <h3>Match beyond method and path</h3>
+          <span class="rule-editor-kicker">{t('Advanced matching')}</span>
+          <h3>{t('Match beyond method and path')}</h3>
         </div>
-        <span class="rule-editor-section-note">Optional JSON contract</span>
+        <span class="rule-editor-section-note">
+          {t('Optional JSON contract')}
+        </span>
       </div>
       {renderJsonEditor(
         draft,
@@ -480,7 +486,7 @@ function renderMatchingFields(
       <div class="rule-matching-example">
         <zw-icon-info size="16" aria-hidden="true" />
         <span>
-          Example:{' '}
+          {t('Example') + ': '}
           {`{"query":[{"key":"tenant","operator":"equals","value":"acme"}]}`}
         </span>
       </div>
@@ -498,7 +504,7 @@ function renderErrors(view: RuleEditorState): JSX.Element {
         <zw-icon-alert-triangle size="16" aria-hidden="true" />
         <ul>
           {view.errors.map(function (error) {
-            return <li key={error}>{error}</li>
+            return <li key={error}>{t(error)}</li>
           })}
         </ul>
       </div>
@@ -581,21 +587,26 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
           <aside class="rule-editor">
             <header class="rule-editor-header">
               <div>
-                <span class="rule-editor-kicker">Faker Studio / Rules</span>
+                <span class="rule-editor-kicker">
+                  {t('Faker Studio / Rules')}
+                </span>
                 <zw-dialog-title>
                   <h2 id="rule-editor-title">
-                    {props.create || !props.rule ? 'Create rule' : 'Edit rule'}
+                    {t(
+                      props.create || !props.rule ? 'Create rule' : 'Edit rule',
+                    )}
                   </h2>
                 </zw-dialog-title>
                 <zw-dialog-description class="sr-only">
-                  Configure request matching and the response returned by this
-                  mock rule.
+                  {t(
+                    'Configure request matching and the response returned by this mock rule.',
+                  )}
                 </zw-dialog-description>
               </div>
               <zw-button
                 variant="ghost"
                 size="icon"
-                aria-label="Close rule editor"
+                aria-label={t('Close rule editor')}
                 ref={function (element: HTMLElement | null): void {
                   closeControl = element
                 }}
@@ -610,7 +621,7 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
               <div
                 class="rule-editor-tabs"
                 role="tablist"
-                aria-label="Rule sections"
+                aria-label={t('Rule sections')}
               >
                 <zw-button
                   type="button"
@@ -622,7 +633,7 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
                     setSection('response')
                   }}
                 >
-                  Response
+                  {t('Response')}
                 </zw-button>
                 <zw-button
                   type="button"
@@ -634,7 +645,7 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
                     setSection('matching')
                   }}
                 >
-                  Matching
+                  {t('Matching')}
                 </zw-button>
               </div>
               <div class="rule-editor-scroll">
@@ -659,7 +670,7 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
                       if (!view.saving) props.onCancel()
                     }}
                   >
-                    Cancel
+                    {t('Cancel')}
                   </zw-button>
                   <zw-button
                     type="submit"
@@ -673,7 +684,7 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
                   >
                     <span>
                       {dynamic(function () {
-                        return view.saving ? 'Saving...' : 'Save rule'
+                        return view.saving ? t('Saving...') : t('Save rule')
                       })}
                     </span>
                   </zw-button>

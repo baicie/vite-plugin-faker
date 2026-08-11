@@ -15,6 +15,7 @@ import {
 } from '../api'
 import type { FakerTheme } from '../api/setting'
 import { dynamic, focusZeusControl, getErrorMessage } from '../lib/zeus'
+import { t } from '../i18n'
 import RuleEditor from './rule-editor'
 import { getRuleIdentity } from './rule-editor-utils'
 import { parseOpenApiImport } from './openapi-import-utils'
@@ -103,21 +104,21 @@ function getTotalPages(page: Page<MockConfig>): number {
 }
 
 function formatRuleType(type: MockConfig['type']): string {
-  if (type === 'stateful') return 'Stateful'
-  if (type === 'template') return 'Template'
-  if (type === 'function') return 'Function'
-  if (type === 'proxy') return 'Proxy'
-  if (type === 'error') return 'Error'
-  return 'Static'
+  if (type === 'stateful') return t('Stateful')
+  if (type === 'template') return t('Template')
+  if (type === 'function') return t('Function')
+  if (type === 'proxy') return t('Proxy')
+  if (type === 'error') return t('Error')
+  return t('Static')
 }
 
 function renderGroupOptions(groups: string[]): JSX.Element[] {
   const options: JSX.Element[] = [
     <option value="" key="all">
-      All groups
+      {t('All groups')}
     </option>,
     <option value="__none__" key="ungrouped">
-      Ungrouped
+      {t('Ungrouped')}
     </option>,
   ]
   groups.forEach(function (group) {
@@ -132,7 +133,7 @@ function renderGroupOptions(groups: string[]): JSX.Element[] {
 
 function renderTags(rule: MockConfig): JSX.Element {
   if (!rule.tags || rule.tags.length === 0) {
-    return <span class="rule-table-muted">No tags</span>
+    return <span class="rule-table-muted">{t('No tags')}</span>
   }
   return (
     <span class="rule-tags">
@@ -389,8 +390,10 @@ export default function RulesWorkspace(
         view.importProgress = result.count
         if (!result.success || result.count !== expectedCount) {
           view.importStatus = 'error'
-          view.importError =
-            'Imported ' + result.count + ' of ' + expectedCount + ' rules.'
+          view.importError = t('Imported {{count}} of {{total}} rules.', {
+            count: result.count,
+            total: expectedCount,
+          })
           return
         }
         refreshWorkspace()
@@ -402,7 +405,9 @@ export default function RulesWorkspace(
           return
         }
         view.importStatus = 'error'
-        view.importError = 'Import failed: ' + getErrorMessage(error)
+        view.importError = t('Import failed: {{error}}', {
+          error: getErrorMessage(error),
+        })
       },
     )
   }
@@ -410,7 +415,7 @@ export default function RulesWorkspace(
   function handleToggle(rule: MockConfig, enabled: boolean): void {
     const id = rule.id
     if (!id || view.pendingId) {
-      if (!id) view.error = 'This rule has no persistent ID'
+      if (!id) view.error = t('This rule has no persistent ID')
       return
     }
 
@@ -420,7 +425,7 @@ export default function RulesWorkspace(
       function (result) {
         view.pendingId = ''
         if (!result.success) {
-          view.error = 'The rule could not be updated'
+          view.error = t('The rule could not be updated')
           return
         }
         loadRules()
@@ -435,10 +440,14 @@ export default function RulesWorkspace(
   function handleDelete(rule: MockConfig): void {
     const id = rule.id
     if (!id || view.pendingId) {
-      if (!id) view.error = 'This rule has no persistent ID'
+      if (!id) view.error = t('This rule has no persistent ID')
       return
     }
-    if (!window.confirm('Delete rule "' + (rule.name || rule.url) + '"?')) {
+    if (
+      !window.confirm(
+        t('Delete rule "{{name}}"?', { name: rule.name || rule.url }),
+      )
+    ) {
       return
     }
 
@@ -448,7 +457,7 @@ export default function RulesWorkspace(
       function (result) {
         view.pendingId = ''
         if (!result.success) {
-          view.error = 'The rule could not be deleted'
+          view.error = t('The rule could not be deleted')
           return
         }
         if (view.rules.length === 1 && view.page > 1) {
@@ -509,11 +518,12 @@ export default function RulesWorkspace(
     <section class="rules-workspace" data-workspace="rules">
       <header class="workspace-toolbar rules-toolbar">
         <div class="workspace-heading">
-          <span class="studio-eyebrow">Interception registry</span>
-          <h1>Rules</h1>
+          <span class="studio-eyebrow">{t('Interception registry')}</span>
+          <h1>{t('Rules')}</h1>
           <p>
-            Define exactly which requests are intercepted and what response is
-            returned.
+            {t(
+              'Define exactly which requests are intercepted and what response is returned.',
+            )}
           </p>
         </div>
         <zw-button
@@ -526,25 +536,25 @@ export default function RulesWorkspace(
           }}
         >
           <zw-icon-plus size="16" aria-hidden="true" />
-          <span>Create rule</span>
+          <span>{t('Create rule')}</span>
         </zw-button>
         <zw-button
           variant="outline"
           onClick={openImport}
-          aria-label="Import OpenAPI"
+          aria-label={t('Import OpenAPI')}
         >
           <zw-icon-upload size="16" aria-hidden="true" />
-          <span>Import OpenAPI</span>
+          <span>{t('Import OpenAPI')}</span>
         </zw-button>
       </header>
 
       <div class="rules-filterbar">
         <label class="rules-search">
-          <span class="sr-only">Search rules</span>
+          <span class="sr-only">{t('Search rules')}</span>
           <zw-icon-search size="16" aria-hidden="true" />
           <zw-input
             type="search"
-            placeholder="Search URL, method, or description"
+            placeholder={t('Search URL, method, or description')}
             value={function () {
               return view.search
             }}
@@ -555,11 +565,11 @@ export default function RulesWorkspace(
           />
         </label>
         <label class="rules-group-filter">
-          <span class="sr-only">Filter by group</span>
+          <span class="sr-only">{t('Filter by group')}</span>
           {dynamic(function () {
             return (
               <zw-select
-                aria-label="Filter by group"
+                aria-label={t('Filter by group')}
                 value={function () {
                   return view.group
                 }}
@@ -576,7 +586,7 @@ export default function RulesWorkspace(
         </label>
         <span class="rules-result-count">
           {dynamic(function () {
-            return view.total + (view.total === 1 ? ' rule' : ' rules')
+            return view.total + ' ' + t(view.total === 1 ? 'rule' : 'rules')
           })}
         </span>
       </div>
@@ -596,7 +606,7 @@ export default function RulesWorkspace(
                 refreshWorkspace()
               }}
             >
-              Retry
+              {t('Retry')}
             </zw-button>
           </div>
         )
@@ -611,13 +621,13 @@ export default function RulesWorkspace(
         <table class="rules-table">
           <thead>
             <tr>
-              <th scope="col">Rule</th>
-              <th scope="col">Method</th>
-              <th scope="col">Response</th>
-              <th scope="col">Group / Tags</th>
-              <th scope="col">Enabled</th>
+              <th scope="col">{t('Rule')}</th>
+              <th scope="col">{t('Method')}</th>
+              <th scope="col">{t('Response')}</th>
+              <th scope="col">{t('Group / Tags')}</th>
+              <th scope="col">{t('Enabled')}</th>
               <th scope="col">
-                <span class="sr-only">Actions</span>
+                <span class="sr-only">{t('Actions')}</span>
               </th>
             </tr>
           </thead>
@@ -628,7 +638,7 @@ export default function RulesWorkspace(
                   <tr>
                     <td colspan={6} class="rules-empty-state">
                       <zw-icon-loader size="18" aria-hidden="true" />
-                      <span>Loading rules...</span>
+                      <span>{t('Loading rules...')}</span>
                     </td>
                   </tr>
                 )
@@ -637,11 +647,13 @@ export default function RulesWorkspace(
                 return (
                   <tr>
                     <td colspan={6} class="rules-empty-state">
-                      <strong>No rules found</strong>
+                      <strong>{t('No rules found')}</strong>
                       <span>
                         {view.search || view.group
-                          ? 'Adjust the filters to see more rules.'
-                          : 'Create the first response rule for this project.'}
+                          ? t('Adjust the filters to see more rules.')
+                          : t(
+                              'Create the first response rule for this project.',
+                            )}
                       </span>
                     </td>
                   </tr>
@@ -670,7 +682,7 @@ export default function RulesWorkspace(
                       >
                         <strong>{rule.name || rule.url}</strong>
                         <code>{rule.url}</code>
-                        <small>{rule.description || 'No description'}</small>
+                        <small>{rule.description || t('No description')}</small>
                       </button>
                     </td>
                     <td>
@@ -688,7 +700,7 @@ export default function RulesWorkspace(
                     </td>
                     <td>
                       <div class="rule-taxonomy">
-                        <span>{rule.group || 'Ungrouped'}</span>
+                        <span>{rule.group || t('Ungrouped')}</span>
                         {renderTags(rule)}
                       </div>
                     </td>
@@ -701,7 +713,8 @@ export default function RulesWorkspace(
                           return pending || Boolean(view.pendingId)
                         }}
                         aria-label={
-                          (rule.enabled ? 'Disable ' : 'Enable ') +
+                          (rule.enabled ? t('Disable') : t('Enable')) +
+                          ' ' +
                           (rule.name || rule.url)
                         }
                         onChecked-change={function (event: Event) {
@@ -723,14 +736,16 @@ export default function RulesWorkspace(
                             )
                           }}
                         >
-                          Edit
+                          {t('Edit')}
                         </zw-button>
                         <zw-button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          aria-label={'Delete ' + (rule.name || rule.url)}
-                          title="Delete rule"
+                          aria-label={
+                            t('Delete rule') + ': ' + (rule.name || rule.url)
+                          }
+                          title={t('Delete rule')}
                           disabled={function () {
                             return pending || Boolean(view.pendingId)
                           }}
@@ -750,13 +765,13 @@ export default function RulesWorkspace(
         </table>
       </div>
 
-      <footer class="rules-pagination" aria-label="Rules pagination">
+      <footer class="rules-pagination" aria-label={t('Rules pagination')}>
         <span>
           {dynamic(function () {
-            if (view.total === 0) return '0 results'
+            if (view.total === 0) return '0 ' + t('results')
             const first = (view.page - 1) * view.pageSize + 1
             const last = Math.min(view.page * view.pageSize, view.total)
-            return first + '-' + last + ' of ' + view.total
+            return first + '-' + last + ' / ' + view.total
           })}
         </span>
         <div>
@@ -764,7 +779,7 @@ export default function RulesWorkspace(
             type="button"
             variant="outline"
             size="icon"
-            aria-label="Previous page"
+            aria-label={t('Previous page')}
             disabled={function () {
               return view.loading || view.page <= 1
             }}
@@ -776,14 +791,17 @@ export default function RulesWorkspace(
           </zw-button>
           <span class="rules-page-indicator">
             {dynamic(function () {
-              return 'Page ' + view.page + ' / ' + view.totalPages
+              return t('Page {{page}} of {{totalPages}}', {
+                page: view.page,
+                totalPages: view.totalPages,
+              })
             })}
           </span>
           <zw-button
             type="button"
             variant="outline"
             size="icon"
-            aria-label="Next page"
+            aria-label={t('Next page')}
             disabled={function () {
               return view.loading || view.page >= view.totalPages
             }}
@@ -826,16 +844,18 @@ export default function RulesWorkspace(
                 <section class="rule-editor openapi-import-surface">
                   <header class="rule-editor-header">
                     <div>
-                      <span class="rule-editor-kicker">Schema ingestion</span>
+                      <span class="rule-editor-kicker">
+                        {t('Schema ingestion')}
+                      </span>
                       <zw-dialog-title>
-                        <h2 id="openapi-import-title">Import OpenAPI</h2>
+                        <h2 id="openapi-import-title">{t('Import OpenAPI')}</h2>
                       </zw-dialog-title>
                     </div>
                     <zw-button
                       variant="ghost"
                       size="icon"
-                      aria-label="Close OpenAPI import"
-                      title="Close"
+                      aria-label={t('Close OpenAPI import')}
+                      title={t('Close')}
                       ref={function (element: HTMLElement | null): void {
                         importCloseControl = element
                       }}
@@ -850,15 +870,18 @@ export default function RulesWorkspace(
                   <div class="rule-editor-scroll openapi-import-scroll">
                     <zw-dialog-description>
                       <p class="openapi-import-intro">
-                        Paste an OpenAPI 3 or Swagger 2 JSON document. Rules are
-                        previewed before they are created.
+                        {t(
+                          'Paste an OpenAPI 3 or Swagger 2 JSON document. Rules are previewed before they are created.',
+                        )}
                       </p>
                     </zw-dialog-description>
                     <label class="rule-field rule-field-wide">
-                      <span class="rule-field-label">Specification JSON</span>
+                      <span class="rule-field-label">
+                        {t('Specification JSON')}
+                      </span>
                       <textarea
                         class="rule-code-input openapi-import-source"
-                        aria-label="OpenAPI JSON specification"
+                        aria-label={t('OpenAPI JSON specification')}
                         value={function () {
                           return view.importSource
                         }}
@@ -885,17 +908,21 @@ export default function RulesWorkspace(
                     {view.importStatus === 'preview' ? (
                       <div class="openapi-import-preview" role="status">
                         <strong>
-                          {view.importPreview.length} rules ready to import
+                          {t('{{count}} rules ready to import', {
+                            count: view.importPreview.length,
+                          })}
                         </strong>
                         <span>
-                          Each operation becomes an enabled static JSON rule.
+                          {t(
+                            'Each operation becomes an enabled static JSON rule.',
+                          )}
                         </span>
                       </div>
                     ) : null}
                     {view.importStatus === 'importing' ? (
                       <div class="openapi-import-progress" role="status">
                         <div>
-                          <strong>Importing rules</strong>
+                          <strong>{t('Importing rules')}</strong>
                           <span>
                             {view.importProgress} / {view.importPreview.length}
                           </span>
@@ -903,14 +930,14 @@ export default function RulesWorkspace(
                         <progress
                           max={view.importPreview.length}
                           value={view.importProgress}
-                          aria-label="OpenAPI import progress"
+                          aria-label={t('OpenAPI import progress')}
                         />
                       </div>
                     ) : null}
                   </div>
                   <footer class="rule-editor-footer">
                     <span class="rule-editor-section-note">
-                      Local schema references are resolved in memory.
+                      {t('Local schema references are resolved in memory.')}
                     </span>
                     <div class="rule-editor-actions">
                       <zw-button
@@ -920,12 +947,12 @@ export default function RulesWorkspace(
                         }}
                         onClick={closeImport}
                       >
-                        Cancel
+                        {t('Cancel')}
                       </zw-button>
                       {view.importStatus === 'preview' ? (
                         <zw-button variant="primary" onClick={confirmImport}>
                           <zw-icon-check size="16" aria-hidden="true" />
-                          <span>Import rules</span>
+                          <span>{t('Import rules')}</span>
                         </zw-button>
                       ) : (
                         <zw-button
@@ -936,7 +963,7 @@ export default function RulesWorkspace(
                           }}
                         >
                           <zw-icon-upload size="16" aria-hidden="true" />
-                          <span>Parse OpenAPI</span>
+                          <span>{t('Parse OpenAPI')}</span>
                         </zw-button>
                       )}
                     </div>

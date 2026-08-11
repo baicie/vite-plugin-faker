@@ -12,6 +12,8 @@ import TrafficWorkspace from './app/traffic-workspace'
 import { createTrafficRuleDraft } from './app/traffic-utils'
 import ThemeToggle from './components/theme-toggle'
 import type { UIOptions } from './hooks/use-app-context'
+import { getLocale, setLocale, t } from './i18n'
+import type { Locale } from './i18n'
 import { dynamic, focusZeusControl } from './lib/zeus'
 
 export type WorkspaceView = 'traffic' | 'rules' | 'settings'
@@ -63,25 +65,25 @@ function resolveInitialTheme(): FakerTheme {
 function getConnectionLabel(status: WSConnectionStatus): string {
   switch (status) {
     case 'connected':
-      return 'Connected'
+      return t('Connected')
     case 'connecting':
-      return 'Connecting'
+      return t('Connecting')
     case 'reconnecting':
-      return 'Reconnecting'
+      return t('Reconnecting')
     case 'closed':
-      return 'Closed'
+      return t('Closed')
     default:
-      return 'Disconnected'
+      return t('Disconnected')
   }
 }
 
 function getViewLabel(view: WorkspaceView): string {
   for (const item of NAVIGATION_ITEMS) {
     if (item.value === view) {
-      return item.label
+      return t(item.label)
     }
   }
-  return 'Traffic'
+  return t('Traffic')
 }
 
 function NavigationIcon(props: { view: WorkspaceView }): JSX.Element {
@@ -101,6 +103,7 @@ export default function FakerStudioApp(
   const connectionStatus = state<WSConnectionStatus>(props.client.getStatus())
   const panelOpen = state(props.options.mode === 'route')
   const theme = state<FakerTheme>(resolveInitialTheme())
+  const locale = state<Locale>(getLocale())
   const ruleDraft = state<MockConfig | null>(null)
   let studioPanel: HTMLDivElement | null = null
   let focusRetryTimer: number | undefined
@@ -217,6 +220,11 @@ export default function FakerStudioApp(
     }
   }
 
+  function setStudioLocale(nextLocale: Locale): void {
+    setLocale(nextLocale)
+    locale.value = nextLocale
+  }
+
   function handleCreateRule(record: RequestRecord): void {
     ruleDraft.value = createTrafficRuleDraft(record)
     activeView.value = 'rules'
@@ -252,8 +260,14 @@ export default function FakerStudioApp(
           class="studio-launcher"
           variant="primary"
           size="icon"
-          aria-label="Open Faker Studio"
-          title="Open Faker Studio"
+          aria-label={function () {
+            locale.value
+            return t('Open Faker Studio')
+          }}
+          title={function () {
+            locale.value
+            return t('Open Faker Studio')
+          }}
           aria-expanded={function () {
             return String(panelOpen.value)
           }}
@@ -268,7 +282,10 @@ export default function FakerStudioApp(
         <button
           class="studio-backdrop"
           type="button"
-          aria-label="Close Faker Studio"
+          aria-label={function () {
+            locale.value
+            return t('Close Faker Studio')
+          }}
           onClick={closePanel}
         />
       ) : null}
@@ -280,9 +297,13 @@ export default function FakerStudioApp(
         }}
         role={props.options.mode === 'button' ? 'dialog' : undefined}
         aria-modal={props.options.mode === 'button' ? 'true' : undefined}
-        aria-label={
-          props.options.mode === 'button' ? 'Faker Studio workspace' : undefined
-        }
+        aria-label={function () {
+          if (props.options.mode !== 'button') {
+            return undefined
+          }
+          locale.value
+          return t('Faker Studio workspace')
+        }}
         aria-hidden={function () {
           return props.options.mode === 'button' && !panelOpen.value
             ? 'true'
@@ -298,11 +319,27 @@ export default function FakerStudioApp(
           <div class="studio-brand">
             <span class="studio-brand-mark">F</span>
             <span class="studio-brand-copy">
-              <strong>Faker Studio</strong>
-              <small>Built with Zeus</small>
+              <strong>
+                {dynamic(function () {
+                  locale.value
+                  return t('Faker Studio')
+                })}
+              </strong>
+              <small>
+                {dynamic(function () {
+                  locale.value
+                  return t('Built with Zeus')
+                })}
+              </small>
             </span>
           </div>
-          <nav class="studio-navigation" aria-label="Workspace">
+          <nav
+            class="studio-navigation"
+            aria-label={function () {
+              locale.value
+              return t('Workspace')
+            }}
+          >
             {NAVIGATION_ITEMS.map(function (item) {
               return (
                 <zw-button
@@ -320,7 +357,12 @@ export default function FakerStudioApp(
                   }}
                 >
                   <NavigationIcon view={item.value} />
-                  <span>{item.label}</span>
+                  <span>
+                    {dynamic(function () {
+                      locale.value
+                      return t(item.label)
+                    })}
+                  </span>
                 </zw-button>
               )
             })}
@@ -335,6 +377,7 @@ export default function FakerStudioApp(
               <span class="studio-connection-dot" />
               <span>
                 {dynamic(function () {
+                  locale.value
                   return getConnectionLabel(connectionStatus.value)
                 })}
               </span>
@@ -346,15 +389,22 @@ export default function FakerStudioApp(
         <div class="studio-workbench">
           <header class="studio-header">
             <div class="studio-header-copy">
-              <span class="studio-eyebrow">Developer mock workspace</span>
+              <span class="studio-eyebrow">
+                {dynamic(function () {
+                  locale.value
+                  return t('Developer mock workspace')
+                })}
+              </span>
               <strong>
                 {dynamic(function () {
+                  locale.value
                   return getViewLabel(activeView.value)
                 })}
               </strong>
             </div>
             <div class="studio-header-actions">
               {dynamic(function () {
+                locale.value
                 return <ThemeToggle theme={theme.value} onChange={setTheme} />
               })}
               {props.options.mode === 'button' ? (
@@ -362,8 +412,14 @@ export default function FakerStudioApp(
                   class="studio-icon-button"
                   variant="ghost"
                   size="icon"
-                  aria-label="Close Faker Studio"
-                  title="Close Faker Studio"
+                  aria-label={function () {
+                    locale.value
+                    return t('Close Faker Studio')
+                  }}
+                  title={function () {
+                    locale.value
+                    return t('Close Faker Studio')
+                  }}
                   data-studio-close=""
                   onClick={closePanel}
                 >
@@ -384,10 +440,15 @@ export default function FakerStudioApp(
                 return activeView.value !== 'traffic'
               }}
             >
-              <TrafficWorkspace
-                client={props.client}
-                onCreateRule={handleCreateRule}
-              />
+              {dynamic(function () {
+                locale.value
+                return (
+                  <TrafficWorkspace
+                    client={props.client}
+                    onCreateRule={handleCreateRule}
+                  />
+                )
+              })}
             </div>
             <div
               class="studio-view"
@@ -399,16 +460,21 @@ export default function FakerStudioApp(
                 return activeView.value !== 'rules'
               }}
             >
-              <RulesWorkspace
-                client={props.client}
-                theme={function () {
-                  return theme.value
-                }}
-                draft={function () {
-                  return ruleDraft.value
-                }}
-                onDraftConsumed={handleDraftConsumed}
-              />
+              {dynamic(function () {
+                locale.value
+                return (
+                  <RulesWorkspace
+                    client={props.client}
+                    theme={function () {
+                      return theme.value
+                    }}
+                    draft={function () {
+                      return ruleDraft.value
+                    }}
+                    onDraftConsumed={handleDraftConsumed}
+                  />
+                )
+              })}
             </div>
             <div
               class="studio-view"
@@ -420,13 +486,22 @@ export default function FakerStudioApp(
                 return activeView.value !== 'settings'
               }}
             >
-              <SettingsWorkspace
-                client={props.client}
-                theme={function () {
-                  return theme.value
-                }}
-                onThemeChange={setTheme}
-              />
+              {dynamic(function () {
+                locale.value
+                return (
+                  <SettingsWorkspace
+                    client={props.client}
+                    theme={function () {
+                      return theme.value
+                    }}
+                    locale={function () {
+                      return locale.value
+                    }}
+                    onThemeChange={setTheme}
+                    onLocaleChange={setStudioLocale}
+                  />
+                )
+              })}
             </div>
           </main>
         </div>

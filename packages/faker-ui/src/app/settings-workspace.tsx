@@ -10,6 +10,8 @@ import {
   readChecked,
   readInputValue,
 } from '../lib/zeus'
+import { getLocale, t } from '../i18n'
+import type { Locale } from '../i18n'
 import {
   createDefaultRuntimeSettings,
   createSettingsUpdate,
@@ -31,7 +33,9 @@ type FeedbackKind = 'none' | 'success' | 'error'
 export interface SettingsWorkspaceProps {
   client: SettingsStatusClient
   theme: () => FakerTheme
+  locale?: () => Locale
   onThemeChange(theme: FakerTheme): void
+  onLocaleChange?: (locale: Locale) => void
 }
 
 export interface SettingsStatusClient {
@@ -48,6 +52,14 @@ interface InputValueChangeDetail {
 interface SwitchCheckedChangeDetail {
   checked: boolean
   nativeEvent: Event
+}
+
+function readValueChange(event: Event): string {
+  const detail = (event as CustomEvent<InputValueChangeDetail>).detail
+  if (detail && typeof detail.value === 'string') {
+    return detail.value
+  }
+  return readInputValue(event)
 }
 
 function readZeusInputValue(
@@ -74,10 +86,12 @@ function readFileAsText(file: File): Promise<string> {
         resolve(reader.result)
         return
       }
-      reject(new Error('The selected file could not be read as text'))
+      reject(new Error(t('The selected file could not be read as text')))
     }
     reader.onerror = function () {
-      reject(reader.error ? reader.error : new Error('Could not read the file'))
+      reject(
+        reader.error ? reader.error : new Error(t('Could not read the file')),
+      )
     }
     reader.readAsText(file)
   })
@@ -175,12 +189,12 @@ export default function SettingsWorkspace(
         return
       }
       if (!result.success) {
-        finishWithError(new Error('Settings could not be saved'))
+        finishWithError(new Error(t('Settings could not be saved')))
         return
       }
       applySettings(update)
       activity.value = 'idle'
-      setFeedback('success', 'Settings saved.')
+      setFeedback('success', t('Settings saved.'))
     }, finishWithError)
   }
 
@@ -217,9 +231,10 @@ export default function SettingsWorkspace(
       activity.value = 'idle'
       setFeedback(
         'success',
-        'Exported ' +
-          mocks.length +
-          (mocks.length === 1 ? ' rule.' : ' rules.'),
+        t('Exported {{count}} {{unit}}.', {
+          count: mocks.length,
+          unit: mocks.length === 1 ? t('rule') : t('rules'),
+        }),
       )
     }, finishWithError)
   }
@@ -253,15 +268,16 @@ export default function SettingsWorkspace(
             return
           }
           if (!result.success) {
-            finishWithError(new Error('Rules could not be imported'))
+            finishWithError(new Error(t('Rules could not be imported')))
             return
           }
           activity.value = 'idle'
           setFeedback(
             'success',
-            'Imported ' +
-              result.count +
-              (result.count === 1 ? ' rule.' : ' rules.'),
+            t('Imported {{count}} {{unit}}.', {
+              count: result.count,
+              unit: result.count === 1 ? t('rule') : t('rules'),
+            }),
           )
         },
         function (error) {
@@ -278,7 +294,7 @@ export default function SettingsWorkspace(
   }
 
   function handleClearHistory(): void {
-    if (!window.confirm('Clear all captured request history?')) {
+    if (!window.confirm(t('Clear all captured request history?'))) {
       return
     }
     activity.value = 'clearing'
@@ -288,11 +304,11 @@ export default function SettingsWorkspace(
         return
       }
       if (!result.success) {
-        finishWithError(new Error('Request history could not be cleared'))
+        finishWithError(new Error(t('Request history could not be cleared')))
         return
       }
       activity.value = 'idle'
-      setFeedback('success', 'Request history cleared.')
+      setFeedback('success', t('Request history cleared.'))
     }, finishWithError)
   }
 
@@ -314,8 +330,8 @@ export default function SettingsWorkspace(
     <section class="settings-workspace" aria-labelledby="settings-title">
       <header class="workspace-header settings-header">
         <div>
-          <span class="workspace-eyebrow">Runtime policy</span>
-          <h1 id="settings-title">Settings</h1>
+          <span class="workspace-eyebrow">{t('Runtime policy')}</span>
+          <h1 id="settings-title">{t('Settings')}</h1>
         </div>
         <div class="workspace-actions">
           <zw-button
@@ -326,7 +342,7 @@ export default function SettingsWorkspace(
             }}
             onClick={loadSettings}
           >
-            Reload
+            {t('Reload')}
           </zw-button>
           <zw-button
             variant="primary"
@@ -342,8 +358,8 @@ export default function SettingsWorkspace(
             <span>
               {dynamic(function () {
                 return activity.value === 'saving'
-                  ? 'Saving...'
-                  : 'Save changes'
+                  ? t('Saving...')
+                  : t('Save changes')
               })}
             </span>
           </zw-button>
@@ -356,12 +372,14 @@ export default function SettingsWorkspace(
             if (connectionStatus.value === 'closed') {
               return (
                 <p role="alert" data-state="error">
-                  Connection closed. Reopen Faker Studio to manage settings.
+                  {t(
+                    'Connection closed. Reopen Faker Studio to manage settings.',
+                  )}
                 </p>
               )
             }
             return activity.value === 'loading' ? (
-              <p data-state="loading">Loading settings...</p>
+              <p data-state="loading">{t('Loading settings...')}</p>
             ) : null
           }
           if (feedbackKind.value === 'error' && !settingsLoaded.value) {
@@ -376,7 +394,7 @@ export default function SettingsWorkspace(
                   }}
                   onClick={loadSettings}
                 >
-                  Retry
+                  {t('Retry')}
                 </zw-button>
               </div>
             )
@@ -395,11 +413,11 @@ export default function SettingsWorkspace(
       <div class="settings-layout">
         <section class="settings-section" aria-labelledby="appearance-title">
           <header class="settings-section-header">
-            <h2 id="appearance-title">Appearance</h2>
+            <h2 id="appearance-title">{t('Appearance')}</h2>
           </header>
           <div class="settings-fields">
             <label class="settings-field settings-field-switch">
-              <span>Dark theme</span>
+              <span>{t('Dark theme')}</span>
               <zw-switch
                 size="md"
                 checked={function () {
@@ -408,13 +426,31 @@ export default function SettingsWorkspace(
                 disabled={function () {
                   return cannotEditSettings()
                 }}
-                aria-label="Use dark theme"
+                aria-label={t('Use dark theme')}
                 onChecked-change={function (
                   event: CustomEvent<SwitchCheckedChangeDetail>,
                 ) {
                   props.onThemeChange(readZeusChecked(event) ? 'dark' : 'light')
                 }}
               />
+            </label>
+            <label class="settings-field settings-field-input">
+              <span>{t('Language')}</span>
+              <zw-select
+                value={function () {
+                  return props.locale ? props.locale() : getLocale()
+                }}
+                aria-label={t('Language')}
+                onValue-change={function (event: Event) {
+                  const value = readValueChange(event)
+                  if (props.onLocaleChange) {
+                    props.onLocaleChange(value === 'zh-CN' ? 'zh-CN' : 'en-US')
+                  }
+                }}
+              >
+                <option value="en-US">{t('English')}</option>
+                <option value="zh-CN">{t('Simplified Chinese')}</option>
+              </zw-select>
             </label>
           </div>
         </section>
@@ -424,11 +460,11 @@ export default function SettingsWorkspace(
           aria-labelledby="request-policy-title"
         >
           <header class="settings-section-header">
-            <h2 id="request-policy-title">Request policy</h2>
+            <h2 id="request-policy-title">{t('Request policy')}</h2>
           </header>
           <div class="settings-fields">
             <label class="settings-field settings-field-input">
-              <span>Global delay</span>
+              <span>{t('Global delay')}</span>
               <zw-input
                 type="number"
                 size="md"
@@ -440,7 +476,7 @@ export default function SettingsWorkspace(
                 disabled={function () {
                   return cannotEditSettings()
                 }}
-                aria-label="Global delay in milliseconds"
+                aria-label={t('Global delay in milliseconds')}
                 onValue-change={function (
                   event: CustomEvent<InputValueChangeDetail>,
                 ) {
@@ -452,7 +488,7 @@ export default function SettingsWorkspace(
             </label>
 
             <label class="settings-field settings-field-switch">
-              <span>Enable all mocks by default</span>
+              <span>{t('Enable all mocks by default')}</span>
               <zw-switch
                 size="md"
                 checked={function () {
@@ -461,7 +497,7 @@ export default function SettingsWorkspace(
                 disabled={function () {
                   return cannotEditSettings()
                 }}
-                aria-label="Enable all mocks by default"
+                aria-label={t('Enable all mocks by default')}
                 onChecked-change={function (
                   event: CustomEvent<SwitchCheckedChangeDetail>,
                 ) {
@@ -471,7 +507,7 @@ export default function SettingsWorkspace(
             </label>
 
             <label class="settings-field settings-field-switch">
-              <span>Capture request history</span>
+              <span>{t('Capture request history')}</span>
               <zw-switch
                 size="md"
                 checked={function () {
@@ -480,7 +516,7 @@ export default function SettingsWorkspace(
                 disabled={function () {
                   return cannotEditSettings()
                 }}
-                aria-label="Capture request history"
+                aria-label={t('Capture request history')}
                 onChecked-change={function (
                   event: CustomEvent<SwitchCheckedChangeDetail>,
                 ) {
@@ -496,11 +532,11 @@ export default function SettingsWorkspace(
           aria-labelledby="network-policy-title"
         >
           <header class="settings-section-header">
-            <h2 id="network-policy-title">Network policy</h2>
+            <h2 id="network-policy-title">{t('Network policy')}</h2>
           </header>
           <div class="settings-fields">
             <label class="settings-field settings-field-switch">
-              <span>Enable CORS</span>
+              <span>{t('Enable CORS')}</span>
               <zw-switch
                 size="md"
                 checked={function () {
@@ -509,7 +545,7 @@ export default function SettingsWorkspace(
                 disabled={function () {
                   return cannotEditSettings()
                 }}
-                aria-label="Enable CORS"
+                aria-label={t('Enable CORS')}
                 onChecked-change={function (
                   event: CustomEvent<SwitchCheckedChangeDetail>,
                 ) {
@@ -519,7 +555,7 @@ export default function SettingsWorkspace(
             </label>
 
             <label class="settings-field settings-field-input">
-              <span>Allowed origin</span>
+              <span>{t('Allowed origin')}</span>
               <zw-input
                 type="text"
                 size="md"
@@ -529,7 +565,7 @@ export default function SettingsWorkspace(
                 disabled={function () {
                   return cannotEditSettings() || !form.corsEnabled
                 }}
-                aria-label="CORS allowed origin"
+                aria-label={t('CORS allowed origin')}
                 onValue-change={function (
                   event: CustomEvent<InputValueChangeDetail>,
                 ) {
@@ -545,7 +581,7 @@ export default function SettingsWorkspace(
           aria-labelledby="data-title"
         >
           <header class="settings-section-header">
-            <h2 id="data-title">Data</h2>
+            <h2 id="data-title">{t('Data')}</h2>
           </header>
           <div class="settings-data-actions">
             <zw-button
@@ -559,7 +595,7 @@ export default function SettingsWorkspace(
               }}
               onClick={handleExport}
             >
-              Export rules
+              {t('Export rules')}
             </zw-button>
             <zw-button
               variant="outline"
@@ -572,7 +608,7 @@ export default function SettingsWorkspace(
               }}
               onClick={triggerImport}
             >
-              Import rules
+              {t('Import rules')}
             </zw-button>
             <zw-button
               variant="danger"
@@ -585,7 +621,7 @@ export default function SettingsWorkspace(
               }}
               onClick={handleClearHistory}
             >
-              Clear history
+              {t('Clear history')}
             </zw-button>
             <input
               ref={function (element) {

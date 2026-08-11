@@ -2,6 +2,7 @@ import type { RequestRecord } from '@baicie/faker-shared'
 import { state } from '@zeus-js/zeus'
 import { dynamic } from '../lib/zeus'
 import { formatDuration, formatTrafficValue } from './traffic-utils'
+import { t } from '../i18n'
 
 export interface TrafficDetailProps {
   record: RequestRecord | null
@@ -29,7 +30,7 @@ function methodLabel(record: RequestRecord): string {
 
 function statusLabel(record: RequestRecord): string {
   if (!record.response) {
-    return 'Pending'
+    return t('Pending')
   }
   return String(record.response.statusCode)
 }
@@ -71,19 +72,21 @@ function renderRequestTab(record: RequestRecord): JSX.Element {
     <div class="traffic-detail-tab-panel" data-detail-panel="request">
       <div class="traffic-detail-summary-grid">
         <div class="traffic-detail-summary-item">
-          <span class="traffic-detail-label">Method</span>
+          <span class="traffic-detail-label">{t('Method')}</span>
           <strong>{methodLabel(record)}</strong>
         </div>
         <div class="traffic-detail-summary-item">
-          <span class="traffic-detail-label">Captured</span>
+          <span class="traffic-detail-label">{t('Captured')}</span>
           <strong>{new Date(record.timestamp).toLocaleString()}</strong>
         </div>
       </div>
-      {renderDataBlock('Request headers', record.headers)}
-      {record.query ? renderDataBlock('Query parameters', record.query) : null}
+      {renderDataBlock(t('Request headers'), record.headers)}
+      {record.query
+        ? renderDataBlock(t('Query parameters'), record.query)
+        : null}
       {record.body !== undefined
         ? renderDataBlock(
-            'Request body',
+            t('Request body'),
             record.body,
             'traffic-detail-block-tall',
           )
@@ -97,8 +100,8 @@ function renderResponseTab(record: RequestRecord): JSX.Element {
     return (
       <div class="traffic-detail-tab-panel traffic-detail-empty-response">
         <span class="traffic-empty-mark">...</span>
-        <h3>Response not captured</h3>
-        <p>The request ended before a response payload was available.</p>
+        <h3>{t('Response not captured')}</h3>
+        <p>{t('The request ended before a response payload was available.')}</p>
       </div>
     )
   }
@@ -107,19 +110,19 @@ function renderResponseTab(record: RequestRecord): JSX.Element {
     <div class="traffic-detail-tab-panel" data-detail-panel="response">
       <div class="traffic-detail-summary-grid">
         <div class="traffic-detail-summary-item">
-          <span class="traffic-detail-label">HTTP status</span>
+          <span class="traffic-detail-label">{t('HTTP status')}</span>
           <strong data-status-tone={statusTone(record)}>
             {String(record.response.statusCode)}
           </strong>
         </div>
         <div class="traffic-detail-summary-item">
-          <span class="traffic-detail-label">Duration</span>
+          <span class="traffic-detail-label">{t('Duration')}</span>
           <strong>{formatDuration(record.duration)}</strong>
         </div>
       </div>
-      {renderDataBlock('Response headers', record.response.headers)}
+      {renderDataBlock(t('Response headers'), record.response.headers)}
       {renderDataBlock(
-        'Response body',
+        t('Response body'),
         record.response.body,
         'traffic-detail-block-tall',
       )}
@@ -134,8 +137,8 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
     <aside class="traffic-detail" aria-labelledby="traffic-detail-title">
       <header class="traffic-detail-header">
         <div class="traffic-detail-heading">
-          <span class="workspace-eyebrow">Selected exchange</span>
-          <h2 id="traffic-detail-title">Request details</h2>
+          <span class="workspace-eyebrow">{t('Selected exchange')}</span>
+          <h2 id="traffic-detail-title">{t('Request details')}</h2>
         </div>
         {dynamic(function () {
           if (!props.record) {
@@ -145,14 +148,14 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
             <zw-button
               variant="primary"
               size="sm"
-              aria-label="Create rule from request"
+              aria-label={t('Create rule from request')}
               onClick={function () {
                 if (props.record) {
                   props.onCreateRule(props.record)
                 }
               }}
             >
-              Create rule
+              {t('Create rule')}
             </zw-button>
           )
         })}
@@ -164,9 +167,11 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
           return (
             <div class="traffic-detail-empty" data-state="empty-detail">
               <span class="traffic-empty-mark">+</span>
-              <h3>Select a request to inspect it</h3>
+              <h3>{t('Select a request to inspect it')}</h3>
               <p>
-                Select a captured exchange to inspect its request and response.
+                {t(
+                  'Select a captured exchange to inspect its request and response.',
+                )}
               </p>
             </div>
           )
@@ -190,7 +195,9 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
               </span>
             </div>
             <div class="traffic-detail-meta">
-              <span>{record.isMocked ? 'Mock hit' : 'Network response'}</span>
+              <span>
+                {record.isMocked ? t('Mock hit') : t('Network response')}
+              </span>
               {record.mockId ? <code>#{record.mockId}</code> : null}
             </div>
 
@@ -198,14 +205,18 @@ export default function TrafficDetail(props: TrafficDetailProps): JSX.Element {
               value={function () {
                 return selectedTab.value
               }}
-              aria-label="Request detail views"
+              aria-label={t('Request detail views')}
               onValue-change={function (event: Event) {
                 selectedTab.value = readTab(event)
               }}
             >
               <zw-tabs-list class="traffic-detail-tabs">
-                <zw-tabs-trigger value="request">Request</zw-tabs-trigger>
-                <zw-tabs-trigger value="response">Response</zw-tabs-trigger>
+                <zw-tabs-trigger value="request">
+                  {t('Request')}
+                </zw-tabs-trigger>
+                <zw-tabs-trigger value="response">
+                  {t('Response')}
+                </zw-tabs-trigger>
               </zw-tabs-list>
               <zw-tabs-content value="request">
                 {dynamic(function () {

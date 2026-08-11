@@ -2,6 +2,7 @@ import loader from '@monaco-editor/loader'
 import { effect, onCleanup, state } from '@zeus-js/zeus'
 import type * as Monaco from 'monaco-editor'
 import { dynamic, getErrorMessage } from '../lib/zeus'
+import { t } from '../i18n'
 
 type MonacoType = typeof Monaco
 
@@ -87,7 +88,7 @@ export default function MonacoEditor(props: MonacoEditorProps): JSX.Element {
           wordWrap: 'on',
           lineNumbers: 'on',
           padding: { top: 12, bottom: 12 },
-          ariaLabel: props.ariaLabel || 'Code editor',
+          ariaLabel: props.ariaLabel || t('Code editor'),
         })
 
         changeSubscription = editor.onDidChangeModelContent(function () {
@@ -157,17 +158,17 @@ export default function MonacoEditor(props: MonacoEditorProps): JSX.Element {
         if (status.value === 'loading') {
           return (
             <div class="studio-editor-state" role="status">
-              Loading code editor...
+              {t('Loading code editor...')}
             </div>
           )
         }
         if (status.value === 'error') {
           return (
             <div class="studio-editor-state" role="alert">
-              <strong>Code editor unavailable</strong>
+              <strong>{t('Code editor unavailable')}</strong>
               <span>{errorMessage.value}</span>
               <zw-button variant="outline" size="sm" onClick={initialize}>
-                Retry editor
+                {t('Retry editor')}
               </zw-button>
             </div>
           )

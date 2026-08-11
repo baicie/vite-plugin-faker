@@ -10,6 +10,7 @@ import { clearRequestHistory, fetchRequestHistory } from '../api/request'
 import TrafficDetail from './traffic-detail'
 import { dynamic, getErrorMessage, readInputValue } from '../lib/zeus'
 import { formatDuration } from './traffic-utils'
+import { t } from '../i18n'
 
 export interface TrafficMessageHandler {
   (data: unknown, message: WSMessage): void
@@ -89,7 +90,7 @@ function matchesSearch(record: RequestRecord, search: string): boolean {
 
 function statusLabel(record: RequestRecord): string {
   if (!record.response) {
-    return 'Pending'
+    return t('Pending')
   }
   return String(record.response.statusCode)
 }
@@ -117,7 +118,7 @@ function formatTimestamp(timestamp: number): string {
 }
 
 function totalLabel(total: number): string {
-  return total + (total === 1 ? ' request' : ' requests')
+  return total + ' ' + t(total === 1 ? 'request' : 'requests')
 }
 
 function createInitialModel(): TrafficModel {
@@ -155,8 +156,8 @@ function renderLoadingState(): JSX.Element {
   return (
     <div class="traffic-state traffic-state-loading" data-state="loading">
       <span class="traffic-state-spinner" aria-hidden="true" />
-      <h3>Loading traffic</h3>
-      <p>Waiting for captured request history.</p>
+      <h3>{t('Loading traffic')}</h3>
+      <p>{t('Waiting for captured request history.')}</p>
     </div>
   )
 }
@@ -167,15 +168,15 @@ function renderErrorState(message: string, onRetry: () => void): JSX.Element {
       <span class="traffic-state-icon" aria-hidden="true">
         !
       </span>
-      <h3>Could not load traffic</h3>
+      <h3>{t('Could not load traffic')}</h3>
       <p>{message}</p>
       <zw-button
         variant="outline"
         size="sm"
-        aria-label="Retry loading traffic"
+        aria-label={t('Retry loading traffic')}
         onClick={onRetry}
       >
-        Try again
+        {t('Try again')}
       </zw-button>
     </div>
   )
@@ -187,11 +188,11 @@ function renderEmptyState(search: string): JSX.Element {
       <span class="traffic-state-icon" aria-hidden="true">
         {search ? '/' : '0'}
       </span>
-      <h3>{search ? 'No matching requests' : 'No requests captured'}</h3>
+      <h3>{t(search ? 'No matching requests' : 'No requests captured')}</h3>
       <p>
         {search
-          ? 'Try a different path or method.'
-          : 'Captured requests will appear here as your app runs.'}
+          ? t('Try a different path or method.')
+          : t('Captured requests will appear here as your app runs.')}
       </p>
     </div>
   )
@@ -244,7 +245,7 @@ function renderRequestRow(
           class="traffic-mock-state"
           data-mocked={record.isMocked ? 'true' : 'false'}
         >
-          {record.isMocked ? 'Mock hit' : 'Network'}
+          {record.isMocked ? t('Mock hit') : t('Network')}
         </span>
       </td>
       <td class="traffic-cell-duration">{formatDuration(record.duration)}</td>
@@ -252,8 +253,8 @@ function renderRequestRow(
         <zw-button
           variant="ghost"
           size="icon"
-          aria-label="Create rule for request"
-          title="Create rule"
+          aria-label={t('Create rule for request')}
+          title={t('Create rule')}
           onClick={function (event: MouseEvent) {
             event.stopPropagation()
             onCreateRule(record)
@@ -276,12 +277,12 @@ function renderTrafficTable(
       <table class="traffic-table">
         <thead>
           <tr>
-            <th>Route</th>
-            <th>Method</th>
-            <th>Status</th>
-            <th>Source</th>
-            <th>Time</th>
-            <th aria-label="Actions" />
+            <th>{t('Route')}</th>
+            <th>{t('Method')}</th>
+            <th>{t('Status')}</th>
+            <th>{t('Source')}</th>
+            <th>{t('Time')}</th>
+            <th aria-label={t('Actions')} />
           </tr>
         </thead>
         <tbody>
@@ -449,7 +450,7 @@ export default function TrafficWorkspace(
     if (model.clearing || model.loading) {
       return
     }
-    if (!window.confirm('Clear all captured request history?')) {
+    if (!window.confirm(t('Clear all captured request history?'))) {
       return
     }
 
@@ -468,7 +469,7 @@ export default function TrafficWorkspace(
         return
       }
       if (!result.success) {
-        finishClearError(new Error('Request history could not be cleared'))
+        finishClearError(new Error(t('Request history could not be cleared')))
         return
       }
       model.clearing = false
@@ -496,29 +497,30 @@ export default function TrafficWorkspace(
     <section class="traffic-workspace" aria-labelledby="traffic-title">
       <header class="workspace-header traffic-header">
         <div>
-          <span class="workspace-eyebrow">Live network inspector</span>
-          <h1 id="traffic-title">Traffic</h1>
+          <span class="workspace-eyebrow">{t('Live network inspector')}</span>
+          <h1 id="traffic-title">{t('Traffic')}</h1>
           <p class="workspace-description">
-            Capture, inspect, and turn real exchanges into deterministic mock
-            rules.
+            {t(
+              'Capture, inspect, and turn real exchanges into deterministic mock rules.',
+            )}
           </p>
         </div>
         <div class="workspace-actions traffic-actions">
           <zw-button
             variant="ghost"
             size="md"
-            aria-label="Refresh traffic"
+            aria-label={t('Refresh traffic')}
             disabled={function () {
               return model.loading || model.clearing
             }}
             onClick={handleRefresh}
           >
-            Refresh
+            {t('Refresh')}
           </zw-button>
           <zw-button
             variant="outline"
             size="md"
-            aria-label="Clear traffic"
+            aria-label={t('Clear traffic')}
             disabled={function () {
               return model.loading || model.clearing
             }}
@@ -527,7 +529,7 @@ export default function TrafficWorkspace(
             }}
             onClick={handleClear}
           >
-            Clear
+            {t('Clear')}
           </zw-button>
         </div>
       </header>
@@ -544,8 +546,8 @@ export default function TrafficWorkspace(
           <zw-input
             type="search"
             size="md"
-            aria-label="Search captured requests"
-            placeholder="Search path or method"
+            aria-label={t('Search captured requests')}
+            placeholder={t('Search path or method')}
             value={function () {
               return model.searchInput
             }}
@@ -556,13 +558,13 @@ export default function TrafficWorkspace(
           <zw-button
             variant="primary"
             size="md"
-            aria-label="Search traffic"
+            aria-label={t('Search traffic')}
             type="submit"
             disabled={function () {
               return model.loading || model.clearing
             }}
           >
-            Search
+            {t('Search')}
           </zw-button>
         </form>
         <div class="traffic-toolbar-summary" aria-live="polite">
@@ -594,13 +596,13 @@ export default function TrafficWorkspace(
         >
           <header class="traffic-list-header">
             <div>
-              <span class="workspace-eyebrow">Captured exchanges</span>
-              <h2 id="traffic-list-title">Recent requests</h2>
+              <span class="workspace-eyebrow">{t('Captured exchanges')}</span>
+              <h2 id="traffic-list-title">{t('Recent requests')}</h2>
             </div>
             {dynamic(function () {
               return model.loading && model.records.length > 0 ? (
                 <span class="traffic-refreshing" data-state="refreshing">
-                  Updating...
+                  {t('Updating...')}
                 </span>
               ) : null
             })}
@@ -625,8 +627,8 @@ export default function TrafficWorkspace(
               <zw-button
                 variant="outline"
                 size="icon"
-                aria-label="Previous page"
-                title="Previous page"
+                aria-label={t('Previous page')}
+                title={t('Previous page')}
                 disabled={function () {
                   return model.page <= 1 || model.loading || model.clearing
                 }}
@@ -644,8 +646,8 @@ export default function TrafficWorkspace(
               <zw-button
                 variant="outline"
                 size="icon"
-                aria-label="Next page"
-                title="Next page"
+                aria-label={t('Next page')}
+                title={t('Next page')}
                 disabled={function () {
                   return (
                     model.page >= model.totalPages ||

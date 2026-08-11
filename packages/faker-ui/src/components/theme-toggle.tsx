@@ -1,3 +1,5 @@
+import { t } from '../i18n'
+
 export interface ThemeToggleProps {
   theme: 'light' | 'dark'
   onChange: (theme: 'light' | 'dark') => void
@@ -5,7 +7,7 @@ export interface ThemeToggleProps {
 
 export default function ThemeToggle(props: ThemeToggleProps): JSX.Element {
   const nextTheme = props.theme === 'dark' ? 'light' : 'dark'
-  const label = nextTheme === 'dark' ? 'Use dark theme' : 'Use light theme'
+  const label = t(nextTheme === 'dark' ? 'Use dark theme' : 'Use light theme')
 
   return (
     <zw-button
