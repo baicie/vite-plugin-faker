@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 
 const distUrl = new URL('../dist/', import.meta.url)
 const javascript = readFileSync(new URL('index.js', distUrl), 'utf8')
+const nodeEntry = readFileSync(new URL('node.js', distUrl), 'utf8')
 const stylesheet = readFileSync(new URL('index.css', distUrl), 'utf8')
 const declarations = readFileSync(new URL('index.d.ts', distUrl), 'utf8')
 
@@ -9,6 +10,14 @@ if (/process\.env\./.test(javascript)) {
   throw new Error(
     'The browser bundle contains an unresolved process.env reference',
   )
+}
+
+if (!nodeEntry.includes('fakerUI')) {
+  throw new Error('The Node entry does not expose fakerUI')
+}
+
+if (/\b(?:document|window|HTMLElement|customElements)\b/.test(nodeEntry)) {
+  throw new Error('The Node entry contains a browser global')
 }
 
 const placeholders = [

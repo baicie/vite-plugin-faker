@@ -202,6 +202,7 @@ function verifyIsolatedInstallation(
 globalThis.__FAKER_LOGGER_OPTIONS__ = {}
 globalThis.__MOUNT_TARGET__ = '#app'
 globalThis.__FAKER_UI_OPTIONS__ = {}
+globalThis.__FAKER_HOT_CONTEXT__ = undefined
 
 import(${JSON.stringify(packageDefinition.name)}).then(packageModule => {
   if (Object.keys(packageModule).length === 0) {
@@ -221,6 +222,7 @@ function writeSmokeFiles(consumerDirectory) {
 globalThis.__FAKER_LOGGER_OPTIONS__ = {}
 globalThis.__MOUNT_TARGET__ = '#app'
 globalThis.__FAKER_UI_OPTIONS__ = {}
+globalThis.__FAKER_HOT_CONTEXT__ = undefined
 
 Promise.all([
   import('@baicie/faker-shared'),

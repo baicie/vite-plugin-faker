@@ -4,15 +4,29 @@ import pkg from './package.json' with { type: 'json' }
 
 const external = Object.keys(pkg.dependencies || {})
 
-export default defineConfig({
-  input: 'src/index.ts',
-  external,
-  transform: {
-    target: 'es2015',
+export default defineConfig([
+  {
+    input: 'src/index.ts',
+    external,
+    transform: {
+      target: 'es2015',
+    },
+    output: {
+      format: 'esm',
+      dir: 'dist',
+    },
+    plugins: [dts({ emitDtsOnly: true })],
   },
-  output: {
-    format: 'esm',
-    dir: 'dist',
+  {
+    input: 'src/node.ts',
+    platform: 'node',
+    transform: {
+      target: 'es2015',
+    },
+    output: {
+      format: 'esm',
+      dir: 'dist',
+      entryFileNames: 'node.js',
+    },
   },
-  plugins: [dts({ emitDtsOnly: true })],
-})
+])
