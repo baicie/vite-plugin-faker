@@ -343,4 +343,77 @@ describe('webpack mockMiddleware', () => {
       })
     })
   })
+
+  it('falls back to next() when findMockAdvanced throws', async () => {
+    const request = createRequest('', 'GET', '/api/users')
+    mockDB.findMockAdvanced.mockImplementation(function () {
+      throw new Error('matcher down')
+    })
+
+    await new Promise<void>(function (resolve, reject) {
+      mockMiddleware(dbManager)(
+        request,
+        {
+          statusCode: 0,
+          setHeader: vi.fn(),
+          end: vi.fn(),
+        } as unknown as ServerResponse,
+        function (error?: unknown) {
+          if (error) {
+            reject(error)
+            return
+          }
+          resolve()
+        },
+      )
+    })
+  })
+
+  it('overrides spoofed X-Mock-* headers from the mock response', async () => {
+    const mock: StaticMockConfig = {
+      id: 'authoritative-id',
+      url: '/api/users',
+      method: 'GET',
+      type: 'static',
+      enabled: true,
+      response: {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Mock-Id': 'forged',
+          'X-Mock-Source': 'static',
+        },
+        body: { ok: true },
+      },
+    }
+    const headers: Record<string, string | number | readonly string[]> = {}
+    mockDB.findMockAdvanced.mockReturnValue(mock)
+
+    await new Promise<void>((resolve, reject) => {
+      const response = {
+        statusCode: 0,
+        setHeader: function (
+          name: string,
+          value: string | number | readonly string[],
+        ) {
+          headers[name.toLowerCase()] = value
+          return this
+        },
+        end: function () {
+          resolve()
+          return this
+        },
+      } as unknown as ServerResponse
+      mockMiddleware(dbManager)(
+        createRequest('', 'GET'),
+        response,
+        function (error?: unknown) {
+          reject(error || new Error('unexpected next'))
+        },
+      )
+    })
+
+    expect(headers['x-mock-id']).toBe('authoritative-id')
+    expect(headers['x-mock-source']).toBe('static')
+  })
 })

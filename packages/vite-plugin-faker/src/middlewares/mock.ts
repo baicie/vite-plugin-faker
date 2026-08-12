@@ -1,4 +1,5 @@
 import type {
+  MockConfig,
   MockContext,
   QueryObject,
   ResponseGeneratorOptions,
@@ -42,13 +43,20 @@ export function mockMiddleware(
       const method = req.method || 'GET'
       const query = parseQuery(url)
       const body = await readBody(req)
-      const mock = mockDB.findMockAdvanced({
-        url,
-        method,
-        headers: req.headers,
-        query,
-        body,
-      })
+      let mock: MockConfig | undefined
+      try {
+        mock = mockDB.findMockAdvanced({
+          url,
+          method,
+          headers: req.headers,
+          query,
+          body,
+        })
+      } catch (matcherError) {
+        logger.error('[Faker] mock 匹配失败，回退到 next():', matcherError)
+        restoreBody(req)
+        return next()
+      }
 
       if (!mock || !mock.enabled) {
         restoreBody(req)
@@ -80,6 +88,7 @@ export function mockMiddleware(
       // status
       res.statusCode = response.status
 
+      // response headers
       const responseHeaders = sanitizeMockResponseHeaders(
         extend(
           {},
@@ -89,10 +98,11 @@ export function mockMiddleware(
           response.headers,
         ),
       )
-      // headers
       for (const [k, v] of Object.entries(responseHeaders)) {
         res.setHeader(k, v)
       }
+      // Append authoritative mock markers after sanitization so request
+      // handlers can never spoof the mock id / source.
       res.setHeader('X-Mock-Source', response.source || 'static')
       res.setHeader(
         'X-Mock-Id',

@@ -1,8 +1,10 @@
 import type {
+  HeaderMatchCondition,
   MatchRule,
   QueryMatchCondition,
   RequestRecord,
 } from '@baicie/faker-shared'
+import { sanitizeResponseHeaders } from '@baicie/faker-shared/browser'
 
 export interface TrafficRuleDraftResponse {
   status: number
@@ -16,6 +18,7 @@ export interface TrafficRuleDraft {
   method: string
   enabled: true
   type: 'static'
+  id?: string
   matchRule?: MatchRule
   response: TrafficRuleDraftResponse
 }
@@ -39,9 +42,7 @@ const BLOCKED_RESPONSE_HEADERS: Record<string, boolean> = {
   'x-mock-source': true,
 }
 
-function toQueryConditionValue(
-  value: unknown,
-): string | string[] | undefined {
+function toQueryConditionValue(value: unknown): string | string[] | undefined {
   if (Array.isArray(value)) {
     if (value.length === 0) {
       return undefined
@@ -81,6 +82,62 @@ function createQueryConditions(
   return conditions
 }
 
+const TRAFFIC_MATCHER_BLOCKED_HEADERS: Record<string, boolean> = {
+  connection: true,
+  'keep-alive': true,
+  'transfer-encoding': true,
+  upgrade: true,
+  te: true,
+  trailer: true,
+  'content-length': true,
+  'content-encoding': true,
+  'content-type': true,
+  host: true,
+  cookie: true,
+  'x-mock-id': true,
+  'x-mock-source': true,
+}
+
+function toHeaderConditionValue(value: unknown): string | string[] | undefined {
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return undefined
+    }
+    return value.map(function (item) {
+      return String(item)
+    })
+  }
+  if (value === undefined || value === null) {
+    return undefined
+  }
+  return String(value)
+}
+
+/**
+ * 把捕获到的请求头转换为 matchRule.headers 条件。
+ * 跳过 hop-by-hop 与 mock 元数据头，其余以 equals 操作符加入。
+ */
+export function createHeaderConditions(
+  headers: RequestRecord['headers'],
+): HeaderMatchCondition[] {
+  const conditions: HeaderMatchCondition[] = []
+  if (!headers) {
+    return conditions
+  }
+
+  Object.keys(headers).forEach(function (key) {
+    const normalized = key.toLowerCase()
+    if (TRAFFIC_MATCHER_BLOCKED_HEADERS[normalized]) {
+      return
+    }
+    const value = toHeaderConditionValue(headers[key])
+    if (value !== undefined) {
+      conditions.push({ key, value, operator: 'equals' })
+    }
+  })
+  return conditions
+}
+
 function toBodyConditionValue(body: unknown): string | undefined {
   if (body === undefined || body === null) {
     return undefined
@@ -102,14 +159,18 @@ function toBodyConditionValue(body: unknown): string | undefined {
 
 function createMatchRule(record: RequestRecord): MatchRule | undefined {
   const query = createQueryConditions(record.query)
+  const headers = createHeaderConditions(record.headers)
   const body = toBodyConditionValue(record.body)
-  if (query.length === 0 && body === undefined) {
+  if (query.length === 0 && headers.length === 0 && body === undefined) {
     return undefined
   }
 
   const matchRule: MatchRule = {}
   if (query.length > 0) {
     matchRule.query = query
+  }
+  if (headers.length > 0) {
+    matchRule.headers = headers
   }
   if (body !== undefined) {
     matchRule.body = {
@@ -119,38 +180,6 @@ function createMatchRule(record: RequestRecord): MatchRule | undefined {
     }
   }
   return matchRule
-}
-
-function sanitizeResponseHeaders(
-  headers: Record<string, string>,
-): Record<string, string> {
-  const result: Record<string, string> = {}
-  const connectionHeaders: Record<string, boolean> = {}
-
-  Object.keys(headers).forEach(function (key) {
-    if (key.toLowerCase() !== 'connection') {
-      return
-    }
-    headers[key].split(',').forEach(function (value) {
-      const normalized = value.trim().toLowerCase()
-      if (normalized) {
-        connectionHeaders[normalized] = true
-      }
-    })
-  })
-
-  Object.keys(headers).forEach(function (key) {
-    const normalized = key.toLowerCase()
-    if (
-      !BLOCKED_RESPONSE_HEADERS[normalized] &&
-      normalized.indexOf('proxy-') !== 0 &&
-      !connectionHeaders[normalized]
-    ) {
-      result[key] = headers[key]
-    }
-  })
-
-  return result
 }
 
 export function getRequestPathname(url: string): string {
@@ -171,11 +200,12 @@ export function createTrafficRuleDraft(
   record: RequestRecord,
 ): TrafficRuleDraft {
   const response = record.response
+  const pathname = getRequestPathname(record.url)
   const method = record.method.trim().toUpperCase() || 'GET'
   const matchRule = createMatchRule(record)
 
   const draft: TrafficRuleDraft = {
-    url: getRequestPathname(record.url),
+    url: pathname,
     method,
     enabled: true,
     type: 'static',
@@ -185,6 +215,13 @@ export function createTrafficRuleDraft(
       body: response && response.body !== undefined ? response.body : {},
       delay: 0,
     },
+  }
+  // 使用来自 request record 的稳定 id（若已存在），否则基于 pathname+method 合成一个；
+  // 保存时若该 id 已存在于数据库，MocksDB 会自动改用 UUID，不会发生静默覆盖。
+  if (record.id && record.id.trim()) {
+    draft.id = record.id
+  } else if (pathname && pathname !== '/') {
+    draft.id = pathname + '-' + method
   }
   if (matchRule) {
     draft.matchRule = matchRule

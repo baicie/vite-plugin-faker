@@ -1,4 +1,5 @@
 import type {
+  MockConfig,
   MockContext,
   QueryObject,
   ResponseGeneratorOptions,
@@ -44,13 +45,20 @@ export function mockMiddleware(
       const method = req.method || 'GET'
       const query = parseQuery(url)
       const body = await readBody(req)
-      const mock = mockDB.findMockAdvanced({
-        url,
-        method,
-        headers: req.headers,
-        query,
-        body,
-      })
+      let mock: MockConfig | undefined
+      try {
+        mock = mockDB.findMockAdvanced({
+          url,
+          method,
+          headers: req.headers,
+          query,
+          body,
+        })
+      } catch (matcherError) {
+        logger.error('[Faker] mock 匹配失败，回退到 next():', matcherError)
+        restoreBody(req)
+        return next()
+      }
 
       if (!mock || !mock.enabled) {
         restoreBody(req)
