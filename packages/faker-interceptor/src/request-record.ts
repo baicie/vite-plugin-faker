@@ -1,8 +1,8 @@
-import type { MockType } from '@baicie/faker-shared'
+import type { MockType, QueryObject } from '@baicie/faker-shared'
 
 export interface RequestLocation {
   url: string
-  query: Record<string, string>
+  query: QueryObject
 }
 
 export interface MockResponseMarker {
@@ -30,9 +30,16 @@ export function headersToObject(headers: Headers): Record<string, string> {
 
 export function getRequestLocation(rawUrl: string): RequestLocation {
   const parsedUrl = new URL(rawUrl, window.location.origin)
-  const query: Record<string, string> = {}
+  const query: Record<string, string | string[]> = {}
   parsedUrl.searchParams.forEach(function (value, key) {
-    query[key] = value
+    const current = query[key]
+    if (current === undefined) {
+      query[key] = value
+    } else if (Array.isArray(current)) {
+      current.push(value)
+    } else {
+      query[key] = [current, value]
+    }
   })
 
   return {
