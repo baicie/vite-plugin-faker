@@ -63,6 +63,89 @@ describe('traffic utilities', function () {
     })
   })
 
+  it('creates exact query and body conditions from captured request data', function () {
+    const record: RequestRecord = {
+      url: '/api/users?tenant=acme&tag=core&tag=ui',
+      method: 'post',
+      headers: {},
+      query: {
+        tenant: 'acme',
+        tag: ['core', 'ui'],
+      },
+      body: {
+        role: 'admin',
+        active: true,
+      },
+      timestamp: 1,
+    }
+
+    expect(createTrafficRuleDraft(record).matchRule).toEqual({
+      query: [
+        { key: 'tenant', operator: 'equals', value: 'acme' },
+        { key: 'tag', operator: 'equals', value: ['core', 'ui'] },
+      ],
+      body: {
+        path: '',
+        operator: 'equals',
+        value: '{"role":"admin","active":true}',
+      },
+    })
+  })
+
+  it('does not create an empty match rule without meaningful request data', function () {
+    const record: RequestRecord = {
+      url: '/api/empty',
+      method: 'post',
+      headers: {},
+      query: {},
+      body: '',
+      timestamp: 1,
+    }
+
+    expect(createTrafficRuleDraft(record)).not.toHaveProperty('matchRule')
+  })
+
+  it('removes stale transport and mock metadata from response headers', function () {
+    const record: RequestRecord = {
+      url: '/api/users',
+      method: 'get',
+      headers: {},
+      response: {
+        statusCode: 200,
+        headers: {
+          Connection: 'keep-alive',
+          'Keep-Alive': 'timeout=5',
+          'Proxy-Authenticate': 'Basic',
+          'proxy-connection': 'keep-alive',
+          'Transfer-Encoding': 'chunked',
+          Upgrade: 'websocket',
+          TE: 'trailers',
+          Trailer: 'Expires',
+          'Content-Length': '123',
+          'Content-Encoding': 'gzip',
+          Date: 'Wed, 12 Aug 2026 00:00:00 GMT',
+          Server: 'example',
+          ETag: 'stale',
+          'Last-Modified': 'Wed, 12 Aug 2026 00:00:00 GMT',
+          'Set-Cookie': 'session=secret',
+          'X-Mock-Id': 'mock-id',
+          'x-mock-source': 'static',
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'X-Trace-Id': 'trace-id',
+        },
+        body: { ok: true },
+      },
+      timestamp: 1,
+    }
+
+    expect(createTrafficRuleDraft(record).response.headers).toEqual({
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'X-Trace-Id': 'trace-id',
+    })
+  })
+
   it('formats structured, empty, and circular detail values', function () {
     const circular: Record<string, unknown> = {}
     circular.self = circular
