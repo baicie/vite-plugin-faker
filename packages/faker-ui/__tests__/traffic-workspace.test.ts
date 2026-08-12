@@ -302,6 +302,38 @@ describe('TrafficWorkspace', function () {
       })
   })
 
+  it('focuses traffic on a rule saved from the request workflow', function () {
+    const client = new FakeTrafficClient()
+    const onFocusTargetConsumed = vi.fn()
+    requestApi.fetchRequestHistory
+      .mockResolvedValueOnce(createPage([firstRecord, secondRecord]))
+      .mockResolvedValueOnce(createPage([secondRecord], 1, 1))
+
+    dispose = render(function () {
+      return TrafficWorkspace({
+        client,
+        onCreateRule: function () {},
+        focusTarget: function () {
+          return '/api/orders/42'
+        },
+        onFocusTargetConsumed,
+      })
+    }, target)
+
+    return settle().then(function () {
+      expect(requestApi.fetchRequestHistory).toHaveBeenLastCalledWith({
+        page: 1,
+        pageSize: 20,
+        search: '/api/orders/42',
+      })
+      expect(onFocusTargetConsumed).toHaveBeenCalledOnce()
+      expect(target.textContent).toContain('/api/orders/42')
+      expect(target.textContent).toContain(
+        'Rule saved. Replay the request to verify the mock.',
+      )
+    })
+  })
+
   it('searches, refreshes, and changes pages with the active query', function () {
     const client = new FakeTrafficClient()
     requestApi.fetchRequestHistory

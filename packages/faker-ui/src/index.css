@@ -920,6 +920,20 @@
   color: var(--studio-red);
 }
 
+.traffic-focus-notice {
+  margin: 0 0 10px;
+  justify-content: space-between;
+  border-color: color-mix(
+    in srgb,
+    var(--studio-green) 35%,
+    var(--studio-border)
+  );
+}
+
+.traffic-focus-notice[data-level='success'] {
+  color: var(--studio-green);
+}
+
 .traffic-refreshing {
   color: var(--studio-amber);
   font-size: 11px;

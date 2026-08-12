@@ -105,6 +105,7 @@ export default function FakerStudioApp(
   const theme = state<FakerTheme>(resolveInitialTheme())
   const locale = state<Locale>(getLocale())
   const ruleDraft = state<MockConfig | null>(null)
+  const trafficFocus = state('')
   let studioPanel: HTMLDivElement | null = null
   let focusRetryTimer: number | undefined
 
@@ -233,6 +234,18 @@ export default function FakerStudioApp(
 
   function handleDraftConsumed(): void {
     ruleDraft.value = null
+  }
+
+  function handleRuleSaved(rule: MockConfig, fromTraffic: boolean): void {
+    if (!fromTraffic) {
+      return
+    }
+    trafficFocus.value = rule.url
+    activeView.value = 'traffic'
+  }
+
+  function handleTrafficFocusConsumed(): void {
+    trafficFocus.value = ''
   }
 
   props.client.onStatus(handleStatus)
@@ -446,6 +459,10 @@ export default function FakerStudioApp(
                   <TrafficWorkspace
                     client={props.client}
                     onCreateRule={handleCreateRule}
+                    focusTarget={function () {
+                      return trafficFocus.value
+                    }}
+                    onFocusTargetConsumed={handleTrafficFocusConsumed}
                   />
                 )
               })}
@@ -472,6 +489,7 @@ export default function FakerStudioApp(
                       return ruleDraft.value
                     }}
                     onDraftConsumed={handleDraftConsumed}
+                    onRuleSaved={handleRuleSaved}
                   />
                 )
               })}

@@ -25,6 +25,7 @@ export interface RulesWorkspaceProps {
   theme: () => FakerTheme
   draft?: () => MockConfig | null
   onDraftConsumed?: () => void
+  onRuleSaved?: (rule: MockConfig, fromTraffic: boolean) => void
 }
 
 interface RulesWorkspaceState {
@@ -187,6 +188,7 @@ export default function RulesWorkspace(
   let createRuleControl: HTMLElement | null = null
   let editorReturnFocus: HTMLElement | null = null
   let editorFocusTimer: number | undefined
+  let editorFromTraffic = false
 
   function createQuery(): DashboardQuery {
     const query: DashboardQuery = {
@@ -274,6 +276,7 @@ export default function RulesWorkspace(
     rule: MockConfig | null,
     create: boolean,
     trigger?: HTMLElement | null,
+    fromTraffic = false,
   ): void {
     const active = document.activeElement
     editorReturnFocus =
@@ -283,6 +286,7 @@ export default function RulesWorkspace(
         : createRuleControl)
     view.editorRule = rule
     view.editorCreate = create
+    editorFromTraffic = fromTraffic
     view.editorOpen = true
   }
 
@@ -292,6 +296,7 @@ export default function RulesWorkspace(
     view.editorOpen = false
     view.editorRule = null
     view.editorCreate = true
+    editorFromTraffic = false
     if (editorFocusTimer !== undefined) {
       window.clearTimeout(editorFocusTimer)
     }
@@ -301,9 +306,13 @@ export default function RulesWorkspace(
     }, 0)
   }
 
-  function handleSaved(): void {
+  function handleSaved(rule: MockConfig): void {
+    const fromTraffic = editorFromTraffic
     closeEditor()
     refreshWorkspace()
+    if (props.onRuleSaved) {
+      props.onRuleSaved(rule, fromTraffic)
+    }
   }
 
   function openImport(): void {
@@ -490,7 +499,7 @@ export default function RulesWorkspace(
     if (!incoming) {
       return
     }
-    openEditor(incoming, true)
+    openEditor(incoming, true, null, true)
     if (props.onDraftConsumed) {
       props.onDraftConsumed()
     }

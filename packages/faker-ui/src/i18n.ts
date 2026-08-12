@@ -92,6 +92,10 @@ const ZH_CN: { [key: string]: string } = {
     '确定重放 {{method}} 请求吗？这可能会修改数据。',
   'Replay completed: HTTP {{status}}': '重放完成：HTTP {{status}}',
   'Replay failed: {{error}}': '重放失败：{{error}}',
+  'Rule saved. Replay the request to verify the mock.':
+    '规则已保存。重放请求以验证 Mock 效果。',
+  'Dismiss notice': '关闭提示',
+  Dismiss: '关闭',
   Request: '请求',
   Response: '响应',
   'Request detail views': '请求详情视图',

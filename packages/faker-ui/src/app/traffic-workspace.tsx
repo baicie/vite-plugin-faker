@@ -5,7 +5,7 @@ import type {
   WSMessage,
 } from '@baicie/faker-shared'
 import { WSMessageType } from '@baicie/faker-shared/browser'
-import { onCleanup, state } from '@zeus-js/zeus'
+import { effect, onCleanup, state } from '@zeus-js/zeus'
 import { clearRequestHistory, fetchRequestHistory } from '../api/request'
 import TrafficDetail from './traffic-detail'
 import { dynamic, getErrorMessage, readInputValue } from '../lib/zeus'
@@ -24,6 +24,8 @@ export interface TrafficRealtimeClient {
 export interface TrafficWorkspaceProps {
   onCreateRule: (record: RequestRecord) => void
   client?: TrafficRealtimeClient
+  focusTarget?: () => string
+  onFocusTargetConsumed?: () => void
 }
 
 interface TrafficModel {
@@ -38,6 +40,7 @@ interface TrafficModel {
   loading: boolean
   clearing: boolean
   error: string
+  focusNotice: string
 }
 
 interface InputChangeDetail {
@@ -134,6 +137,7 @@ function createInitialModel(): TrafficModel {
     loading: true,
     clearing: false,
     error: '',
+    focusNotice: '',
   }
 }
 
@@ -388,6 +392,21 @@ export default function TrafficWorkspace(
     loadRequests(1, model.searchInput.trim())
   }
 
+  let appliedFocusTarget = ''
+
+  function applyFocusTarget(target: string): void {
+    if (!target) {
+      return
+    }
+    appliedFocusTarget = target
+    model.searchInput = target
+    model.focusNotice = t('Rule saved. Replay the request to verify the mock.')
+    if (props.onFocusTargetConsumed) {
+      props.onFocusTargetConsumed()
+    }
+    loadRequests(1, target)
+  }
+
   function handleRefresh(): void {
     loadRequests(model.page, model.activeSearch)
   }
@@ -484,6 +503,13 @@ export default function TrafficWorkspace(
 
   loadRequests(1, '')
 
+  const focusEffect = effect(function () {
+    const target = props.focusTarget ? props.focusTarget() : ''
+    if (target && target !== appliedFocusTarget) {
+      applyFocusTarget(target)
+    }
+  })
+
   onCleanup(function () {
     active = false
     requestSequence += 1
@@ -491,6 +517,7 @@ export default function TrafficWorkspace(
       client.off(WSMessageType.REQUEST_RECORDED, handleRecorded)
       client.off(WSMessageType.REQUEST_CLEARED, handleCleared)
     }
+    focusEffect.effect.stop()
   })
 
   return (
@@ -573,6 +600,31 @@ export default function TrafficWorkspace(
           })}
         </div>
       </div>
+
+      {dynamic(function () {
+        if (!model.focusNotice) {
+          return null
+        }
+        return (
+          <div
+            class="workspace-notice traffic-focus-notice"
+            data-level="success"
+            role="status"
+          >
+            <span>{model.focusNotice}</span>
+            <zw-button
+              variant="ghost"
+              size="sm"
+              aria-label={t('Dismiss notice')}
+              onClick={function () {
+                model.focusNotice = ''
+              }}
+            >
+              {t('Dismiss')}
+            </zw-button>
+          </div>
+        )
+      })}
 
       {dynamic(function () {
         if (model.error && model.records.length > 0) {

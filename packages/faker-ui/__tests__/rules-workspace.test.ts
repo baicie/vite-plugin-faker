@@ -93,6 +93,19 @@ const validSource = JSON.stringify({
   },
 })
 
+const trafficDraft: MockConfig = {
+  id: 'traffic-draft',
+  url: '/api/orders/42',
+  method: 'GET',
+  enabled: true,
+  type: 'static',
+  response: {
+    status: 200,
+    headers: {},
+    body: { ok: true },
+  },
+}
+
 describe('RulesWorkspace OpenAPI import', function () {
   let target: HTMLDivElement
   let dispose: () => void
@@ -205,5 +218,45 @@ describe('RulesWorkspace OpenAPI import', function () {
       expect(target.querySelector('zw-dialog')).not.toBeNull()
       expect(mockApi.fetchMockList).toHaveBeenCalledOnce()
     })
+  })
+
+  it('reports that a traffic draft was saved from the traffic workflow', function () {
+    const onRuleSaved = vi.fn()
+    dispose = render(function () {
+      return RulesWorkspace({
+        client: new FakeRulesClient() as unknown as WSClient,
+        theme: function () {
+          return 'light'
+        },
+        draft: function () {
+          return trafficDraft
+        },
+        onDraftConsumed: function () {},
+        onRuleSaved,
+      })
+    }, target)
+
+    return settle()
+      .then(function () {
+        const form = target.querySelector<HTMLFormElement>('.rule-editor-form')
+        if (!form) {
+          throw new Error('Expected rule editor form')
+        }
+        form.dispatchEvent(
+          new SubmitEvent('submit', { bubbles: true, cancelable: true }),
+        )
+        return settle()
+      })
+      .then(function () {
+        expect(mockApi.createMock).toHaveBeenCalledOnce()
+        expect(onRuleSaved).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: trafficDraft.url,
+            method: trafficDraft.method,
+            type: trafficDraft.type,
+          }),
+          true,
+        )
+      })
   })
 })
