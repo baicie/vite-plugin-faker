@@ -1,7 +1,12 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { PassThrough } from 'node:stream'
 import type { DBManager } from '@baicie/faker-core'
-import type { FunctionMockConfig, StaticMockConfig } from '@baicie/faker-shared'
+import type {
+  FunctionMockConfig,
+  MockContext,
+  MockRequestMatchParams,
+  StaticMockConfig,
+} from '@baicie/faker-shared'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MocksDB } from '../../faker-core/src/db/mock'
 import { mockMiddleware } from '../src/middlewares/mock'
@@ -91,10 +96,66 @@ describe('webpack mockMiddleware', () => {
     })
 
     expect(mockDB.findMockAdvanced).toHaveBeenCalledOnce()
+    expect(mockDB.findMock).not.toHaveBeenCalled()
     expect(downstreamBody).toBe(rawBody)
   })
 
-  it('preserves custom response headers', async () => {
+  it('reuses the parsed query and body for matching and response generation', () => {
+    let matchParams: MockRequestMatchParams | undefined
+    let generatedContext: MockContext | undefined
+    const mock: FunctionMockConfig = {
+      id: 'users-post',
+      url: '/api/users',
+      method: 'POST',
+      type: 'function',
+      enabled: true,
+      handler: function (ctx) {
+        generatedContext = ctx
+        return { status: 200, body: { ok: true } }
+      },
+    }
+    mockDB.findMockAdvanced.mockImplementation(function (params) {
+      matchParams = params
+      return mock
+    })
+
+    return new Promise<void>(function (resolve, reject) {
+      const response = {
+        statusCode: 0,
+        setHeader: vi.fn(),
+        end: function () {
+          resolve()
+          return this
+        },
+      } as unknown as ServerResponse
+
+      mockMiddleware(dbManager)(
+        createRequest(
+          JSON.stringify({ user: { role: 'admin' } }),
+          'POST',
+          '/api/users?tenant=zeus',
+        ),
+        response,
+        function (error?: unknown) {
+          reject(error || new Error('mock middleware unexpectedly called next'))
+        },
+      )
+    }).then(function () {
+      expect(mockDB.findMock).not.toHaveBeenCalled()
+      expect(matchParams).toBeDefined()
+      expect(generatedContext).toBeDefined()
+      expect(matchParams!.query).toBe(generatedContext!.query)
+      expect(matchParams!.body).toBe(generatedContext!.body)
+      expect(matchParams).toMatchObject({
+        url: '/api/users?tenant=zeus',
+        method: 'POST',
+        query: { tenant: 'zeus' },
+        body: { user: { role: 'admin' } },
+      })
+    })
+  })
+
+  it('filters unsafe response headers and preserves application headers', async () => {
     const mock: StaticMockConfig = {
       id: 'users-get',
       url: '/api/users',
@@ -103,12 +164,28 @@ describe('webpack mockMiddleware', () => {
       enabled: true,
       response: {
         status: 200,
-        headers: { 'Content-Type': 'text/plain', 'X-Custom': 'custom-value' },
+        headers: {
+          'Content-Type': 'text/plain',
+          'Access-Control-Allow-Origin': '*',
+          'X-Custom': 'custom-value',
+          'Content-Length': '999',
+          'Content-Encoding': 'gzip',
+          'Transfer-Encoding': 'chunked',
+          Connection: 'upgrade',
+          'Keep-Alive': 'timeout=5',
+          'Proxy-Connection': 'keep-alive',
+          'Proxy-Authenticate': 'Basic',
+          Upgrade: 'websocket',
+          TE: 'trailers',
+          Trailer: 'x-checksum',
+          'X-Mock-Id': 'forged-id',
+          'X-Mock-Source': 'proxy',
+        },
         body: 'ok',
       },
     }
     const headers: Record<string, string | number | readonly string[]> = {}
-    mockDB.findMock.mockReturnValue(mock)
+    mockDB.findMockAdvanced.mockReturnValue(mock)
 
     await new Promise<void>(function (resolve, reject) {
       const response = {
@@ -117,7 +194,7 @@ describe('webpack mockMiddleware', () => {
           name: string,
           value: string | number | readonly string[],
         ) {
-          headers[name] = value
+          headers[name.toLowerCase()] = value
           return this
         },
         end: function () {
@@ -135,9 +212,21 @@ describe('webpack mockMiddleware', () => {
       )
     })
 
-    expect(headers['Content-Type']).toBe('text/plain')
-    expect(headers['X-Custom']).toBe('custom-value')
-    expect(headers['X-Mock-Id']).toBe('users-get')
+    expect(headers['content-type']).toBe('text/plain')
+    expect(headers['access-control-allow-origin']).toBe('*')
+    expect(headers['x-custom']).toBe('custom-value')
+    expect(headers['content-length']).toBeUndefined()
+    expect(headers['content-encoding']).toBeUndefined()
+    expect(headers['transfer-encoding']).toBeUndefined()
+    expect(headers.connection).toBeUndefined()
+    expect(headers['keep-alive']).toBeUndefined()
+    expect(headers['proxy-connection']).toBeUndefined()
+    expect(headers['proxy-authenticate']).toBeUndefined()
+    expect(headers.upgrade).toBeUndefined()
+    expect(headers.te).toBeUndefined()
+    expect(headers.trailer).toBeUndefined()
+    expect(headers['x-mock-id']).toBe('users-get')
+    expect(headers['x-mock-source']).toBe('static')
   })
 
   it('serves query URLs with authoritative mock markers', () => {
@@ -233,7 +322,7 @@ describe('webpack mockMiddleware', () => {
       handlerSource:
         'function handler(ctx) { return { status: 200, body: { url: ctx.url } }; }',
     }
-    mockDB.findMock.mockReturnValue(mock)
+    mockDB.findMockAdvanced.mockReturnValue(mock)
 
     return new Promise<void>(function (resolve, reject) {
       const response = {

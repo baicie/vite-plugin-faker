@@ -8,7 +8,12 @@ import { logger } from '@baicie/logger'
 import qs from 'qs'
 import type { Connect, ViteDevServer } from 'vite'
 import { dbManager } from '../index'
-import { generateResponseMap, readBody, restoreBody } from '@baicie/faker-core'
+import {
+  generateResponseMap,
+  readBody,
+  restoreBody,
+  sanitizeMockResponseHeaders,
+} from '@baicie/faker-core'
 
 export function parseQuery<T extends QueryObject = QueryObject>(
   url: string,
@@ -33,23 +38,17 @@ export function mockMiddleware(
     try {
       if (!mockDB) return next()
 
-      // 优先使用精确匹配
-      let mock = mockDB.findMock(req)
-
-      if (mock && !mock.enabled) {
-        mock = undefined
-      }
-
-      // 如果精确匹配不到，尝试高级匹配
-      if (!mock) {
-        mock = mockDB.findMockAdvanced({
-          url: req.url!,
-          method: req.method || 'GET',
-          headers: req.headers,
-          query: parseQuery(req.url!),
-          body: await readBody(req),
-        })
-      }
+      const url = req.url || '/'
+      const method = req.method || 'GET'
+      const query = parseQuery(url)
+      const body = await readBody(req)
+      const mock = mockDB.findMockAdvanced({
+        url,
+        method,
+        headers: req.headers,
+        query,
+        body,
+      })
 
       if (!mock || !mock.enabled) {
         restoreBody(req)
@@ -64,11 +63,11 @@ export function mockMiddleware(
 
       const ctx: MockContext = {
         req,
-        url: req.url!,
-        method: req.method!,
+        url,
+        method,
         headers: req.headers,
-        query: parseQuery(req.url!),
-        body: await readBody(req),
+        query,
+        body,
       }
 
       const response = await generate(mock, ctx, options)
@@ -81,12 +80,14 @@ export function mockMiddleware(
       // status
       res.statusCode = response.status
 
-      const responseHeaders = extend(
-        {},
-        {
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-        response.headers,
+      const responseHeaders = sanitizeMockResponseHeaders(
+        extend(
+          {},
+          {
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          response.headers,
+        ),
       )
       // headers
       for (const [k, v] of Object.entries(responseHeaders)) {
