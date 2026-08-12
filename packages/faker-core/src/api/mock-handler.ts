@@ -47,11 +47,13 @@ export class MockHandler {
       const mocksDB = this.dbManager.getMocksDB()
       const success = mocksDB.updateMock(data.id, data.updates)
 
-      // 触发数据库变更事件
-      this.eventBus.emit(EventBusType.DB_MOCK_UPDATED, {
-        id: data.id,
-        updates: data.updates,
-      })
+      if (success) {
+        // 只有持久化成功后才通知其他客户端刷新配置。
+        this.eventBus.emit(EventBusType.DB_MOCK_UPDATED, {
+          id: data.id,
+          updates: data.updates,
+        })
+      }
 
       return {
         type: WSMessageType.MOCK_UPDATED,

@@ -6,10 +6,47 @@ import type {
   QueryMatchCondition,
   UrlMatchType,
 } from '@baicie/faker-shared'
+import { generateUUID } from '@baicie/faker-shared'
 import { extend, get } from 'lodash-es'
 import { BaseDB } from './base'
 import type { DBConfig } from './base'
 import { type ParmasLike, methodLineUrl, normalizeRequestUrl } from '../utils'
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(canonicalize)
+  }
+  if (value && typeof value === 'object') {
+    const source = value as Record<string, unknown>
+    const result: Record<string, unknown> = {}
+    Object.keys(source)
+      .sort()
+      .forEach(function (key) {
+        result[key] = canonicalize(source[key])
+      })
+    return result
+  }
+  return value
+}
+
+function mockSignature(config: Pick<MockConfig, 'url' | 'method' | 'matchRule'>): string {
+  return JSON.stringify({
+    url: normalizeRequestUrl(config.url) || '/',
+    method: (config.method || '').toUpperCase(),
+    matchRule: canonicalize(config.matchRule || null),
+  })
+}
+
+function matchSpecificity(config: MockConfig): number {
+  const rule = config.matchRule
+  if (!rule) return 0
+  let score = 0
+  if (rule.url) score += 1
+  if (rule.headers) score += rule.headers.length
+  if (rule.query) score += rule.query.length
+  if (rule.body) score += 1
+  return score
+}
 
 /**
  * 匹配器工具函数
@@ -95,7 +132,18 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
 
   // 添加Mock配置
   addMock(config: MockConfig): MockConfig {
-    const id = methodLineUrl(config)
+    const requestedId = config.id && config.id.trim() ? config.id.trim() : ''
+    const id = requestedId || generateUUID()
+    if (this.db.data[id]) {
+      throw new Error('Mock id conflicts with an existing mock: ' + id)
+    }
+    const signature = mockSignature(config)
+    const hasConflict = this.getAllMocks().some(function (mock) {
+      return mockSignature(mock) === signature
+    })
+    if (hasConflict) {
+      throw new Error('Mock conflicts with an existing mock')
+    }
     const normalizedConfig = MocksDB.toMockConfig(id, config)
     this.db.data[id] = normalizedConfig
     this.save()
@@ -106,6 +154,11 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     const nextData = extend({}, this.db.data) as Record<string, MockConfig>
     const imported: MockConfig[] = []
     const batchIds: Record<string, boolean> = {}
+    const batchSignatures: Record<string, boolean> = {}
+    const existingSignatures: Record<string, boolean> = {}
+    this.getAllMocks().forEach(function (mock) {
+      existingSignatures[mockSignature(mock)] = true
+    })
 
     for (const config of configs) {
       if (
@@ -118,11 +171,17 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
         throw new Error('Imported mocks require a url and method')
       }
 
-      const id = methodLineUrl(config)
-      if (batchIds[id]) {
-        throw new Error('Imported mocks contain a duplicate route: ' + id)
+      const requestedId = config.id && config.id.trim() ? config.id.trim() : ''
+      const id = requestedId || generateUUID()
+      if (batchIds[id] || nextData[id]) {
+        throw new Error('Imported mocks contain a duplicate id: ' + id)
       }
       batchIds[id] = true
+      const signature = mockSignature(config)
+      if (existingSignatures[signature] || batchSignatures[signature]) {
+        throw new Error('Imported mock conflicts with an existing mock')
+      }
+      batchSignatures[signature] = true
       const normalizedConfig = MocksDB.toMockConfig(id, config)
       nextData[id] = normalizedConfig
       imported.push(normalizedConfig)
@@ -148,12 +207,14 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
   }
 
   findMock<T extends ParmasLike>(params: T): MockConfig | undefined {
-    const id = methodLineUrl(params)
-    const mock = this.db.data[id]
-    if (!mock || methodLineUrl(mock) !== id) {
-      return undefined
-    }
-    return MocksDB.toMockConfig(id, mock)
+    const route = methodLineUrl(params)
+    const candidates = this.getActiveMocks().filter(function (mock) {
+      return !mock.matchRule && methodLineUrl(mock) === route
+    })
+    candidates.sort(function (a, b) {
+      return String(a.id).localeCompare(String(b.id))
+    })
+    return candidates[0]
   }
 
   /**
@@ -166,7 +227,11 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     const sortedMocks = mocks.sort((a, b) => {
       const priorityA = a.priority ?? 0
       const priorityB = b.priority ?? 0
-      return priorityB - priorityA
+      if (priorityB !== priorityA) return priorityB - priorityA
+      const specificityDelta =
+        matchSpecificity(b) - matchSpecificity(a)
+      if (specificityDelta !== 0) return specificityDelta
+      return String(a.id).localeCompare(String(b.id))
     })
 
     for (const mock of sortedMocks) {
@@ -359,16 +424,17 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
     }
 
     const updated = extend({}, current, updates) as MockConfig
-    const updatedId = methodLineUrl(updated)
-    if (updatedId !== id && this.db.data[updatedId]) {
+    const updatedId = id
+    updated.id = id
+    const updatedSignature = mockSignature(updated)
+    const hasConflict = this.getAllMocks().some(function (mock) {
+      return mock.id !== id && mockSignature(mock) === updatedSignature
+    })
+    if (hasConflict) {
       return false
     }
 
-    const normalizedConfig = MocksDB.toMockConfig(updatedId, updated)
-    if (updatedId !== id) {
-      delete this.db.data[id]
-    }
-    this.db.data[updatedId] = normalizedConfig
+    this.db.data[id] = MocksDB.toMockConfig(updatedId, updated)
     this.save()
     return true
   }
