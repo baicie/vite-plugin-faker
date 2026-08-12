@@ -3,11 +3,33 @@ import { WSMessageType } from '@baicie/faker-shared/browser'
 import { useWsRequest } from '../hooks/use-ws-request'
 import type { WsRequest } from '../hooks/use-ws-request'
 
-export const createMock: WsRequest<MockConfig, MockConfig> =
-  useWsRequest<MockConfig>({
-    sendType: WSMessageType.MOCK_CREATE,
-    responseType: WSMessageType.MOCK_CREATED,
-  })
+interface MockOperationResult<T = MockConfig> {
+  success: boolean
+  mock?: T
+  error?: string
+}
+
+interface MockImportResult {
+  success: boolean
+  count: number
+  error?: string
+}
+
+interface SimpleResult {
+  success: boolean
+  error?: string
+}
+
+const FAILURE_OPTIONS = { rejectOnFailure: true } as const
+
+export const createMock: WsRequest<MockConfig, MockConfig> = useWsRequest<
+  MockConfig,
+  MockOperationResult<MockConfig>
+>({
+  sendType: WSMessageType.MOCK_CREATE,
+  responseType: WSMessageType.MOCK_CREATED,
+  options: FAILURE_OPTIONS,
+})
 
 /**
  * 更新 Mock
@@ -16,17 +38,15 @@ export const createMock: WsRequest<MockConfig, MockConfig> =
  * - 发送类型：WSMessageType.MOCK_UPDATE
  * - 响应类型：WSMessageType.MOCK_UPDATED
  * - 请求数据：{ id, updates }
- * - 响应数据：{ success: boolean }
+ * - 响应数据：{ success: boolean, error?: string }
  */
 export const updateMock: WsRequest<
   { id: string; updates: Partial<MockConfig> },
-  { success: boolean }
-> = useWsRequest<
-  { id: string; updates: Partial<MockConfig> },
-  { success: boolean }
->({
+  SimpleResult
+> = useWsRequest<{ id: string; updates: Partial<MockConfig> }, SimpleResult>({
   sendType: WSMessageType.MOCK_UPDATE,
   responseType: WSMessageType.MOCK_UPDATED,
+  options: FAILURE_OPTIONS,
 })
 
 /**
@@ -36,13 +56,16 @@ export const updateMock: WsRequest<
  * - 发送类型：WSMessageType.MOCK_DELETE
  * - 响应类型：WSMessageType.MOCK_DELETED
  * - 请求数据：{ id }
- * - 响应数据：{ success: boolean }
+ * - 响应数据：{ success: boolean, error?: string }
  */
-export const deleteMock: WsRequest<{ id: string }, { success: boolean }> =
-  useWsRequest<{ id: string }, { success: boolean }>({
-    sendType: WSMessageType.MOCK_DELETE,
-    responseType: WSMessageType.MOCK_DELETED,
-  })
+export const deleteMock: WsRequest<{ id: string }, SimpleResult> = useWsRequest<
+  { id: string },
+  SimpleResult
+>({
+  sendType: WSMessageType.MOCK_DELETE,
+  responseType: WSMessageType.MOCK_DELETED,
+  options: FAILURE_OPTIONS,
+})
 
 /**
  * 分页查询 Mock 列表
@@ -86,13 +109,12 @@ export const exportMocks: WsRequest<void, MockConfig[]> = useWsRequest<
 /**
  * 导入 Mock
  */
-export const importMocks: WsRequest<
-  MockConfig[],
-  { success: boolean; count: number }
-> = useWsRequest<MockConfig[], { success: boolean; count: number }>({
-  sendType: WSMessageType.MOCK_IMPORT,
-  responseType: WSMessageType.MOCK_IMPORTED,
-})
+export const importMocks: WsRequest<MockConfig[], MockImportResult> =
+  useWsRequest<MockConfig[], MockImportResult>({
+    sendType: WSMessageType.MOCK_IMPORT,
+    responseType: WSMessageType.MOCK_IMPORTED,
+    options: FAILURE_OPTIONS,
+  })
 
 /**
  * 获取所有分组

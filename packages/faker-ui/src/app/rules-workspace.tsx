@@ -434,14 +434,16 @@ export default function RulesWorkspace(
       function (result) {
         view.pendingId = ''
         if (!result.success) {
-          view.error = t('The rule could not be updated')
+          view.error = t('Update conflict detected')
           return
         }
         loadRules()
       },
       function (error: unknown) {
         view.pendingId = ''
-        view.error = getErrorMessage(error)
+        view.error = t('The rule could not be updated: {{error}}', {
+          error: getErrorMessage(error),
+        })
       },
     )
   }
@@ -476,7 +478,9 @@ export default function RulesWorkspace(
       },
       function (error: unknown) {
         view.pendingId = ''
-        view.error = getErrorMessage(error)
+        view.error = t('The rule could not be deleted: {{error}}', {
+          error: getErrorMessage(error),
+        })
       },
     )
   }
@@ -831,6 +835,7 @@ export default function RulesWorkspace(
           <RuleEditor
             rule={view.editorRule}
             create={view.editorCreate}
+            useStableIdentity={editorFromTraffic}
             theme={props.theme}
             onCancel={closeEditor}
             onSaved={handleSaved}

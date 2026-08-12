@@ -3,6 +3,7 @@ import type { MockConfig, ProxyMockConfig } from '@baicie/faker-shared'
 import {
   createRuleConfig,
   createRuleEditorDraft,
+  stableRuleIdentity,
   validateRuleEditorDraft,
 } from '../src/app/rule-editor-utils'
 import type { RuleEditorDraft } from '../src/app/rule-editor-utils'
@@ -268,6 +269,33 @@ describe('rule editor conversions', function () {
 
     rules.forEach(function (rule) {
       expect(createRuleConfig(createRuleEditorDraft(rule))).toEqual(rule)
+    })
+  })
+
+  describe('stableRuleIdentity', function () {
+    it('returns the route-method key for a given URL and method', function () {
+      expect(stableRuleIdentity('/api/users', 'GET')).toBe('/api/users-GET')
+      expect(stableRuleIdentity('/api/users', 'post')).toBe('/api/users-POST')
+    })
+
+    it('defaults to GET when the method is missing', function () {
+      expect(stableRuleIdentity('/api/users', '')).toBe('/api/users-GET')
+    })
+
+    it('falls back to "/" when the URL is empty', function () {
+      expect(stableRuleIdentity('', 'DELETE')).toBe('/-DELETE')
+    })
+
+    it('creates a MockConfig with a stable id only when explicitly enabled', function () {
+      const draft = createRuleEditorDraft(null)
+      draft.url = '/api/users'
+      draft.method = 'GET'
+
+      const implicit = createRuleConfig(draft)
+      expect(implicit.id).toBeUndefined()
+
+      const explicit = createRuleConfig(draft, { useStableIdentity: true })
+      expect(explicit.id).toBe('/api/users-GET')
     })
   })
 })

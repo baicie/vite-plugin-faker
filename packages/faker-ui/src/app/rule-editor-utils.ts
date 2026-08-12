@@ -95,6 +95,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+function formatStableIdentity(url: string, method: string): string {
+  const trimmedUrl = url.trim() || '/'
+  const trimmedMethod = (method.trim() || 'GET').toUpperCase()
+  return trimmedUrl + '-' + trimmedMethod
+}
+
+/**
+ * 根据 URL 与方法生成稳定标识，作为没有持久化 id 时回退的草案 id。
+ * 同一 URL/方法会共享同一稳定 id；不同条件变体则通过 matchRule 区分，
+ * 在创建时由 MocksDB 自动生成新的 UUID。
+ */
+export function stableRuleIdentity(url: string, method: string): string {
+  return formatStableIdentity(url, method)
+}
+
 function formatJson(value: unknown, fallback: string): string {
   if (value === undefined) {
     return fallback
@@ -379,7 +394,10 @@ function normalizeTags(source: string): string[] {
   return tags
 }
 
-function createCommonConfig(draft: RuleEditorDraft): RuleCommonConfig {
+function createCommonConfig(
+  draft: RuleEditorDraft,
+  options: RuleEditorOptions = {},
+): RuleCommonConfig {
   const common: RuleCommonConfig = {
     url: draft.url.trim(),
     method: draft.method.trim().toUpperCase(),
@@ -388,6 +406,8 @@ function createCommonConfig(draft: RuleEditorDraft): RuleCommonConfig {
 
   if (draft.id) {
     common.id = draft.id
+  } else if (options.useStableIdentity && common.url) {
+    common.id = formatStableIdentity(common.url, common.method)
   }
   if (draft.name.trim()) {
     common.name = draft.name.trim()
@@ -413,13 +433,24 @@ function createCommonConfig(draft: RuleEditorDraft): RuleCommonConfig {
   return common
 }
 
-export function createRuleConfig(draft: RuleEditorDraft): MockConfig {
+export interface RuleEditorOptions {
+  /**
+   * 当未显式提供 id 时，使用 URL/方法生成稳定 id（用于 Traffic 草稿等场景）。
+   * 默认为 false，避免普通"创建规则"流程产生与现有规则重复的 id。
+   */
+  useStableIdentity?: boolean
+}
+
+export function createRuleConfig(
+  draft: RuleEditorDraft,
+  options: RuleEditorOptions = {},
+): MockConfig {
   const errors = validateRuleEditorDraft(draft)
   if (errors.length > 0) {
     throw new Error(errors[0])
   }
 
-  const common = createCommonConfig(draft)
+  const common = createCommonConfig(draft, options)
 
   if (draft.type === 'proxy') {
     return extend({}, common, {

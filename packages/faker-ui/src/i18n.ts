@@ -257,6 +257,14 @@ const ZH_CN: { [key: string]: string } = {
   'Status must be an integer between 100 and 599':
     '状态码必须是 100 到 599 之间的整数',
   'Delay must be a non-negative number': '延迟必须是非负数',
+  'Save failed: {{error}}': '保存失败：{{error}}',
+  'Save failed: server returned no rule.': '保存失败：后端未返回规则。',
+  'Mock conflict detected': '检测到重复的 Mock',
+  'Update conflict detected': '更新冲突',
+  'Variant created for the same route': '已为同路由创建变体',
+  'Replay headers stripped': '已清理重放请求头',
+  'The rule could not be updated: {{error}}': '规则更新失败：{{error}}',
+  'The rule could not be deleted: {{error}}': '规则删除失败：{{error}}',
 }
 
 let activeLocale: Locale | undefined

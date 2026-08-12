@@ -29,4 +29,27 @@ describe('faker studio i18n', function () {
 
     expect(window.localStorage.getItem('faker-studio-locale')).toBe('zh-CN')
   })
+
+  it('translates new rule fidelity messages with interpolated errors', function () {
+    expect(translate('Save failed: {{error}}', { error: 'duplicate id' })).toBe(
+      'Save failed: duplicate id',
+    )
+    expect(translate('Mock conflict detected')).toBe('Mock conflict detected')
+    expect(translate('Update conflict detected')).toBe(
+      'Update conflict detected',
+    )
+    expect(translate('Variant created for the same route')).toBe(
+      'Variant created for the same route',
+    )
+    expect(translate('Replay headers stripped')).toBe('Replay headers stripped')
+
+    setLocale('zh-CN')
+    expect(translate('Save failed: {{error}}', { error: 'id 冲突' })).toBe(
+      '保存失败：id 冲突',
+    )
+    expect(translate('Mock conflict detected')).toBe('检测到重复的 Mock')
+    expect(translate('Import failed: {{error}}', { error: '导入失败' })).toBe(
+      '导入失败：导入失败',
+    )
+  })
 })

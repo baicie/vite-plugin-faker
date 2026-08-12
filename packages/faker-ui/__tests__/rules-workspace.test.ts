@@ -118,9 +118,12 @@ describe('RulesWorkspace OpenAPI import', function () {
     mockApi.fetchMockList.mockResolvedValue(createPage())
     mockApi.fetchGroups.mockResolvedValue([])
     mockApi.createMock.mockImplementation(function (rule) {
-      return Promise.resolve(rule)
+      return Promise.resolve({ success: true, mock: rule })
     })
-    mockApi.importMocks.mockResolvedValue({ success: true, count: 1 })
+    mockApi.importMocks.mockResolvedValue({
+      success: true,
+      count: 1,
+    })
   })
 
   afterEach(function () {
@@ -257,6 +260,43 @@ describe('RulesWorkspace OpenAPI import', function () {
           }),
           true,
         )
+      })
+  })
+
+  it('reports a backend save failure and keeps the editor open', function () {
+    mockApi.createMock.mockRejectedValueOnce(
+      new Error('Mock id conflicts with an existing mock'),
+    )
+    dispose = render(function () {
+      return RulesWorkspace({
+        client: new FakeRulesClient() as unknown as WSClient,
+        theme: function () {
+          return 'light'
+        },
+        draft: function () {
+          return trafficDraft
+        },
+        onDraftConsumed: function () {},
+        onRuleSaved: function () {},
+      })
+    }, target)
+
+    return settle()
+      .then(function () {
+        const form = target.querySelector<HTMLFormElement>('.rule-editor-form')
+        if (!form) {
+          throw new Error('Expected rule editor form')
+        }
+        form.dispatchEvent(
+          new SubmitEvent('submit', { bubbles: true, cancelable: true }),
+        )
+        return settle()
+      })
+      .then(function () {
+        expect(target.textContent).toContain(
+          'Mock id conflicts with an existing mock',
+        )
+        expect(target.querySelector('zw-dialog')).not.toBeNull()
       })
   })
 })

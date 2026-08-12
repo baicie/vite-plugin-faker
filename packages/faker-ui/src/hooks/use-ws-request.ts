@@ -3,7 +3,13 @@ import { WSMessageType, generateUUID } from '@baicie/faker-shared/browser'
 import { useAppContext } from './use-app-context'
 import { wsClient } from './use-ws'
 
-interface RequestOptions {}
+interface RequestOptions {
+  /**
+   * 当响应 payload 形如 `{ success: false, error?: string }` 时，
+   * 抛出一个携带错误消息的 Error，避免静默 resolve。
+   */
+  rejectOnFailure?: boolean
+}
 
 interface WsErrorPayload {
   message?: string
@@ -21,6 +27,22 @@ interface WSHandler<T = unknown> {
 
 export interface WsRequest<T = unknown, R = T> {
   (data?: T): Promise<R>
+}
+
+function isFailurePayload(payload: unknown): {
+  success: false
+  error?: string
+} | null {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+  const record = payload as Record<string, unknown>
+  if (record.success === false) {
+    const error =
+      typeof record.error === 'string' ? record.error : 'Request failed'
+    return { success: false, error }
+  }
+  return null
 }
 
 export function useWsRequest<T = unknown, R = T>(
@@ -68,6 +90,15 @@ export function useWsRequest<T = unknown, R = T>(
         }
         if (message.id !== reqId) {
           return
+        }
+        if (context.options && context.options.rejectOnFailure) {
+          const failure = isFailurePayload(payload)
+          if (failure) {
+            done = true
+            cleanup()
+            reject(new Error(failure.error || 'Request failed'))
+            return
+          }
         }
         done = true
         cleanup()

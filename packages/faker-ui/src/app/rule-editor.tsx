@@ -20,6 +20,11 @@ import type { RuleEditorDraft } from './rule-editor-utils'
 export interface RuleEditorProps {
   rule: MockConfig | null
   create?: boolean
+  /**
+   * 当为 true 时，如果草稿没有 id，将根据 URL/方法生成稳定 id。
+   * 用于 Traffic 草稿，让"保存为规则"在同一路由的第一次创建时使用一致的 id。
+   */
+  useStableIdentity?: boolean
   theme: () => FakerTheme
   onCancel: () => void
   onSaved: (rule: MockConfig) => void
@@ -514,7 +519,7 @@ function renderErrors(view: RuleEditorState): JSX.Element {
 
 export default function RuleEditor(props: RuleEditorProps): JSX.Element {
   const initialDraft = createRuleEditorDraft(props.rule)
-  if (props.create) {
+  if (props.create && !props.useStableIdentity) {
     delete initialDraft.id
   }
   const draft = state<RuleEditorDraft>(initialDraft)
@@ -554,7 +559,9 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
 
     let config: MockConfig
     try {
-      config = createRuleConfig(draft)
+      config = createRuleConfig(draft, {
+        useStableIdentity: props.useStableIdentity === true,
+      })
     } catch (error) {
       view.errors = [getErrorMessage(error)]
       return
@@ -566,13 +573,25 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
       : createMock(config)
 
     request
-      .then(function () {
+      .then(function (result: MockConfig | { mock?: MockConfig }) {
         view.saving = false
-        props.onSaved(config)
+        const saved =
+          result && typeof result === 'object' && 'mock' in result
+            ? (result as { mock?: MockConfig }).mock
+            : (result as MockConfig)
+        if (!saved) {
+          view.errors = [t('Save failed: server returned no rule.')]
+          return
+        }
+        props.onSaved(saved)
       })
       .catch(function (error: unknown) {
         view.saving = false
-        view.errors = [getErrorMessage(error)]
+        view.errors = [
+          t('Save failed: {{error}}', {
+            error: getErrorMessage(error),
+          }),
+        ]
       })
   }
 

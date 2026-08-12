@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { RequestRecord } from '@baicie/faker-shared'
 import {
+  createHeaderConditions,
   createTrafficRuleDraft,
   formatDuration,
   formatTrafficValue,
@@ -26,6 +27,7 @@ describe('traffic utilities', function () {
       method: 'POST',
       enabled: true,
       type: 'static',
+      id: '/api/users-POST',
       response: {
         status: 201,
         headers: { 'content-type': 'application/json' },
@@ -54,6 +56,7 @@ describe('traffic utilities', function () {
       method: 'GET',
       enabled: true,
       type: 'static',
+      id: '/api/pending-GET',
       response: {
         status: 200,
         headers: {},
@@ -163,5 +166,39 @@ describe('traffic utilities', function () {
     expect(formatDuration(1250)).toBe('1.25 s')
     expect(formatDuration(undefined)).toBe('-')
     expect(formatDuration(Number.NaN)).toBe('-')
+  })
+
+  it('creates header match conditions while skipping transport and mock headers', function () {
+    expect(
+      createHeaderConditions({
+        'X-Tenant': 'acme',
+        Accept: 'application/json',
+        Authorization: 'Bearer token',
+        Cookie: 'session=secret',
+        Host: 'example.test',
+        Connection: 'keep-alive',
+        'Content-Length': '12',
+        'Content-Type': 'application/json',
+        'X-Mock-Id': 'forged',
+        'x-mock-source': 'static',
+      }),
+    ).toEqual([
+      { key: 'X-Tenant', value: 'acme', operator: 'equals' },
+      { key: 'Accept', value: 'application/json', operator: 'equals' },
+      { key: 'Authorization', value: 'Bearer token', operator: 'equals' },
+    ])
+  })
+
+  it('includes header match conditions when generating a rule draft', function () {
+    const record: RequestRecord = {
+      url: '/api/users',
+      method: 'GET',
+      headers: { 'X-Tenant': 'acme', Cookie: 'session=secret' },
+      timestamp: 1,
+    }
+
+    expect(createTrafficRuleDraft(record).matchRule).toEqual({
+      headers: [{ key: 'X-Tenant', value: 'acme', operator: 'equals' }],
+    })
   })
 })
