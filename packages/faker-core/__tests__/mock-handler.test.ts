@@ -39,7 +39,11 @@ describe('MockHandler update events', function () {
 
     expect(response).toEqual({
       type: WSMessageType.MOCK_UPDATED,
-      data: { success: false },
+      data: {
+        success: false,
+        error:
+          'Update conflict: the rule signature matches another existing mock',
+      },
     })
     expect(eventBus.emit).not.toHaveBeenCalledWith(
       EventBusType.DB_MOCK_UPDATED,

@@ -397,4 +397,32 @@ describe('MocksDB route identity', () => {
           })
       })
   })
+
+  it('rejects an addMock call that reuses an existing explicit id', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const duplicate = createMock(undefined)
+    duplicate.id = '/api/users-GET'
+
+    expect(function () {
+      db.addMock(duplicate)
+    }).toThrow('id conflicts with an existing mock')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
+
+  it('imports a batch whose explicit ids collide with stored rules atomically', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const incoming = createMock(undefined)
+    incoming.id = '/api/users-GET'
+
+    expect(function () {
+      db.importMocks([incoming])
+    }).toThrow('duplicate id')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
 })

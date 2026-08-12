@@ -22,20 +22,26 @@ export class MockHandler {
    * 处理 Mock 创建
    */
   handleCreate(data: Partial<MockConfig>): WSMessage {
+    const mocksDB = this.dbManager.getMocksDB()
+    let mock: MockConfig
     try {
-      const mocksDB = this.dbManager.getMocksDB()
-      const mock = mocksDB.addMock(data as any)
-
-      // 触发数据库变更事件
-      this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
-
-      return {
-        type: WSMessageType.MOCK_CREATED,
-        data: mock,
-      }
+      mock = mocksDB.addMock(data as any)
     } catch (error) {
       logger.error('[Faker] 创建 Mock 失败:', error)
-      throw error
+      const message =
+        error instanceof Error ? error.message : 'Mock create failed'
+      return {
+        type: WSMessageType.MOCK_CREATED,
+        data: { success: false, error: message },
+      }
+    }
+
+    // 触发数据库变更事件
+    this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
+
+    return {
+      type: WSMessageType.MOCK_CREATED,
+      data: { success: true, mock },
     }
   }
 
@@ -43,25 +49,29 @@ export class MockHandler {
    * 处理 Mock 更新
    */
   handleUpdate(data: { id: string; updates: Partial<MockConfig> }): WSMessage {
-    try {
-      const mocksDB = this.dbManager.getMocksDB()
-      const success = mocksDB.updateMock(data.id, data.updates)
+    const mocksDB = this.dbManager.getMocksDB()
+    const success = mocksDB.updateMock(data.id, data.updates)
+    const errorMessage = success
+      ? undefined
+      : 'Update conflict: the rule signature matches another existing mock'
 
-      if (success) {
-        // 只有持久化成功后才通知其他客户端刷新配置。
-        this.eventBus.emit(EventBusType.DB_MOCK_UPDATED, {
-          id: data.id,
-          updates: data.updates,
-        })
-      }
+    if (success) {
+      // 只有持久化成功后才通知其他客户端刷新配置。
+      this.eventBus.emit(EventBusType.DB_MOCK_UPDATED, {
+        id: data.id,
+        updates: data.updates,
+      })
+    } else {
+      logger.warn(
+        '[Faker] 更新 Mock 失败（可能存在冲突）:',
+        data.id,
+        data.updates,
+      )
+    }
 
-      return {
-        type: WSMessageType.MOCK_UPDATED,
-        data: { success },
-      }
-    } catch (error) {
-      logger.error('[Faker] 更新 Mock 失败:', error)
-      throw error
+    return {
+      type: WSMessageType.MOCK_UPDATED,
+      data: { success, ...(errorMessage ? { error: errorMessage } : {}) },
     }
   }
 
@@ -82,7 +92,12 @@ export class MockHandler {
       }
     } catch (error) {
       logger.error('[Faker] 删除 Mock 失败:', error)
-      throw error
+      const message =
+        error instanceof Error ? error.message : 'Mock delete failed'
+      return {
+        type: WSMessageType.MOCK_DELETED,
+        data: { success: false, error: message },
+      }
     }
   }
 
@@ -153,26 +168,32 @@ export class MockHandler {
    * 处理 Mock 导入
    */
   handleImport(data: { items: MockConfig[] } | MockConfig[]): WSMessage {
+    const mocksDB = this.dbManager.getMocksDB()
+    const items = Array.isArray(data)
+      ? data
+      : data && data.items
+        ? data.items
+        : []
+    let imported: MockConfig[]
     try {
-      const mocksDB = this.dbManager.getMocksDB()
-      const items = Array.isArray(data)
-        ? data
-        : data && data.items
-          ? data.items
-          : []
-      const imported = mocksDB.importMocks(items)
-
-      for (const mock of imported) {
-        this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
-      }
-
-      return {
-        type: WSMessageType.MOCK_IMPORTED,
-        data: { success: true, count: imported.length },
-      }
+      imported = mocksDB.importMocks(items)
     } catch (error) {
       logger.error('[Faker] 导入 Mock 失败:', error)
-      throw error
+      const message =
+        error instanceof Error ? error.message : 'Mock import failed'
+      return {
+        type: WSMessageType.MOCK_IMPORTED,
+        data: { success: false, count: 0, error: message },
+      }
+    }
+
+    for (const mock of imported) {
+      this.eventBus.emit(EventBusType.DB_MOCK_CREATED, mock)
+    }
+
+    return {
+      type: WSMessageType.MOCK_IMPORTED,
+      data: { success: true, count: imported.length },
     }
   }
 

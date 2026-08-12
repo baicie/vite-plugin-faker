@@ -29,7 +29,9 @@ function canonicalize(value: unknown): unknown {
   return value
 }
 
-function mockSignature(config: Pick<MockConfig, 'url' | 'method' | 'matchRule'>): string {
+function mockSignature(
+  config: Pick<MockConfig, 'url' | 'method' | 'matchRule'>,
+): string {
   return JSON.stringify({
     url: normalizeRequestUrl(config.url) || '/',
     method: (config.method || '').toUpperCase(),
@@ -228,8 +230,7 @@ export class MocksDB extends BaseDB<Record<string, MockConfig>> {
       const priorityA = a.priority ?? 0
       const priorityB = b.priority ?? 0
       if (priorityB !== priorityA) return priorityB - priorityA
-      const specificityDelta =
-        matchSpecificity(b) - matchSpecificity(a)
+      const specificityDelta = matchSpecificity(b) - matchSpecificity(a)
       if (specificityDelta !== 0) return specificityDelta
       return String(a.id).localeCompare(String(b.id))
     })
