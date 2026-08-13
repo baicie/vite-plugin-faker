@@ -23,25 +23,6 @@ export interface TrafficRuleDraft {
   response: TrafficRuleDraftResponse
 }
 
-const BLOCKED_RESPONSE_HEADERS: Record<string, boolean> = {
-  connection: true,
-  'keep-alive': true,
-  'transfer-encoding': true,
-  upgrade: true,
-  te: true,
-  trailer: true,
-  'content-length': true,
-  'content-encoding': true,
-  date: true,
-  server: true,
-  etag: true,
-  'last-modified': true,
-  'set-cookie': true,
-  'set-cookie2': true,
-  'x-mock-id': true,
-  'x-mock-source': true,
-}
-
 function toQueryConditionValue(value: unknown): string | string[] | undefined {
   if (Array.isArray(value)) {
     if (value.length === 0) {
