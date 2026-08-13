@@ -2,10 +2,7 @@ import type { MockConfig, MockType } from '@baicie/faker-shared'
 import { onCleanup, state } from '@zeus-js/zeus'
 import { createMock, updateMock } from '../api'
 import type { FakerTheme } from '../api/setting'
-import type {
-  MockOperationResult,
-  SimpleResult,
-} from '../api/mock'
+import type { MockOperationResult, SimpleResult } from '../api/mock'
 import MonacoEditor from '../components/monaco-editor'
 import {
   dynamic,
@@ -578,10 +575,7 @@ export default function RuleEditor(props: RuleEditorProps): JSX.Element {
 
     request
       .then(function (
-        result:
-          | MockConfig
-          | MockOperationResult<MockConfig>
-          | SimpleResult,
+        result: MockConfig | MockOperationResult<MockConfig> | SimpleResult,
       ) {
         view.saving = false
         const saved =

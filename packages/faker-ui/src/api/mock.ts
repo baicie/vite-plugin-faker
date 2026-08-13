@@ -22,12 +22,14 @@ export interface SimpleResult {
 
 const FAILURE_OPTIONS = { rejectOnFailure: true } as const
 
-export const createMock: WsRequest<MockConfig, MockOperationResult<MockConfig>> =
-  useWsRequest<MockConfig, MockOperationResult<MockConfig>>({
-    sendType: WSMessageType.MOCK_CREATE,
-    responseType: WSMessageType.MOCK_CREATED,
-    options: FAILURE_OPTIONS,
-  })
+export const createMock: WsRequest<
+  MockConfig,
+  MockOperationResult<MockConfig>
+> = useWsRequest<MockConfig, MockOperationResult<MockConfig>>({
+  sendType: WSMessageType.MOCK_CREATE,
+  responseType: WSMessageType.MOCK_CREATED,
+  options: FAILURE_OPTIONS,
+})
 
 /**
  * 更新 Mock
