@@ -12,7 +12,13 @@ import RulesWorkspace from '../src/app/rules-workspace'
 
 const mockApi = vi.hoisted(function () {
   return {
-    createMock: vi.fn<(rule: MockConfig) => Promise<MockConfig>>(),
+    createMock: vi.fn<
+      (
+        rule: MockConfig,
+      ) => Promise<{ success: boolean; mock?: MockConfig; error?: string }>
+    >(function (rule: MockConfig) {
+      return Promise.resolve({ success: true, mock: rule })
+    }),
     deleteMock: vi.fn(),
     fetchGroups: vi.fn<() => Promise<string[]>>(),
     fetchMockList:
@@ -119,6 +125,10 @@ describe('RulesWorkspace OpenAPI import', function () {
     mockApi.fetchGroups.mockResolvedValue([])
     mockApi.createMock.mockImplementation(function (rule) {
       return Promise.resolve({ success: true, mock: rule })
+    })
+    mockApi.updateMock.mockImplementation(function (req) {
+      const updated = Object.assign({ id: req.id }, req.updates) as MockConfig
+      return Promise.resolve({ success: true, mock: updated })
     })
     mockApi.importMocks.mockResolvedValue({
       success: true,
@@ -264,7 +274,7 @@ describe('RulesWorkspace OpenAPI import', function () {
   })
 
   it('reports a backend save failure and keeps the editor open', function () {
-    mockApi.createMock.mockRejectedValueOnce(
+    mockApi.updateMock.mockRejectedValueOnce(
       new Error('Mock id conflicts with an existing mock'),
     )
     dispose = render(function () {
@@ -294,7 +304,7 @@ describe('RulesWorkspace OpenAPI import', function () {
       })
       .then(function () {
         expect(target.textContent).toContain(
-          'Mock id conflicts with an existing mock',
+          '保存失败：Mock id conflicts with an existing mock',
         )
         expect(target.querySelector('zw-dialog')).not.toBeNull()
       })

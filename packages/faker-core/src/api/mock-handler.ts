@@ -61,17 +61,21 @@ export class MockHandler {
         id: data.id,
         updates: data.updates,
       })
+      const updated = mocksDB.getMock(data.id)
+      return {
+        type: WSMessageType.MOCK_UPDATED,
+        data: { success: true, mock: updated },
+      }
     } else {
       logger.warn(
         '[Faker] 更新 Mock 失败（可能存在冲突）:',
         data.id,
         data.updates,
       )
-    }
-
-    return {
-      type: WSMessageType.MOCK_UPDATED,
-      data: { success, ...(errorMessage ? { error: errorMessage } : {}) },
+      return {
+        type: WSMessageType.MOCK_UPDATED,
+        data: { success: false, error: errorMessage },
+      }
     }
   }
 

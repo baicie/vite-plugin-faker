@@ -42,8 +42,11 @@ export const createMock: WsRequest<
  */
 export const updateMock: WsRequest<
   { id: string; updates: Partial<MockConfig> },
-  SimpleResult
-> = useWsRequest<{ id: string; updates: Partial<MockConfig> }, SimpleResult>({
+  MockOperationResult<MockConfig>
+> = useWsRequest<
+  { id: string; updates: Partial<MockConfig> },
+  MockOperationResult<MockConfig>
+>({
   sendType: WSMessageType.MOCK_UPDATE,
   responseType: WSMessageType.MOCK_UPDATED,
   options: FAILURE_OPTIONS,
