@@ -59,6 +59,16 @@ describe('MockHandler update events', function () {
       updateMock: vi.fn(function () {
         return true
       }),
+      getMock: vi.fn(function (id: string) {
+        return {
+          id,
+          url: '/api/users',
+          method: 'GET',
+          enabled: true,
+          type: 'static' as const,
+          response: { status: 200, headers: {}, body: {} },
+        }
+      }),
     }
     const manager = {
       getMocksDB: function () {

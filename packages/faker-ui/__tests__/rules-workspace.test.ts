@@ -8,6 +8,7 @@ import type { WSMessageType } from '@baicie/faker-shared'
 import { render } from '@zeus-js/zeus'
 import '@zeus-web/dialog/wc/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { setLocale } from '../src/i18n'
 import RulesWorkspace from '../src/app/rules-workspace'
 
 const mockApi = vi.hoisted(function () {
@@ -117,6 +118,7 @@ describe('RulesWorkspace OpenAPI import', function () {
   let dispose: () => void
 
   beforeEach(function () {
+    setLocale('zh-CN')
     target = document.createElement('div')
     document.body.appendChild(target)
     dispose = function () {}
@@ -126,7 +128,10 @@ describe('RulesWorkspace OpenAPI import', function () {
     mockApi.createMock.mockImplementation(function (rule) {
       return Promise.resolve({ success: true, mock: rule })
     })
-    mockApi.updateMock.mockImplementation(function (req) {
+    mockApi.updateMock.mockImplementation(function (req: {
+      id: string
+      updates: Partial<MockConfig>
+    }) {
       const updated = Object.assign({ id: req.id }, req.updates) as MockConfig
       return Promise.resolve({ success: true, mock: updated })
     })
