@@ -123,23 +123,150 @@ describe('MocksDB.findMockAdvanced', () => {
 
     expect(result).toBeUndefined()
   })
+
+  it('matches a pathname rule when the request contains a query string', () => {
+    const mock = createMock({
+      url: { pattern: '/api/users', type: 'exact' },
+    })
+    const db = createMocksDB([mock])
+
+    const result = db.findMockAdvanced({
+      url: '/api/users?preview=true',
+      method: 'GET',
+      query: { preview: 'true' },
+    })
+
+    expect(result).toBe(mock)
+  })
+
+  it('prefers a conditional variant over a broad route', () => {
+    const broad = createMock(undefined)
+    broad.id = 'broad-route'
+    const variant = createMock({
+      query: [{ key: 'tenant', value: 'acme', operator: 'equals' }],
+    })
+    variant.id = 'conditional-variant'
+    const db = createMocksDB([broad, variant])
+
+    expect(
+      db.findMockAdvanced({
+        url: '/api/users',
+        method: 'GET',
+        query: { tenant: 'acme' },
+      }),
+    ).toBe(variant)
+    expect(
+      db.findMockAdvanced({
+        url: '/api/users',
+        method: 'GET',
+        query: { tenant: 'other' },
+      }),
+    ).toBe(broad)
+  })
 })
 
 describe('MocksDB route identity', () => {
-  it('stores and returns the route key as the mock id', () => {
+  it('generates a stable id and preserves the existing route rule', () => {
     const db = createMutableMocksDB()
     const mock = createMock(undefined)
     mock.id = 'request-correlation-id'
 
     const created = db.addMock(mock)
 
-    expect(created.id).toBe('/api/users-GET')
-    expect(db.getData()).toEqual({
-      '/api/users-GET': created,
-    })
+    expect(created.id).toBe('request-correlation-id')
+    expect(db.getData()).toEqual({ 'request-correlation-id': created })
   })
 
-  it('moves the database key when url or method changes', () => {
+  it('allows same-route conditional variants without overwriting the broad rule', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const variant = createMock({
+      query: [{ key: 'tenant', value: 'acme', operator: 'equals' }],
+    })
+
+    const created = db.addMock(variant)
+
+    expect(created.id).not.toBe('/api/users-GET')
+    expect(Object.keys(db.getData())).toHaveLength(2)
+    expect(db.getData()['/api/users-GET']).toBe(existing)
+  })
+
+  it('rejects a duplicate matching signature without changing stored data', () => {
+    const existing = createMock({
+      query: [{ key: 'tenant', value: 'acme', operator: 'equals' }],
+    })
+    existing.id = 'existing-rule'
+    const db = createMutableMocksDB({ 'existing-rule': existing })
+    const duplicate = createMock({
+      query: [{ key: 'tenant', value: 'acme', operator: 'equals' }],
+    })
+
+    expect(function () {
+      db.addMock(duplicate)
+    }).toThrow('conflicts with an existing mock')
+    expect(db.getData()).toEqual({ 'existing-rule': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
+
+  it('does not persist a partial batch when an imported rule is invalid', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const valid = createMock(undefined)
+    valid.url = '/api/accounts'
+    const invalid = createMock(undefined)
+    invalid.url = ''
+
+    expect(function () {
+      db.importMocks([valid, invalid])
+    }).toThrow('url and method')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
+
+  it('imports a valid batch with normalized route ids in one write', () => {
+    const db = createMutableMocksDB()
+    const users = createMock(undefined)
+    const accounts = createMock(undefined)
+    accounts.url = '/api/accounts'
+    accounts.method = 'POST'
+
+    const imported = db.importMocks([users, accounts])
+
+    expect(imported).toHaveLength(2)
+    expect(imported[0]!.id).toBeTruthy()
+    expect(imported[1]!.id).toBeTruthy()
+    expect(Object.keys(db.getData())).toHaveLength(2)
+    expect((db as unknown as MutableMocksDB).save).toHaveBeenCalledOnce()
+  })
+
+  it('rejects an imported route conflict atomically', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const imported = createMock(undefined)
+    imported.url = '/api/accounts'
+    const conflicting = createMock(undefined)
+
+    expect(function () {
+      db.importMocks([imported, conflicting])
+    }).toThrow('conflicts with an existing mock')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
+
+  it('finds a basic route when the request contains a query string', () => {
+    const mock = createMock(undefined)
+    mock.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': mock })
+
+    expect(
+      db.findMock({ url: '/api/users?page=2', method: 'GET' }),
+    ).toMatchObject({ id: '/api/users-GET' })
+  })
+
+  it('keeps the stable database key when url or method changes', () => {
     const mock = createMock(undefined)
     mock.id = '/api/users-GET'
     const db = createMutableMocksDB({ '/api/users-GET': mock })
@@ -150,12 +277,12 @@ describe('MocksDB route identity', () => {
     })
 
     expect(updated).toBe(true)
-    expect(db.getData()['/api/users-GET']).toBeUndefined()
-    expect(db.getData()['/api/accounts-POST']).toMatchObject({
-      id: '/api/accounts-POST',
+    expect(db.getData()['/api/users-GET']).toMatchObject({
+      id: '/api/users-GET',
       url: '/api/accounts',
       method: 'POST',
     })
+    expect(db.getData()['/api/accounts-POST']).toBeUndefined()
   })
 
   it('rejects a route update that collides with another mock', () => {
@@ -185,6 +312,18 @@ describe('MocksDB route identity', () => {
 
     const result = db.getMocksWithPagination()
 
+    expect(result.items[0]!.id).toBe('/api/users-GET')
+  })
+
+  it('finds rules by their visible name', () => {
+    const mock = createMock(undefined)
+    mock.id = '/api/users-GET'
+    mock.name = 'Customer profile rule'
+    const db = createMutableMocksDB({ '/api/users-GET': mock })
+
+    const result = db.getMocksWithPagination(1, 20, 'customer profile')
+
+    expect(result.items).toHaveLength(1)
     expect(result.items[0]!.id).toBe('/api/users-GET')
   })
 
@@ -257,5 +396,33 @@ describe('MocksDB route identity', () => {
             expect(secondResponse.body).toEqual({ step: 2 })
           })
       })
+  })
+
+  it('rejects an addMock call that reuses an existing explicit id', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const duplicate = createMock(undefined)
+    duplicate.id = '/api/users-GET'
+
+    expect(function () {
+      db.addMock(duplicate)
+    }).toThrow('id conflicts with an existing mock')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
+  })
+
+  it('imports a batch whose explicit ids collide with stored rules atomically', () => {
+    const existing = createMock(undefined)
+    existing.id = '/api/users-GET'
+    const db = createMutableMocksDB({ '/api/users-GET': existing })
+    const incoming = createMock(undefined)
+    incoming.id = '/api/users-GET'
+
+    expect(function () {
+      db.importMocks([incoming])
+    }).toThrow('duplicate id')
+    expect(db.getData()).toEqual({ '/api/users-GET': existing })
+    expect((db as unknown as MutableMocksDB).save).not.toHaveBeenCalled()
   })
 })

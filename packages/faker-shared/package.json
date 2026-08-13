@@ -13,6 +13,7 @@
     "url": "https://github.com/baicie/vite-plugin-faker/issues"
   },
   "type": "module",
+  "sideEffects": false,
   "files": [
     "dist"
   ],
@@ -28,6 +29,16 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./browser": {
+      "import": {
+        "types": "./dist/browser.d.ts",
+        "default": "./dist/browser.js"
+      },
+      "require": {
+        "types": "./dist/browser.d.cts",
+        "default": "./dist/browser.cjs"
       }
     },
     "./node": {

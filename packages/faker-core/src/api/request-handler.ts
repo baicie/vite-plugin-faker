@@ -21,21 +21,6 @@ export class RequestHandler {
   async handleRecorded(data: RequestRecord): Promise<void> {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
-      const mocksDB = this.dbManager.getMocksDB()
-      // 关联 Mock 配置
-      if (!data.isMocked && !data.mockId) {
-        const mock = mocksDB.findMock({
-          url: data.url,
-          method: data.method,
-        })
-        if (mock) {
-          data.mockId = mock.id
-          data.isMocked = true
-          logger.debug(
-            `[Faker] 请求 ${data.url} ${data.method} 关联 Mock ${mock.id}`,
-          )
-        }
-      }
 
       const id = generateUUID()
       requestsDB.saveRequest(id, this.toRequestItem(data))
@@ -75,6 +60,7 @@ export class RequestHandler {
     try {
       const requestsDB = this.dbManager.getRequestsDB()
       requestsDB.clear()
+      this.eventBus.emit(EventBusType.DB_CACHE_CLEARED)
 
       return {
         type: WSMessageType.REQUEST_CLEARED,
@@ -96,6 +82,7 @@ export class RequestHandler {
         body: record.body,
         mockId: record.mockId,
         isMocked: record.isMocked,
+        mockSource: record.mockSource,
       },
       res: record.response
         ? {

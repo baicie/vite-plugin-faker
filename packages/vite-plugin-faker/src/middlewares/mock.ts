@@ -1,4 +1,5 @@
 import type {
+  MockConfig,
   MockContext,
   QueryObject,
   ResponseGeneratorOptions,
@@ -8,7 +9,12 @@ import { logger } from '@baicie/logger'
 import qs from 'qs'
 import type { Connect, ViteDevServer } from 'vite'
 import { dbManager } from '../index'
-import { generateResponseMap, readBody, restoreBody } from '@baicie/faker-core'
+import {
+  generateResponseMap,
+  readBody,
+  restoreBody,
+  sanitizeMockResponseHeaders,
+} from '@baicie/faker-core'
 
 export function parseQuery<T extends QueryObject = QueryObject>(
   url: string,
@@ -33,22 +39,23 @@ export function mockMiddleware(
     try {
       if (!mockDB) return next()
 
-      // 优先使用精确匹配
-      let mock = mockDB.findMock(req)
-
-      if (mock && !mock.enabled) {
-        mock = undefined
-      }
-
-      // 如果精确匹配不到，尝试高级匹配
-      if (!mock) {
+      const url = req.url || '/'
+      const method = req.method || 'GET'
+      const query = parseQuery(url)
+      const body = await readBody(req)
+      let mock: MockConfig | undefined
+      try {
         mock = mockDB.findMockAdvanced({
-          url: req.url!,
-          method: req.method || 'GET',
+          url,
+          method,
           headers: req.headers,
-          query: parseQuery(req.url!),
-          body: await readBody(req),
+          query,
+          body,
         })
+      } catch (matcherError) {
+        logger.error('[Faker] mock 匹配失败，回退到 next():', matcherError)
+        restoreBody(req)
+        return next()
       }
 
       if (!mock || !mock.enabled) {
@@ -64,11 +71,11 @@ export function mockMiddleware(
 
       const ctx: MockContext = {
         req,
-        url: req.url!,
-        method: req.method!,
+        url,
+        method,
         headers: req.headers,
-        query: parseQuery(req.url!),
-        body: await readBody(req),
+        query,
+        body,
       }
 
       const response = await generate(mock, ctx, options)
@@ -81,16 +88,26 @@ export function mockMiddleware(
       // status
       res.statusCode = response.status
 
-      const defaultHeaders = {
-        'Content-Type': 'application/json; charset=utf-8',
-        'X-Mock-Source': response.source ?? 'static',
-        'X-Mock-Id': response.meta?.mockId ?? 'unknown',
-      }
-      const responseHeaders = extend({}, defaultHeaders, response.headers)
-      // headers
+      // response headers
+      const responseHeaders = sanitizeMockResponseHeaders(
+        extend(
+          {},
+          {
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          response.headers,
+        ),
+      )
       for (const [k, v] of Object.entries(responseHeaders)) {
         res.setHeader(k, v)
       }
+      // Append authoritative mock markers after sanitization so request
+      // handlers can never spoof the mock id / source.
+      res.setHeader('X-Mock-Source', response.source || 'static')
+      res.setHeader(
+        'X-Mock-Id',
+        (response.meta && response.meta.mockId) || 'unknown',
+      )
 
       // body
       res.end(

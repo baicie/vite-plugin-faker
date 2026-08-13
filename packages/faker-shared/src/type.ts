@@ -76,7 +76,7 @@ export interface RequestRecord {
   url: string
   method: string
   headers: Record<string, string>
-  query?: Record<string, string>
+  query?: QueryObject
   body?: any
   response?: {
     statusCode: number
@@ -86,6 +86,7 @@ export interface RequestRecord {
   duration?: number
   isMocked?: boolean
   mockId?: string
+  mockSource?: MockType
   timestamp: number
 }
 //#endregion

@@ -1,7 +1,21 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@zeus-js/zeus",
+    "lib": [
+      "ES5",
+      "ES2015",
+      "ES2015.Iterable",
+      "ES2017",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": ["vite/client"],
+    "composite": false,
 
     /* Linting */
     "strict": true,
@@ -12,5 +26,6 @@
     "noEmit": true,
     "noUncheckedIndexedAccess": false
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "__tests__"]
 }

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 
 const distUrl = new URL('../dist/', import.meta.url)
 const javascript = readFileSync(new URL('index.js', distUrl), 'utf8')
+const nodeEntry = readFileSync(new URL('node.js', distUrl), 'utf8')
 const stylesheet = readFileSync(new URL('index.css', distUrl), 'utf8')
 const declarations = readFileSync(new URL('index.d.ts', distUrl), 'utf8')
 
@@ -11,11 +12,20 @@ if (/process\.env\./.test(javascript)) {
   )
 }
 
+if (!nodeEntry.includes('fakerUI')) {
+  throw new Error('The Node entry does not expose fakerUI')
+}
+
+if (/\b(?:document|window|HTMLElement|customElements)\b/.test(nodeEntry)) {
+  throw new Error('The Node entry contains a browser global')
+}
+
 const placeholders = [
   '__MOUNT_TARGET__',
   '__FAKER_WS_PORT__',
   '__FAKER_LOGGER_OPTIONS__',
   '__FAKER_UI_OPTIONS__',
+  '__FAKER_HOT_CONTEXT__',
 ]
 
 for (const placeholder of placeholders) {

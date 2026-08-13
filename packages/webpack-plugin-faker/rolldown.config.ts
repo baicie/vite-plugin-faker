@@ -13,6 +13,9 @@ const sharedConfig = defineConfig({
   input: 'src/index.ts',
   external,
   platform: 'node',
+  transform: {
+    target: 'es2015',
+  },
 })
 
 const esmConfig = defineConfig({
@@ -49,6 +52,7 @@ const cjsConfig = defineConfig({
     sourcemap: true,
   },
   transform: {
+    target: 'es2015',
     define: {
       'import.meta.url': '__filename',
     },

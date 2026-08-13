@@ -35,6 +35,21 @@ const createPage = (publicPath: string): string => {
 `
 }
 
+export function replaceRuntimePlaceholders(
+  content: string,
+  config: FakerConfig,
+): string {
+  return content
+    .replace(`__MOUNT_TARGET__`, JSON.stringify(config.mountTarget))
+    .replace(
+      `__FAKER_WS_PORT__`,
+      JSON.stringify(config.uiOptions && config.uiOptions.wsPort),
+    )
+    .replace(`__FAKER_LOGGER_OPTIONS__`, JSON.stringify(config.loggerOptions))
+    .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(config.uiOptions))
+    .replace(`__FAKER_HOT_CONTEXT__`, 'undefined')
+}
+
 export function routeMiddleware(
   config: FakerConfig,
   publicPath: string = '/',
@@ -84,17 +99,7 @@ export function routeMiddleware(
           let content = fs.readFileSync(filePath, 'utf-8')
 
           if (replaceContent) {
-            content = content
-              .replace(`__MOUNT_TARGET__`, JSON.stringify(config.mountTarget))
-              .replace(
-                `__FAKER_WS_PORT__`,
-                JSON.stringify(config.uiOptions?.wsPort),
-              )
-              .replace(
-                `__FAKER_LOGGER_OPTIONS__`,
-                JSON.stringify(config.loggerOptions),
-              )
-              .replace(`__FAKER_UI_OPTIONS__`, JSON.stringify(config.uiOptions))
+            content = replaceRuntimePlaceholders(content, config)
           }
 
           res.writeHead(200, { 'Content-Type': contentType })
