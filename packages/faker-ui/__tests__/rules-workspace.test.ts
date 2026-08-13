@@ -266,7 +266,7 @@ describe('RulesWorkspace OpenAPI import', function () {
         return settle()
       })
       .then(function () {
-        expect(mockApi.createMock).toHaveBeenCalledOnce()
+        expect(mockApi.updateMock).toHaveBeenCalledOnce()
         expect(onRuleSaved).toHaveBeenCalledWith(
           expect.objectContaining({
             url: trafficDraft.url,
