@@ -118,7 +118,6 @@ describe('RulesWorkspace OpenAPI import', function () {
   let dispose: () => void
 
   beforeEach(function () {
-    setLocale('zh-CN')
     target = document.createElement('div')
     document.body.appendChild(target)
     dispose = function () {}
@@ -144,6 +143,7 @@ describe('RulesWorkspace OpenAPI import', function () {
   afterEach(function () {
     dispose()
     document.body.innerHTML = ''
+    setLocale('en-US')
   })
 
   function mount(): void {
@@ -279,6 +279,7 @@ describe('RulesWorkspace OpenAPI import', function () {
   })
 
   it('reports a backend save failure and keeps the editor open', function () {
+    setLocale('zh-CN')
     mockApi.updateMock.mockRejectedValueOnce(
       new Error('Mock id conflicts with an existing mock'),
     )
