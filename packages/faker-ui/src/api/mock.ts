@@ -3,19 +3,19 @@ import { WSMessageType } from '@baicie/faker-shared/browser'
 import { useWsRequest } from '../hooks/use-ws-request'
 import type { WsRequest } from '../hooks/use-ws-request'
 
-interface MockOperationResult<T = MockConfig> {
+export interface MockOperationResult<T = MockConfig> {
   success: boolean
   mock?: T
   error?: string
 }
 
-interface MockImportResult {
+export interface MockImportResult {
   success: boolean
   count: number
   error?: string
 }
 
-interface SimpleResult {
+export interface SimpleResult {
   success: boolean
   error?: string
 }
