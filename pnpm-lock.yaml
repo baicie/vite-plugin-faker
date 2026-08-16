@@ -29,7 +29,7 @@ overrides:
   minimatch@9.x: 9.0.9
   minimatch@10.x: 10.2.6
   multer: 2.2.0
-  nanoid@3.x: 3.3.17
+  nanoid@3.x: 3.3.18
   node-forge: 1.4.0
   path-to-regexp@0.x: 0.1.13
   path-to-regexp@8.x: 8.4.2
@@ -7410,8 +7410,8 @@ packages:
     resolution: {integrity: sha512-FRS2otuFcPPYDPYViNWQ42+1iZqbXydinkRHTHFxrF4a1CpBfmydR9zkI44WSXAXCyPrkcGtPk5CnpW6Y3lFKQ==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
 
-  nanoid@3.3.17:
-    resolution: {integrity: sha512-xQLf0A3HOMlgHq0n247/LRuAOYmB7dXJ/DvAxGvsSBij45XtBSmQycu+F8ODbHwns/XyFZagyL1+J0Offw1E0g==}
+  nanoid@3.3.18:
+    resolution: {integrity: sha512-DTg4MJbGMWkfi6VZFdNt2/caMbQy4Ou+Op/hJQvGEWcnVfoA1QA+xzRKAzw9jD6+GVOOeYr/mIcuDSdug6F6+w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -17702,7 +17702,7 @@ snapshots:
 
   nanoevents@6.0.2: {}
 
-  nanoid@3.3.17: {}
+  nanoid@3.3.18: {}
 
   napi-build-utils@2.0.0: {}
 
@@ -18274,7 +18274,7 @@ snapshots:
 
   postcss@8.5.26:
     dependencies:
-      nanoid: 3.3.17
+      nanoid: 3.3.18
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
