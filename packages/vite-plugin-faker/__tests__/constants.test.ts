@@ -24,9 +24,10 @@ describe('plugin asset resolution', () => {
       throw new Error('Expected a Vite transform hook')
     }
 
+    const windowsUIEntry = UI_ENTRY.replace(/\//g, '\\')
     const transformed: unknown = Reflect.apply(transform, {}, [
       'const hotContext = __FAKER_HOT_CONTEXT__',
-      UI_ENTRY,
+      windowsUIEntry,
     ])
 
     expect(transformed).toBe('const hotContext = import.meta.hot')

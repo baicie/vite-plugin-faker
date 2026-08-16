@@ -27,7 +27,7 @@
       "minimatch@9.x": "9.0.9",
       "minimatch@10.x": "10.2.6",
       "multer": "2.2.0",
-      "nanoid@3.x": "3.3.17",
+      "nanoid@3.x": "3.3.18",
       "node-forge": "1.4.0",
       "path-to-regexp@0.x": "0.1.13",
       "path-to-regexp@8.x": "8.4.2",
