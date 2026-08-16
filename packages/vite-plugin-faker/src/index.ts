@@ -175,7 +175,7 @@ export function viteFaker(options: ViteFakerOptions = {}): Plugin {
       }
     },
     transform(code, id) {
-      const cleanId = cleanUrl(id)
+      const cleanId = normalizePath(cleanUrl(id))
       if (
         cleanId === normalizedUIEntry ||
         cleanId === normalizedInterceptorEntry
