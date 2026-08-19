@@ -1,5 +1,11 @@
 # @baicie/vite-plugin-faker
 
+## 0.1.1-beta.1
+
+### Patch Changes
+
+- [#8](https://github.com/baicie/vite-plugin-faker/pull/8) [`8edc071`](https://github.com/baicie/vite-plugin-faker/commit/8edc071349c8fa6963cfb224913824ac0546f14e) Thanks [@baicie](https://github.com/baicie)! - Normalize Windows asset paths before applying runtime placeholder transforms.
+
 ## 0.1.1-beta.0
 
 ### Patch Changes

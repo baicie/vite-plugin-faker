@@ -13,5 +13,8 @@
     "vue-app": "0.0.0",
     "@playground/webpack-app": "0.0.0"
   },
-  "changesets": ["bootstrap-public-packages"]
+  "changesets": [
+    "bootstrap-public-packages",
+    "tidy-paths-normalize"
+  ]
 }
